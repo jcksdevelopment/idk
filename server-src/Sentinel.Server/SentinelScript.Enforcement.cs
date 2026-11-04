@@ -61,13 +61,32 @@ namespace Sentinel.Server
             DropPlayer(player.Handle, $"[Sentinel] Banned. Reason: {reason} | Ban ID: {ban.Id}");
         }
 
+        /// <summary>The player left before the moderator acted: ban the identifiers the dashboard recorded.</summary>
+        private void BanOffline(DashboardCommand cmd)
+        {
+            // The dashboard never sees tokens or IPs, so offline bans cover license/discord/fivem/steam only.
+            var ban = _bans.Add(new Ban
+            {
+                Name = cmd.Name ?? ("#" + cmd.Player),
+                Identifiers = cmd.Identifiers.Where(i => i.IndexOf(':') > 0).Take(32).ToList(),
+                Reason = cmd.Reason ?? "Banned by staff",
+                Code = "MANUAL",
+                BannedBy = cmd.Actor ?? "dashboard",
+                ExpiresAt = cmd.DurationHours.HasValue && cmd.DurationHours > 0 ? DateTime.UtcNow.AddHours(cmd.DurationHours.Value) : (DateTime?)null,
+            });
+            _dashboard.Enqueue("ban", ban);
+        }
+
         private void ExecuteCommand(DashboardCommand cmd)
         {
             Log($"dashboard command {cmd.Type} player={cmd.Player} ban={cmd.BanId} by {cmd.Actor}");
             switch (cmd.Type)
             {
                 case "ban":
-                    BanPlayer(cmd.Player, "MANUAL", cmd.Reason ?? "Banned by staff", cmd.Actor ?? "dashboard", cmd.DurationHours);
+                    if (Players[cmd.Player] != null)
+                        BanPlayer(cmd.Player, "MANUAL", cmd.Reason ?? "Banned by staff", cmd.Actor ?? "dashboard", cmd.DurationHours);
+                    else if (cmd.Identifiers.Count > 0)
+                        BanOffline(cmd);
                     break;
                 case "unban":
                     if (cmd.BanId != null && _bans.Remove(cmd.BanId))

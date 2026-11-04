@@ -20,6 +20,9 @@ namespace Sentinel.Core.Dashboard
         public string? Reason { get; set; }
         public double? DurationHours { get; set; }
         public string? Actor { get; set; }
+        /// <summary>For bans of players who already left: the identifiers the dashboard last saw.</summary>
+        public List<string> Identifiers { get; set; } = new List<string>();
+        public string? Name { get; set; }
     }
 
     /// <summary>
@@ -121,6 +124,8 @@ namespace Sentinel.Core.Dashboard
                             Reason = c.Str("reason"),
                             DurationHours = c.Num("durationHours"),
                             Actor = c.Str("actor"),
+                            Identifiers = (c.Arr("identifiers") ?? new List<object?>()).OfType<string>().ToList(),
+                            Name = c.Str("name"),
                         });
                     }
                 }

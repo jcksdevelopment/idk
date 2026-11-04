@@ -20,8 +20,8 @@ live in `config.json`, not in code.
 |---|---|---|---|---|---|
 | `PLY_GODMODE_FLAG` | Godmode (invincible flag) | `GetPlayerInvincible`/`GetPlayerInvincible_2` true, or `GetEntityCanBeDamaged` false, while server hasn't authorised it | C | `client/detections/player.lua` | 40 |
 | `PLY_GODMODE_PROOFS` | Semi-godmode (proofs) | `GetEntityProofs` returns bullet/explosion/fire/melee proofs set | C | `player.lua` | 35 |
-| `PLY_HEALTH_REGEN` | Health lock / instant regen | Health rises faster than natural regen with no server-authorised heal | C+S | `player.lua`, `HealthValidator` | 25 |
-| `PLY_ARMOR_REGEN` | Armour lock / instant refill | Armour rises with no server-authorised armour event | C+S | `player.lua`, `HealthValidator` | 25 |
+| `PLY_HEALTH_REGEN` | Health lock / instant regen | Health rises faster than natural regen with no server-authorised heal | C+S | `player.lua`, `PlayerStateValidator` | 25 |
+| `PLY_ARMOR_REGEN` | Armour lock / instant refill | Armour rises with no server-authorised armour event | C+S | `player.lua`, `PlayerStateValidator` | 25 |
 | `PLY_HEALTH_CAP` | Max-health tampering | Health > `GetEntityMaxHealth` or max health > configured cap | C+S | `player.lua`, server state tick | 30 |
 | `PLY_DAMAGE_ABSORB` | Semi-godmode (absorbs hits) | Server sees confirmed `weaponDamageEvent` hits, but victim health never drops | S | `DamageValidator` | 30 |
 | `PLY_NO_RAGDOLL` | No ragdoll | `CanPedRagdoll` false while on foot and not authorised | C | `player.lua` | 15 |
@@ -47,8 +47,8 @@ live in `config.json`, not in code.
 
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
-| `WPN_BLACKLIST` | Blacklisted weapon spawn | Ped holds a weapon on the blacklist (client check plus `giveWeaponEvent` and server `GetSelectedPedWeapon`) | C+S | `weapon.lua`, `Sentinel.cs` | 50 |
-| `WPN_GIVE_EVENT` | Weapon give to others | `giveWeaponEvent` from a client (always malicious under OneSync) | S | `Sentinel.cs` | 50 |
+| `WPN_BLACKLIST` | Blacklisted weapon spawn | Ped holds a weapon on the blacklist (client check plus `giveWeaponEvent` and server `GetSelectedPedWeapon`) | C+S | `weapon.lua`, `SentinelScript.cs` | 50 |
+| `WPN_GIVE_EVENT` | Give or strip weapons | `giveWeaponEvent`, `removeWeaponEvent` or `removeAllWeaponsEvent` from a client (always malicious under OneSync; cancelled) | S | `SentinelScript.cs` | 50 |
 | `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ 1.0, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `DamageValidator` | 40 |
 | `WPN_RANGE` | Out-of-range hits | Hit distance > weapon effective range × 1.25 | S | `DamageValidator` | 25 |
 | `WPN_AIM_ANGLE` | Silent aim | Shooter's facing vs. vector to victim > 60° on a confirmed hit | S | `DamageValidator` | 30 |
@@ -75,7 +75,8 @@ live in `config.json`, not in code.
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
 | `NET_RATE` | Event flood / spoofing | Per-player token bucket on net events is exhausted | S | `RateLimiter` | 20 |
-| `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `Sentinel.cs` (honeypot events) | 60 |
+| `NET_CLEAR_TASKS` | Kick players out of vehicles / freeze them | `clearPedTasksEvent` aimed at another player's ped (cancelled) | S | `SentinelScript.cs` | 40 |
+| `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `SentinelScript.cs` (honeypot events) | 60 |
 | `HB_MISSING` | Scanner killed | No valid heartbeat for > 20 s | H | `HeartbeatManager` | 60 |
 | `HB_INVALID` | Heartbeat forgery/replay | MAC mismatch, sequence replay, or stale challenge | H | `HeartbeatManager` | 60 |
 | `EXE_RESOURCE_COUNT` | Executor `GetNumResources` spoof | Client resource count/list ≠ server's started list | C | `integrity.lua` | 40 |
@@ -83,6 +84,7 @@ live in `config.json`, not in code.
 | `EXE_COMMAND_INJECT` | Injected command handlers | `GetRegisteredCommands` contains a name the server didn't register | C | `integrity.lua` | 40 |
 | `EXE_GLOBAL_TAMPER` | Native hooking from executor | Canary natives/globals in the scanner's environment were swapped | C | `integrity.lua` | 50 |
 | `NUI_DEVTOOLS` | NUI devtools opened | NUI page detects devtools (debugger timing and console getter traps) | C | `html/index.html`, `integrity.lua` | 40 |
+| `CHK_ERROR` | Scanner tampering (partial) | A client check threw an error, or a heartbeat carried an unknown flag code | C | `client/main.lua`, `SentinelScript.cs` | 5 |
 | `NUI_FRAME_INJECT` | Injected NUI frame | NUI page sees an unknown `iframe`/`script` via `MutationObserver` | C | `html/index.html` | 40 |
 | `VIS_AI_FLAG` | Visual overlay (ESP, FOV circle, menu) | AI vision verdict says `cheat` with confidence ≥ 0.8 | S | `AIVisionEvaluator` | 30 (review queue, never auto-ban) |
 
