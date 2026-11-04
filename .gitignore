@@ -1,0 +1,17 @@
+# .NET
+bin/
+obj/
+*.user
+# Built server DLLs land in the resource; build them from server-src (see README).
+resource/sentinel/server/*.dll
+resource/sentinel/server/*.pdb
+# Runtime data (bans, captured screenshots)
+resource/sentinel/data/
+# Node / Next.js
+node_modules/
+.next/
+out/
+dashboard/.data/
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
