@@ -1,0 +1,11 @@
+# Rojo / Studio artifacts
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+*.rbxm
+*.rbxmx
+sourcemap.json
+roblox.yml
+roblox.toml
+.DS_Store
