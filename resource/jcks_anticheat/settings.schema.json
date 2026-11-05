@@ -160,7 +160,7 @@
           "key": "integrations.serverTrustReportedResources",
           "label": "Server trusts reported resource actions",
           "type": "bool",
-          "help": "The server accepts heals/teleports/etc. that the shield saw a running resource perform (sent inside the encrypted heartbeat), pausing its own checks for 3 s. Turn off for strict mode: only Trusted resources get server-side grace."
+          "help": "The server accepts heals/teleports/etc. that the shield saw a running resource perform (sent inside the encrypted heartbeat), pausing its own checks for 3 s. The resource name comes from the player's client, so this is limited to 2 grants and then 1 per minute per behaviour, and never covers godmode, invisible, noclip or spectate (those need Trusted resources). Trusted resources get up to 6 and then 1 per 15 s. Turn off for strict mode: only Trusted resources get server-side grace; grace granted from server scripts with exports.jcks_anticheat:GrantGrace is never limited."
         },
         {
           "key": "integrations.learning",

@@ -34,7 +34,9 @@ namespace JcksAnticheat.Server
         private readonly VehicleOwnership _vehicles = new VehicleOwnership();
         private readonly IntegrationLearning _learning = new IntegrationLearning();
         private IntegrationPolicy _integrations = new IntegrationPolicy();
-        private readonly RateLimiter.Rule _graceRule = new RateLimiter.Rule(30, 0.5);
+        private readonly RateLimiter.Rule _graceRule = new RateLimiter.Rule(6, 1.0 / 15);
+        private readonly RateLimiter.Rule _reportedGraceRule = new RateLimiter.Rule(2, 1.0 / 60);
+        private static readonly HashSet<string> ListedOnlyKinds = new HashSet<string>(StringComparer.Ordinal) { "godmode", "invisible", "noclip", "spectate" };
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
@@ -365,9 +367,9 @@ namespace JcksAnticheat.Server
                 if (_cfg.Integrations.Learning) _learning.Record(resource, kind);
                 bool listed = u.Bool("a") == true && _integrations.Allows(resource, kind);
                 bool reported = _cfg.Integrations.ServerTrustReportedResources && resource != _resource
-                                && Behaviours.IsKnown(kind) && kind != "*" && GetResourceState(resource) == "started";
+                                && Behaviours.IsKnown(kind) && kind != "*" && !ListedOnlyKinds.Contains(kind) && GetResourceState(resource) == "started";
                 if (!listed && !reported) continue;
-                if (!_limiter.TryConsume(id, "grace:" + kind, _graceRule)) continue;
+                if (!_limiter.TryConsume(id, (listed ? "grace:" : "rgrace:") + kind, listed ? _graceRule : _reportedGraceRule)) continue;
                 var duration = TimeSpan.FromMilliseconds(listed ? _cfg.Integrations.GraceMs : 3000);
                 if (kind == "teleport" || kind == "noclip") _movement.GrantGrace(id, duration, now);
                 _state.GrantGrace(id, kind, duration, now);
