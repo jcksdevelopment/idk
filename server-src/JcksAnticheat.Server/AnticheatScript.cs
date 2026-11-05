@@ -345,6 +345,7 @@ namespace JcksAnticheat.Server
                     evidence = new Dictionary<string, object?> { ["unknownCode"] = code.Length > 48 ? code.Substring(0, 48) : code };
                     code = "CHK_ERROR";
                 }
+                if (code == "EXE_RESOURCE_STOP" && GetResourceState(evidence.Str("r") ?? "") != "started") continue;
                 Punish(new Violation(id, code, ViolationSource.Client, evidence));
             }
         }

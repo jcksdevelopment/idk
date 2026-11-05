@@ -59,7 +59,7 @@ function N.GetPlayerWeaponDefenseModifier() return W.defense end
 function N.GetPlayerVehicleDamageModifier() return W.ramMod end
 function N.GetNumResources() return #W.resources end
 function N.GetResourceByFindIndex(i) return W.resources[i + 1] end
-function N.GetResourceState(r) for _, x in ipairs(W.resources) do if x == r then return "started" end end return "missing" end
+function N.GetResourceState(r) if W.stopped and W.stopped[r] then return "stopped" end for _, x in ipairs(W.resources) do if x == r then return "started" end end return "missing" end
 function N.GetRegisteredCommands() return W.commands end
 function N.HasStreamedTextureDictLoaded(d) return W.textures[d] == true end
 function N.GetVehicleEngineHealth() return W.vehicle.engine end
@@ -113,7 +113,9 @@ function N.SetVehicleHandlingFloat(_, _, f, v) W.vehicle.handling = W.vehicle.ha
 local threads = {}
 function N.CreateThread(fn) threads[#threads + 1] = { co = coroutine.create(fn), wake = 0 } end
 function N.Wait(ms) coroutine.yield(ms or 0) end
-function N.AddEventHandler() end
+local handlers = {}
+function N.AddEventHandler(name, fn) handlers[name] = fn end
+function N.GetCurrentResourceName() return "jcks_anticheat" end
 function N.RegisterNUICallback() end
 function N.exports() end
 
@@ -196,6 +198,8 @@ local SCENARIOS = {
   injected_resource = { what = "Injected fake resource", run = function() W.resources[#W.resources + 1] = "totally_legit_menu" end },
   injected_command = { what = "Command registered by an unknown resource", run = function() W.commands = { { name = "openmenu", resource = "redmenu" } } end },
   menu_texture = { what = "Menu texture dictionary loaded", run = function() W.textures["menu_textures"] = true end },
+  resource_stop = { what = "Menu stops es_extended on the client", run = function() W.stopped = { es_extended = true } handlers.onClientResourceStop("es_extended") end },
+  resource_restart = { what = "Server restarts es_extended (must NOT flag)", run = function() handlers.onClientResourceStop("es_extended") end },
   esp_blips = { what = "Blip ESP on 6 other players", run = function() S.shielded = { es_extended = true } for p = 1, 6 do W.blips[1000 + p] = 500 + p end end, undone = function() return next(W.blips) == nil end },
   police_blips = { what = "Police script blips on 6 players via a shielded resource (must NOT flag)", run = function() S.shielded = { es_extended = true } S.legitBlips = {} for p = 1, 6 do W.blips[1000 + p] = 500 + p S.legitBlips[1000 + p] = true end end },
 }
@@ -208,7 +212,7 @@ local EXPECT = {
   blacklisted_weapon = "WPN_BLACKLIST", give_all_weapons = "WPN_GIVE_ALL", damage_multiplier = "WPN_DMG_MODIFIER",
   weapon_modifier = "WPN_DMG_MODIFIER", vehicle_repair = "VEH_REPAIR", plate_change = "VEH_PLATE", power_boost = "VEH_POWER",
   top_speed = "VEH_TOP_SPEED", gravity = "VEH_GRAVITY", ram_damage = "VEH_DMG_MODIFIER", vehicle_godmode = "VEH_GODMODE",
-  injected_resource = "EXE_RESOURCE_INJECT", esp_blips = "PLY_ESP_BLIPS", police_blips = "none", injected_command = "EXE_COMMAND_INJECT", menu_texture = "EXE_MENU_TEXTURE",
+  injected_resource = "EXE_RESOURCE_INJECT", esp_blips = "PLY_ESP_BLIPS", resource_stop = "EXE_RESOURCE_STOP", resource_restart = "none", police_blips = "none", injected_command = "EXE_COMMAND_INJECT", menu_texture = "EXE_MENU_TEXTURE",
 }
 
 if scenarioName == "all" then

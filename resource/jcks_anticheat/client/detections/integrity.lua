@@ -58,6 +58,16 @@ AddEventHandler("onClientResourceStart", function(name)
   end)
 end)
 
+AddEventHandler("onClientResourceStop", function(name)
+  if not S.ready or name == GetCurrentResourceName() or not isKnownResource(name) then return end
+  CreateThread(function()
+    Wait(6000)
+    if GetResourceState(name) ~= "started" and GetResourceState(name) ~= "starting" then
+      S.flag("EXE_RESOURCE_STOP", { r = name:sub(1, 48) })
+    end
+  end)
+end)
+
 S.register("integrity.commands", 20000, function()
   local known = {}
   for _, r in ipairs(S.server.resources) do known[r] = true end
