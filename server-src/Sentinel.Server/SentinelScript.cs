@@ -37,6 +37,7 @@ namespace Sentinel.Server
         private readonly ExplosionValidator _explosions;
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
+        private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
         private readonly BanStore _bans;
         private readonly ScreenshotAssembler _screenshots = new ScreenshotAssembler();
         private readonly AIVisionEvaluator _vision;
@@ -161,6 +162,7 @@ namespace Sentinel.Server
             _explosions.Forget(id);
             _entities.Forget(id);
             _state.Forget(id);
+            _consistency.Forget(id);
             _ledger.Forget(id);
             _lastCapture.TryRemove(id, out _);
             _dashboard.Enqueue("player_left", new Dictionary<string, object?> { ["id"] = id, ["name"] = player.Name, ["reason"] = reason });
@@ -215,6 +217,7 @@ namespace Sentinel.Server
             }
 
             player.TriggerEvent(_ackEvent, result.NextChallenge);
+            CheckReportedState(player, id, result.Payload.Obj("st"));
 
             var flags = result.Payload.Arr("f");
             if (flags == null) return;
@@ -229,6 +232,27 @@ namespace Sentinel.Server
                 }
                 Punish(new Violation(id, code, ViolationSource.Client, evidence));
             }
+        }
+
+        /// <summary>Client-reported state (heartbeat "st") vs. what the server sees for the same ped.</summary>
+        private void CheckReportedState(Player player, int id, Dictionary<string, object?>? st)
+        {
+            if (st == null || !(st.Arr("p") is List<object?> p) || p.Count < 3) return;
+            int ped = GetPlayerPed(player.Handle);
+            if (ped == 0) return;
+            int serverHealth = GetEntityHealth(ped);
+            var now = DateTime.UtcNow;
+            int veh = GetVehiclePedIsIn(ped, false);
+            var vel = GetEntityVelocity(veh != 0 ? veh : ped);
+            // Teleports, heals and death legitimately make the two views diverge for a moment.
+            bool skip = serverHealth <= 100 || _state.HasGrace(id, "heal", now) || _state.HasGrace(id, "armor", now)
+                        || _state.HasGrace(id, "teleport", now) || _state.HasGrace(id, "noclip", now);
+            var v = _consistency.Evaluate(id,
+                (int)(st.Num("h") ?? serverHealth), (int)(st.Num("a") ?? 0),
+                new Vec3(ToFloat(p[0]), ToFloat(p[1]), ToFloat(p[2])),
+                serverHealth, GetPedArmour(ped), ToVec(GetEntityCoords(ped)),
+                (float)Math.Sqrt(vel.X * vel.X + vel.Y * vel.Y + vel.Z * vel.Z), skip);
+            if (v != null) Punish(v);
         }
 
         private void OnHoneypot([FromSource] Player player, string eventName)

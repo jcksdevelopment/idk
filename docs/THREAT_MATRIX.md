@@ -82,6 +82,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `SentinelScript.cs` (honeypot events) | 60 |
 | `HB_MISSING` | Scanner killed or never started | No valid heartbeat for > 20 s, or in the world for > 120 s without the `sentinel:hello` handshake | H | `HeartbeatManager` | 60 |
 | `HB_INVALID` | Heartbeat forgery/replay | MAC mismatch, sequence replay, or stale challenge | H | `HeartbeatManager` | 60 |
+| `HB_STATE_MISMATCH` | Hooked getters / forged heartbeat state | Health, armour or position the client reports differs from the server's OneSync view for 3 heartbeats in a row (e.g. `GetEntityHealth` hooked to hide godmode) | H | `StateConsistencyValidator` | 30 |
 | `EXE_RESOURCE_COUNT` | Executor `GetNumResources` spoof | Client resource count/list ≠ server's started list | C | `integrity.lua` | 40 |
 | `EXE_RESOURCE_INJECT` | Injected resource | Unknown resource starts on the client | C | `integrity.lua` | 50 |
 | `EXE_COMMAND_INJECT` | Injected command handlers | `GetRegisteredCommands` contains a name the server didn't register | C | `integrity.lua` | 40 |

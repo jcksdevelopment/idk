@@ -262,3 +262,58 @@ public class IterationTwoTests
         Assert.Equal(10, cfg.FloodDeniedPer10s);
     }
 }
+
+public class StateConsistencyTests
+{
+    private static readonly Vec3 Here = new(100, 200, 30);
+
+    [Fact]
+    public void MatchingStateNeverReports()
+    {
+        var sc = new StateConsistencyValidator();
+        for (int i = 0; i < 10; i++) Assert.Null(sc.Evaluate(1, 200, 50, Here, 195, 50, new Vec3(103, 200, 30), 2, false));
+    }
+
+    [Fact]
+    public void HookedHealthIsReportedAfterAStreak()
+    {
+        var sc = new StateConsistencyValidator();
+        // Client claims full health, server sees 120: a hooked GetEntityHealth hiding damage.
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
+        var v = sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
+        Assert.Equal("HB_STATE_MISMATCH", v!.Code);
+    }
+
+    [Fact]
+    public void OneLaggyHeartbeatResetsTheStreak()
+    {
+        var sc = new StateConsistencyValidator();
+        sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
+        sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 200, 0, Here, 0, false)); // caught up
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
+    }
+
+    [Fact]
+    public void FastVehiclesGetPositionTolerance()
+    {
+        var sc = new StateConsistencyValidator();
+        var server = new Vec3(160, 200, 30); // 60 m apart, but doing 50 m/s
+        for (int i = 0; i < 5; i++) Assert.Null(sc.Evaluate(1, 200, 0, Here, 200, 0, server, 50, false));
+        var spoofed = new Vec3(2000, 200, 30);
+        Violation? v = null;
+        for (int i = 0; i < 3; i++) v = sc.Evaluate(2, 200, 0, Here, 200, 0, spoofed, 0, false);
+        Assert.NotNull(v);
+    }
+
+    [Fact]
+    public void GraceSkipsAndResets()
+    {
+        var sc = new StateConsistencyValidator();
+        sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
+        sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, true));
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
+    }
+}
