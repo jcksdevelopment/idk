@@ -15,9 +15,11 @@ S.register("vehicle.repair", 500, function()
   if veh == lastVeh and mine and lastMine and not S.allowed("vehicle") then
     if (lastEngine < S.t("repairFromHealth") and engine >= 990) or (lastBody < S.t("repairFromHealth") and body >= 990) then
       S.flag("VEH_REPAIR", { e0 = math.floor(lastEngine), e1 = math.floor(engine), b0 = math.floor(lastBody), b1 = math.floor(body) })
+      if S.counterEnabled("VEH_REPAIR") then engine, body = lastEngine, lastBody end
     end
     if lastPlate and plate ~= lastPlate then
       S.flag("VEH_PLATE", { from = lastPlate, to = plate })
+      if S.counterEnabled("VEH_PLATE") then plate = lastPlate end
     end
   end
   lastVeh, lastEngine, lastBody, lastPlate, lastMine = veh, engine, body, plate, mine
