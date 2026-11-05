@@ -16,10 +16,24 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y lua5.4 zip
       - name: Build, test and package
         run: ./scripts/package.sh
+      - name: Simulate clean players and cheaters
+        run: dotnet run -c Release --project tools/sim/server
       - uses: actions/upload-artifact@v4
         with:
           name: jcks_anticheat-resource
           path: dist/jcks_anticheat/
+
+  license-server:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: license-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test
 
   dashboard:
     runs-on: ubuntu-24.04
