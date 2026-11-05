@@ -138,6 +138,13 @@ namespace JcksAnticheat.Server
             }
         }
 
+        private void ConfigureFlags()
+        {
+            _flags.MaxHealth = _cfg.MaxHealth;
+            _flags.ExpectedDamageModifier = _cfg.ExpectedDamageModifier;
+            _flags.CollisionStreak = (int)_cfg.ServerThresholds["collisionStreakSeconds"];
+        }
+
         private string _lastSuggestions = "";
 
         private void PushIntegrationSuggestions(bool force)
@@ -215,6 +222,7 @@ namespace JcksAnticheat.Server
             _heartbeats.MissingAfter = TimeSpan.FromSeconds(_cfg.HeartbeatMissingSeconds);
             _heartbeats.HandshakeTimeout = TimeSpan.FromSeconds(_cfg.HandshakeTimeoutSeconds);
             _state.MaxHealth = _cfg.MaxHealth;
+            ConfigureFlags();
             ApplyServerThresholds();
             RegisterHoneypots();
             RegisterProtectedEvents();

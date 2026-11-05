@@ -128,6 +128,10 @@ namespace JcksAnticheat.Core.Config
             ["triggerbotMs"] = 60,
             ["triggerbotCount"] = 5,
             ["infiniteAmmoShots"] = 10,
+            ["topSpeedModifierMax"] = 100,
+            ["gravityTolerance"] = 2,
+            ["vehicleDamageModifierMax"] = 1.5,
+            ["weaponDamageModifierMax"] = 1.5,
         };
         public static readonly Dictionary<string, double> ServerThresholdDefaults = new Dictionary<string, double>(StringComparer.Ordinal)
         {
@@ -140,6 +144,7 @@ namespace JcksAnticheat.Core.Config
             ["absorbWindowSeconds"] = 30,
             ["serverHealthJump"] = 25,
             ["serverArmorJump"] = 10,
+            ["collisionStreakSeconds"] = 3,
         };
         public Dictionary<string, double> ServerThresholds { get; set; } = new Dictionary<string, double>(ServerThresholdDefaults, StringComparer.Ordinal);
         public Dictionary<string, double> ClientThresholds { get; set; } = new Dictionary<string, double>(ClientThresholdDefaults, StringComparer.Ordinal);
@@ -235,6 +240,7 @@ namespace JcksAnticheat.Core.Config
             {
                 cfg.Entities.MaxVehiclesPer10s = (int)(en.Num("maxVehiclesPer10s") ?? cfg.Entities.MaxVehiclesPer10s);
                 cfg.Entities.MaxEntitiesPer10s = (int)(en.Num("maxEntitiesPer10s") ?? cfg.Entities.MaxEntitiesPer10s);
+                cfg.Entities.MaxAttachedToOthers = (int)(en.Num("maxAttachedToOthers") ?? cfg.Entities.MaxAttachedToOthers);
                 if (Strings(en, "allowedPedModels") is { } peds)
                 {
                     cfg.Entities.AllowedPedModelNames = peds;

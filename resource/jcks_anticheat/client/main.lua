@@ -32,6 +32,10 @@ local DEFAULTS = {
   triggerbotMs = 60,
   triggerbotCount = 5,
   infiniteAmmoShots = 10,
+  topSpeedModifierMax = 100,
+  gravityTolerance = 2,
+  vehicleDamageModifierMax = 1.5,
+  weaponDamageModifierMax = 1.5,
 }
 
 function S.t(name)

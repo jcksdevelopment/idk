@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using JcksAnticheat.Core.Detection;
 
 namespace JcksAnticheat.Core.Validation
@@ -93,6 +94,35 @@ namespace JcksAnticheat.Core.Validation
         public List<string> AllowedPedModelNames { get; set; } = new List<string>();
         public int MaxVehiclesPer10s { get; set; } = 5;
         public int MaxEntitiesPer10s { get; set; } = 15;
+        public int MaxAttachedToOthers { get; set; } = 2;
+    }
+
+    public readonly struct Attachment
+    {
+        public Attachment(int entity, int creator, int victim) { Entity = entity; Creator = creator; Victim = victim; }
+        public int Entity { get; }
+        public int Creator { get; }
+        public int Victim { get; }
+    }
+
+    public static class AttachmentWatch
+    {
+        public static (List<Violation> violations, List<int> remove) Evaluate(IEnumerable<Attachment> attachments, int maxPerCreator)
+        {
+            var violations = new List<Violation>();
+            var remove = new List<int>();
+            foreach (var group in attachments.Where(a => a.Creator > 0 && a.Victim > 0 && a.Creator != a.Victim).GroupBy(a => a.Creator))
+            {
+                var list = group.ToList();
+                if (list.Count <= maxPerCreator) continue;
+                violations.Add(new Violation(group.Key, "ENT_ATTACH_PLAYER", ViolationSource.Server, new Dictionary<string, object?>
+                {
+                    ["entities"] = list.Count, ["victims"] = list.Select(a => a.Victim).Distinct().Count(), ["serverObserved"] = true,
+                }));
+                remove.AddRange(list.Select(a => a.Entity));
+            }
+            return (violations, remove);
+        }
     }
 
     public sealed class EntityValidator

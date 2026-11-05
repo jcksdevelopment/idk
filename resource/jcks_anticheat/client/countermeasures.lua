@@ -83,10 +83,11 @@ local ACT = {
   MOV_NOCLIP_COLLISION = backToGround,
   MOV_NOCLIP_FLOAT = backToGround,
   MOV_NOCLIP_ZVEL = backToGround,
-  WPN_DMG_MODIFIER = function()
+  WPN_DMG_MODIFIER = function(d)
     local pid, m = PlayerId(), S.server.damageModifier or 1.0
     SetPlayerWeaponDamageModifier(pid, m)
     SetPlayerMeleeWeaponDamageModifier(pid, m)
+    if d.w then SetWeaponDamageModifier(d.w, 1.0) end
   end,
   WPN_INFINITE_AMMO = function()
     local ped = PlayerPedId()
@@ -98,9 +99,18 @@ local ACT = {
     local veh = myVehicle()
     if veh then
       SetVehicleCheatPowerIncrease(veh, 1.0)
-      ModifyVehicleTopSpeed(veh, 1.0)
+      ModifyVehicleTopSpeed(veh, 0.0)
     end
   end,
+  VEH_TOP_SPEED = function()
+    local veh = myVehicle()
+    if veh then ModifyVehicleTopSpeed(veh, 0.0) end
+  end,
+  VEH_GRAVITY = function()
+    local veh = myVehicle()
+    if veh then SetVehicleGravityAmount(veh, 9.8) end
+  end,
+  VEH_DMG_MODIFIER = function() SetPlayerVehicleDamageModifier(PlayerId(), 1.0) end,
   VEH_GODMODE = function()
     local veh = myVehicle()
     if veh then

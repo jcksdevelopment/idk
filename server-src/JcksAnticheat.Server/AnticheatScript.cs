@@ -38,6 +38,7 @@ namespace JcksAnticheat.Server
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
+        private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
         private readonly BanStore _bans;
         private readonly ScreenshotAssembler _screenshots = new ScreenshotAssembler();
         private readonly AIVisionEvaluator _vision;
@@ -49,6 +50,7 @@ namespace JcksAnticheat.Server
         private readonly string _hbEvent = HeartbeatManager.RandomEventName();
         private readonly string _ackEvent = HeartbeatManager.RandomEventName();
         private readonly string _graceEvent = HeartbeatManager.RandomEventName();
+        private readonly string _counterEvent = HeartbeatManager.RandomEventName();
         private readonly string _ssRequestEvent = HeartbeatManager.RandomEventName();
         private readonly string _ssUploadEvent = HeartbeatManager.RandomEventName();
         private readonly string _resourceEvent = HeartbeatManager.RandomEventName();
@@ -72,6 +74,7 @@ namespace JcksAnticheat.Server
             _explosions = new ExplosionValidator(_cfg.Explosions);
             _entities = new EntityValidator(_cfg.Entities);
             _state = new PlayerStateValidator { MaxHealth = _cfg.MaxHealth };
+            ConfigureFlags();
             _weaponBlacklist = new HashSet<uint>(_cfg.WeaponBlacklist.Select(Joaat.Hash));
             _gameEvents = new GameEventValidator(_cfg.GameEvents, () => _weaponBlacklist);
 
@@ -203,6 +206,7 @@ namespace JcksAnticheat.Server
             _vehicles.ForgetPlayer(id);
             _entities.Forget(id);
             _state.Forget(id);
+            _flags.Forget(id);
             _consistency.Forget(id);
             ForgetAntiDump(id);
             ForgetDeferred(id);
@@ -232,7 +236,7 @@ namespace JcksAnticheat.Server
 
             var init = new Dictionary<string, object?>
             {
-                ["k"] = key, ["c"] = challenge, ["hb"] = _hbEvent, ["ack"] = _ackEvent, ["gr"] = _graceEvent,
+                ["k"] = key, ["c"] = challenge, ["hb"] = _hbEvent, ["ack"] = _ackEvent, ["gr"] = _graceEvent, ["cm"] = _counterEvent,
                 ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["ru"] = _resourceEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
                 ["wb"] = _cfg.WeaponBlacklist, ["rs"] = StartedResources(), ["mh"] = _cfg.MaxHealth,
                 ["dm"] = _cfg.ExpectedDamageModifier, ["ig"] = _cfg.Scoring.Ignore.ToList(),

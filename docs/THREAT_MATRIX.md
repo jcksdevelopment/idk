@@ -20,13 +20,13 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
 | `PLY_GODMODE_FLAG` | Godmode (invincible flag) | `GetPlayerInvincible`/`GetPlayerInvincible_2` true, or `GetEntityCanBeDamaged` false, while server hasn't authorised it | C | `client/detections/player.lua` | 40 |
-| `PLY_GODMODE_PROOFS` | Semi-godmode (proofs) | `GetEntityProofs` returns bullet/explosion/fire/melee proofs set | C | `player.lua` | 35 |
+| `PLY_GODMODE_PROOFS` | Semi-godmode (proofs, defense) | `GetEntityProofs` returns bullet/explosion/fire/melee proofs set; weapon defense modifier below 1.0 (server reads `GetPlayerWeaponDefenseModifier`/`_2` from sync) | C+S | `player.lua`, `weapon.lua`, `PlayerFlagsValidator` | 35 |
 | `PLY_HEALTH_REGEN` | Health lock / instant regen | Health rises faster than natural regen with no server-authorised heal | C+S | `player.lua`, `PlayerStateValidator` | 25 |
 | `PLY_ARMOR_REGEN` | Armour lock / instant refill | Armour rises with no server-authorised armour event | C+S | `player.lua`, `PlayerStateValidator` | 25 |
-| `PLY_HEALTH_CAP` | Max-health tampering | Health > `GetEntityMaxHealth` or max health > configured cap | C+S | `player.lua`, server state tick | 30 |
+| `PLY_HEALTH_CAP` | Max-health tampering | Health > `GetEntityMaxHealth` or max health > configured cap; server reads `GetPlayerMaxHealth` | C+S | `player.lua`, `PlayerFlagsValidator` | 30 |
 | `PLY_DAMAGE_ABSORB` | Semi-godmode (absorbs hits) | Server sees confirmed `weaponDamageEvent` hits, but victim health never drops | S | `DamageValidator` | 30 |
 | `PLY_NO_RAGDOLL` | No ragdoll | `CanPedRagdoll` false while on foot and not authorised | C | `player.lua` | 15 |
-| `PLY_SUPERJUMP` | Super jump | Jump apex height above ground > 3.5 m, or `IsPedJumping` with vertical speed > 9 m/s | C+S | `player.lua`, `MovementValidator` | 30 |
+| `PLY_SUPERJUMP` | Super jump | Jump apex height above ground > 3.5 m, or `IsPedJumping` with vertical speed > 9 m/s; server sees the super-jump flag in sync (`IsPlayerUsingSuperJump`) | C+S | `player.lua`, `PlayerFlagsValidator` | 30 |
 | `PLY_SPEED_FOOT` | Speedhack (on foot) | Ped speed > 12 m/s on foot, not falling, not ragdolled | C+S | `player.lua`, `MovementValidator` | 30 |
 | `PLY_STAMINA` | Infinite stamina | Sprinting for > 25 s with stamina still at 100 | C | `player.lua` | 10 |
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
@@ -41,7 +41,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
 | `MOV_FREECAM` | Freecam | Gameplay cam > 30 m from ped (outside vehicle/cutscene/spectate) | C | `client/detections/movement.lua` | 25 |
-| `MOV_NOCLIP_COLLISION` | NoClip (collision off) | `GetEntityCollisionDisabled` true on ped or vehicle | C | `movement.lua` | 40 |
+| `MOV_NOCLIP_COLLISION` | NoClip (collision off) | `GetEntityCollisionDisabled` true on ped or vehicle; server sees it on a ped that is on foot and not attached for `server.collisionStreakSeconds` | C+S | `movement.lua`, `PlayerFlagsValidator` | 40 |
 | `MOV_NOCLIP_FLOAT` | NoClip (flying) | > 5 m above ground with near-zero vertical velocity for > 3 s, not in aircraft/parachute | C+S | `movement.lua`, `MovementValidator` | 35 |
 | `MOV_NOCLIP_ZVEL` | NoClip (impossible Z) | Ascending > 15 m/s on foot (gravity forbids it) | C+S | `movement.lua`, `MovementValidator` | 35 |
 | `MOV_BRING_ALL` | "Bring all players" | 3+ players teleported onto the same spot in one tick; the victims' `MOV_TELEPORT` is dropped and the non-teleported player standing there is reported | S | `MassTeleportDetector` | 50 |
@@ -59,7 +59,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `WPN_FIRE_PLAYER` | Set players on fire | `fireEvent` with a fire attached to another player's ped. Cancelled. | S | `GameEventValidator` | 45 |
 | `WPN_FIRE_SPAM` | Fire spam | More than 10 fires in 10 s | S | `GameEventValidator` | 40 |
 | `WPN_GIVE_EVENT` | Give or strip weapons | `giveWeaponEvent`, `removeWeaponEvent` or `removeAllWeaponsEvent` from a client (always malicious under OneSync; cancelled) | S | `AnticheatScript.cs` | 50 |
-| `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ 1.0, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `DamageValidator` | 40 |
+| `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ `expectedDamageModifier` (client and server sync), `GetWeaponDamageModifier` on the weapon in hand above `client.weaponDamageModifierMax`, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `PlayerFlagsValidator`, `DamageValidator` | 40 |
 | `WPN_RANGE` | Out-of-range hits | Hit distance > weapon effective range × 1.25 | S | `DamageValidator` | 25 |
 | `WPN_AIM_ANGLE` | Silent aim | Shooter's facing vs. vector to victim > 60° on a confirmed hit | S | `DamageValidator` | 30 |
 | `WPN_TRAJECTORY` | Magic bullet / fabricated hits | Reported bullet impact direction (`impactDirX/Y/Z`) deviates > 45° from the shooter→victim line | S | `DamageValidator` | 20 |
@@ -78,8 +78,12 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 |---|---|---|---|---|---|
 | `VEH_SPAWN` | Vehicle spawn bypass | `entityCreating` with a blacklisted model, or > 5 vehicles in 10 s from one owner | S | `EntityValidator` | 40 |
 | `ENT_SPAWN_FLOOD` | Object/ped spam | > 15 entities in 10 s from one owner | S | `EntityValidator` | 45 |
+| `ENT_ATTACH_PLAYER` | Props/cages/vehicles stuck on other players | More than `entities.maxAttachedToOthers` objects or vehicles first owned by one player are attached (`GetEntityAttachedTo`) to other players' peds; they are deleted | S | `AttachmentWatch` | 40 |
 | `VEH_HANDLING` | Handling edit | Handling floats drift from the baseline captured on entering | C | `vehicle.lua` | 30 |
-| `VEH_POWER` | Power/torque boost | `GetVehicleCheatPowerIncrease` > 1.0 or top-speed modifier set | C | `vehicle.lua` | 30 |
+| `VEH_POWER` | Power/torque boost | `GetVehicleCheatPowerIncrease` > 1.0 | C | `vehicle.lua` | 30 |
+| `VEH_TOP_SPEED` | Top-speed boost | `GetVehicleTopSpeedModifier` above `client.topSpeedModifierMax` percent (-1 means unset) | C | `vehicle.lua` | 30 |
+| `VEH_GRAVITY` | Vehicle gravity change (wall-ride, fly) | `GetVehicleGravityAmount` differs from 9.8 by more than `client.gravityTolerance` | C | `vehicle.lua` | 30 |
+| `VEH_DMG_MODIFIER` | Ramming damage boost | `GetPlayerVehicleDamageModifier` above `client.vehicleDamageModifierMax` | C | `vehicle.lua` | 30 |
 | `VEH_RAINBOW` | Rainbow vehicle | Paint colour changes 12+ times within 5 s without a `vehicle` grant | C | `vehicle.lua` | 20 |
 | `VEH_HIJACK` | Hijack / warp into another player's vehicle | Driver seat of a locked vehicle another online player spawned, without a `vehicle` grant | S | `VehicleOwnership` | 40 |
 | `VEH_REPAIR` | Instant vehicle repair ("fix vehicle") | Engine or body health jumps from < 600 to full in 0.5 s without a `vehicle` grant | C | `vehicle.lua` | 25 |

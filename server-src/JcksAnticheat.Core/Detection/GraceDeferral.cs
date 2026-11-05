@@ -37,9 +37,16 @@ namespace JcksAnticheat.Core.Detection
                 case "PLY_ARMOR_REGEN":
                     return "armor";
                 case "PLY_GODMODE_FLAG":
+                case "PLY_GODMODE_PROOFS":
                     return "godmode";
+                case "MOV_NOCLIP_COLLISION":
+                    return "noclip";
+                case "WPN_DMG_MODIFIER":
+                    return "weapons";
                 case "PLY_INVISIBLE":
                     return "invisible";
+                case "PLY_SUPERJUMP":
+                    return "superjump";
                 default:
                     return null;
             }

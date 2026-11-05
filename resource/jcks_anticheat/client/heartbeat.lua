@@ -125,6 +125,12 @@ RegisterNetEvent("jcks_anticheat:init", function(payload)
     end)
   end
 
+  if data.cm then
+    RegisterNetEvent(data.cm, function(code)
+      if type(code) == "string" and S.counter then S.counter(code, {}) end
+    end)
+  end
+
   S.ready = true
   TriggerEvent("jcks_anticheat:ready")
 

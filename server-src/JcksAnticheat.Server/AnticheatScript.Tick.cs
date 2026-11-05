@@ -90,6 +90,7 @@ namespace JcksAnticheat.Server
 
             if (_tickCount % 3 == 0) _ = _discord.FlushAsync();
             if (_tickCount % 30 == 0) PushIntegrationSuggestions(false);
+            if (_tickCount % 3 == 0 && players.Count > 1) CheckAttachments(players);
             if (_tickCount == 15 && _cfg.Backdoor.ScanOnStart) StartBackdoorScan("server start");
             if (_tickCount == 20)
             {
@@ -142,6 +143,18 @@ namespace JcksAnticheat.Server
                 else Punish(v);
             }
 
+            var flags = new PlayerFlags(IsPlayerUsingSuperJump(player.Handle), GetPlayerWeaponDamageModifier(player.Handle),
+                GetPlayerMeleeWeaponDamageModifier(player.Handle), GetPlayerWeaponDefenseModifier(player.Handle),
+                GetPlayerWeaponDefenseModifier_2(player.Handle), GetPlayerMaxHealth(player.Handle),
+                GetEntityCollisionDisabled(ped), GetEntityAttachedTo(ped) != 0, veh != 0, dead);
+            foreach (var v in _flags.Evaluate(id, flags))
+            {
+                var kind = GraceKindFor(v.Code);
+                if (kind != null && _state.HasGrace(id, kind, now)) continue;
+                if (kind != null) Defer(id, kind, now, v, null);
+                else Punish(v);
+            }
+
             if (!_state.HasGrace(id, "godmode", now) && GetPlayerInvincible(player.Handle))
                 Defer(id, "godmode", now, new Violation(id, "PLY_GODMODE_FLAG", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }), null);
 
@@ -167,6 +180,38 @@ namespace JcksAnticheat.Server
             var pedModel = _entities.CheckPedModel(id, Joaat.FromSigned(GetEntityModel(ped)));
             if (pedModel != null) Punish(pedModel);
         }
+
+        private void CheckAttachments(List<Player> players)
+        {
+            var pedOwner = new Dictionary<int, int>();
+            foreach (var p in players)
+            {
+                int ped = GetPlayerPed(p.Handle);
+                if (ped != 0) pedOwner[ped] = ToId(p.Handle);
+            }
+            var found = new List<Attachment>();
+            foreach (var list in new[] { GetAllObjects(), GetAllVehicles() })
+            {
+                if (!(list is IEnumerable<object> handles)) continue;
+                foreach (var h in handles)
+                {
+                    int entity = Convert.ToInt32(h);
+                    int to = GetEntityAttachedTo(entity);
+                    if (to == 0 || !pedOwner.TryGetValue(to, out var victim)) continue;
+                    found.Add(new Attachment(entity, NetworkGetFirstEntityOwner(entity), victim));
+                }
+            }
+            if (found.Count == 0) return;
+            var (violations, _) = AttachmentWatch.Evaluate(found, _cfg.Entities.MaxAttachedToOthers);
+            foreach (var v in violations)
+            {
+                _attachRemoval = found.Where(a => a.Creator == v.Player && a.Victim != v.Player).Select(a => a.Entity).ToList();
+                Punish(v);
+                _attachRemoval = null;
+            }
+        }
+
+        private List<int>? _attachRemoval;
 
         private static MovementMode ModeOf(string vehicleType)
         {

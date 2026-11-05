@@ -20,6 +20,14 @@ S.register("weapon.inventory", 2500, function()
   if defense < 0.95 and not S.allowed("godmode") then
     S.flag("PLY_GODMODE_PROOFS", { def = defense })
   end
+
+  local weapon = GetSelectedPedWeapon(ped)
+  if weapon ~= 0 and not S.allowed("weapons") then
+    local perWeapon = GetWeaponDamageModifier(weapon)
+    if perWeapon > S.t("weaponDamageModifierMax") then
+      S.flag("WPN_DMG_MODIFIER", { w = weapon, wm = math.floor(perWeapon * 100) / 100 })
+    end
+  end
 end)
 
 local ALL_WEAPONS = {

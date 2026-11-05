@@ -51,9 +51,11 @@ local KIND = {
   SetVehicleNumberPlateText = "vehicle", SetVehicleColours = "vehicle", SetVehicleCustomPrimaryColour = "vehicle",
   GiveWeaponToPed = "weapons", SetPedAmmo = "weapons", SetPedInfiniteAmmoClip = "weapons",
   RenderScriptCams = "camera", SetCamActive = "camera", SetPedCanRagdoll = "ragdoll",
-  SetSeethrough = "vision", SetNightvision = "vision",
+  SetSeethrough = "vision", SetNightvision = "vision", SetSuperJumpThisFrame = "superjump",
+  ModifyVehicleTopSpeed = "vehicle", SetVehicleGravityAmount = "vehicle", SetPlayerVehicleDamageModifier = "vehicle",
+  SetWeaponDamageModifier = "weapons", SetPlayerWeaponDamageModifier = "weapons", SetPlayerMeleeWeaponDamageModifier = "weapons",
 }
-local SELF_ARG = { SetPlayerInvincible = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false, SetSeethrough = false, SetNightvision = false }
+local SELF_ARG = { SetPlayerInvincible = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false, SetSeethrough = false, SetNightvision = false, SetSuperJumpThisFrame = true, SetPlayerVehicleDamageModifier = true, SetWeaponDamageModifier = false, SetPlayerWeaponDamageModifier = true, SetPlayerMeleeWeaponDamageModifier = true }
 
 local lastUse = {}
 local function aboutMe(name, first)
@@ -104,6 +106,8 @@ local GUARDED = {
   "ClearPedTasksImmediately", "AttachEntityToEntity", "NetworkSetInSpectatorMode",
   "SetVehicleNumberPlateText", "SetVehicleColours", "SetVehicleCustomPrimaryColour",
   "RenderScriptCams", "SetCamActive", "SetPedCanRagdoll", "SetSeethrough", "SetNightvision",
+  "ModifyVehicleTopSpeed", "SetVehicleGravityAmount", "SetPlayerVehicleDamageModifier", "SetWeaponDamageModifier",
+  "SetPlayerMeleeWeaponDamageModifier",
 }
 for i = 1, #GUARDED do guard(GUARDED[i]) end
 if Citizen and type(Citizen.InvokeNative) == "function" then

@@ -7,6 +7,11 @@ namespace JcksAnticheat.Server
 {
     public sealed partial class AnticheatScript
     {
+        private static readonly System.Collections.Generic.HashSet<string> ClientCountered = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal)
+        {
+            "PLY_SUPERJUMP", "WPN_DMG_MODIFIER", "PLY_GODMODE_PROOFS", "PLY_HEALTH_CAP", "MOV_NOCLIP_COLLISION", "PLY_GODMODE_FLAG", "PLY_INVISIBLE",
+        };
+
         private bool CountermeasureOn(string code) => _cfg.Countermeasures.Enabled && !_cfg.Countermeasures.Skip.Contains(code);
 
         private void ApplyServerCountermeasure(Violation v, string handle)
@@ -32,7 +37,13 @@ namespace JcksAnticheat.Server
                 case "WPN_GIVE_ALL":
                     RemoveAllPedWeapons(ped, true);
                     break;
+                case "ENT_ATTACH_PLAYER":
+                    foreach (var e in _attachRemoval ?? new System.Collections.Generic.List<int>())
+                        if (DoesEntityExist(e)) DeleteEntity(e);
+                    break;
             }
+            if (ClientCountered.Contains(v.Code) && v.Source == ViolationSource.Server)
+                Players[v.Player]?.TriggerEvent(_counterEvent, v.Code);
         }
 
         private void PutBack(int player, int ped)

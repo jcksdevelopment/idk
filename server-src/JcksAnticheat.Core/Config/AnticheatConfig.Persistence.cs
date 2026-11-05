@@ -64,7 +64,7 @@ namespace JcksAnticheat.Core.Config
             },
             ["entities"] = new Dictionary<string, object?>
             {
-                ["maxVehiclesPer10s"] = Entities.MaxVehiclesPer10s, ["maxEntitiesPer10s"] = Entities.MaxEntitiesPer10s,
+                ["maxVehiclesPer10s"] = Entities.MaxVehiclesPer10s, ["maxEntitiesPer10s"] = Entities.MaxEntitiesPer10s, ["maxAttachedToOthers"] = Entities.MaxAttachedToOthers,
                 ["allowedPedModels"] = Entities.AllowedPedModelNames.ToList(),
             },
             ["gameEvents"] = new Dictionary<string, object?>
@@ -158,6 +158,7 @@ namespace JcksAnticheat.Core.Config
             Require(Damage.HeadshotRatioMax > 0 && Damage.HeadshotRatioMax <= 1, "damage.headshotRatioMax must be 0–1");
             Require(Explosions.MaxPerSecond >= 1 && Explosions.MaxPer10Seconds >= Explosions.MaxPerSecond, "explosion limits invalid");
             Require(Entities.MaxVehiclesPer10s >= 1 && Entities.MaxEntitiesPer10s >= Entities.MaxVehiclesPer10s, "entity limits invalid");
+            Require(Entities.MaxAttachedToOthers >= 1 && Entities.MaxAttachedToOthers <= 100, "entities.maxAttachedToOthers must be 1–100");
             Require(GameEvents.ProjectileOriginMaxDistance >= 2 && GameEvents.MaxProjectilesPer10s >= 1 && GameEvents.MaxFiresPer10s >= 1
                     && GameEvents.MaxPtfxPer10s >= 1 && GameEvents.MaxPtfxScale > 0, "gameEvents limits invalid");
             Require(Vision.Provider == "anthropic" || Vision.Provider == "openai-compatible", "vision.provider must be anthropic or openai-compatible");

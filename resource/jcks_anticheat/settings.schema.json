@@ -127,7 +127,7 @@
           "key": "integrations.resources",
           "label": "Trusted resources",
           "type": "maplist",
-          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, vision, * (everything)."
+          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, vision, superjump, * (everything)."
         },
         {
           "key": "integrations.usePresets",
@@ -440,6 +440,42 @@
           "min": 3,
           "max": 200,
           "step": 1
+        },
+        {
+          "key": "client.topSpeedModifierMax",
+          "label": "Vehicle top speed modifier: max percent",
+          "help": "Highest top-speed boost (ModifyVehicleTopSpeed percent) a vehicle may have. Tuning scripts that boost more should be trusted with the 'vehicle' behaviour instead.",
+          "type": "number",
+          "min": 1,
+          "max": 10000,
+          "step": 5
+        },
+        {
+          "key": "client.gravityTolerance",
+          "label": "Vehicle gravity: allowed difference from 9.8",
+          "help": "How far a vehicle's gravity may differ from the normal 9.8 before it is flagged as VEH_GRAVITY.",
+          "type": "number",
+          "min": 0.1,
+          "max": 50,
+          "step": 0.1
+        },
+        {
+          "key": "client.vehicleDamageModifierMax",
+          "label": "Vehicle ramming damage: max modifier",
+          "help": "Highest player vehicle damage modifier allowed before VEH_DMG_MODIFIER. Normal is 1.0.",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 0.1
+        },
+        {
+          "key": "client.weaponDamageModifierMax",
+          "label": "Per-weapon damage: max modifier",
+          "help": "Highest damage modifier on the weapon in hand before WPN_DMG_MODIFIER. Servers that nerf weapons (below 1.0) are never flagged. Normal is 1.0.",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 0.1
         }
       ]
     },
@@ -519,6 +555,15 @@
           "min": 1,
           "max": 200,
           "step": 1
+        },
+        {
+          "key": "server.collisionStreakSeconds",
+          "label": "Server noclip: seconds without collision",
+          "help": "How many seconds in a row the server must see a player on foot with collision turned off (and not attached to anything) before MOV_NOCLIP_COLLISION. Resources that turn collision off on purpose are trusted through the 'noclip' behaviour.",
+          "type": "number",
+          "min": 1,
+          "max": 60,
+          "step": 1
         }
       ]
     },
@@ -528,7 +573,7 @@
       "fields": [
         {
           "key": "damage.bodyDamageMultiplier",
-          "label": "Max body damage \u00d7 baseline",
+          "label": "Max body damage × baseline",
           "type": "number",
           "min": 1,
           "max": 10,
@@ -536,7 +581,7 @@
         },
         {
           "key": "damage.headDamageMultiplier",
-          "label": "Max headshot damage \u00d7 baseline",
+          "label": "Max headshot damage × baseline",
           "type": "number",
           "min": 1,
           "max": 20,
@@ -544,7 +589,7 @@
         },
         {
           "key": "damage.rangeMultiplier",
-          "label": "Max range \u00d7 weapon range",
+          "label": "Max range × weapon range",
           "type": "number",
           "min": 1,
           "max": 5,
@@ -552,7 +597,7 @@
         },
         {
           "key": "damage.maxAimAngle",
-          "label": "Silent aim: max facing angle (\u00b0)",
+          "label": "Silent aim: max facing angle (°)",
           "type": "number",
           "min": 10,
           "max": 180,
@@ -560,7 +605,7 @@
         },
         {
           "key": "damage.maxTrajectoryAngle",
-          "label": "Max bullet trajectory deviation (\u00b0)",
+          "label": "Max bullet trajectory deviation (°)",
           "type": "number",
           "min": 5,
           "max": 90,
@@ -599,7 +644,7 @@
         },
         {
           "key": "damage.rateMultiplier",
-          "label": "Rapid fire: allowed \u00d7 weapon fire rate",
+          "label": "Rapid fire: allowed × weapon fire rate",
           "type": "number",
           "min": 1,
           "max": 5,
@@ -641,6 +686,15 @@
           "type": "number",
           "min": 1,
           "max": 500,
+          "step": 1
+        },
+        {
+          "key": "entities.maxAttachedToOthers",
+          "label": "Max objects one player may attach to others",
+          "help": "Objects and vehicles a player created that are attached to other players at the same time. Above this, ENT_ATTACH_PLAYER is raised and those entities are deleted (cages, props stuck on players). Peds are not counted, so carry/escort scripts are not affected.",
+          "type": "number",
+          "min": 1,
+          "max": 100,
           "step": 1
         },
         {

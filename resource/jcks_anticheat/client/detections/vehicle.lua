@@ -85,4 +85,19 @@ S.register("vehicle.state", 1500, function()
   if not GetEntityCanBeDamaged(veh) then
     S.flag("VEH_GODMODE", {})
   end
+
+  local top = GetVehicleTopSpeedModifier(veh)
+  if top > S.t("topSpeedModifierMax") then
+    S.flag("VEH_TOP_SPEED", { p = math.floor(top) })
+  end
+
+  local gravity = GetVehicleGravityAmount(veh)
+  if math.abs(gravity - 9.8) > S.t("gravityTolerance") then
+    S.flag("VEH_GRAVITY", { g = math.floor(gravity * 100) / 100 })
+  end
+
+  local ram = GetPlayerVehicleDamageModifier(PlayerId())
+  if ram > S.t("vehicleDamageModifierMax") then
+    S.flag("VEH_DMG_MODIFIER", { m = math.floor(ram * 100) / 100 })
+  end
 end)
