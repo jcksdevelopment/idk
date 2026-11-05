@@ -126,6 +126,10 @@ namespace JcksAnticheat.Server
                     if (cmd.Reason != "scan") { bdArgs.Add(cmd.Reason ?? ""); bdArgs.Add(cmd.BanId ?? ""); }
                     Log("dashboard backdoor " + cmd.Reason + ": " + BackdoorCommand(bdArgs));
                     break;
+                case "integrations":
+                    if (cmd.Reason == "apply" || cmd.Reason == "clear")
+                        Log("dashboard integrations " + cmd.Reason + ": " + IntegrationsCommand(cmd.Reason, (cmd.Actor ?? "dashboard") + " (web, integrations apply)"));
+                    break;
                 case "config":
                     Log("dashboard settings: " + SaveFromJson(cmd.Config, (cmd.Actor ?? "dashboard") + " (web)"));
                     break;

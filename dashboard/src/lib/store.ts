@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import type { BackdoorFinding, BackdoorScan, Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
+import type { BackdoorFinding, BackdoorScan, IntegrationSuggestions, Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
 import { seedDemo, startDemoFeed } from "./demo";
 
 
@@ -22,11 +22,12 @@ interface State {
   commands: Command[];
   settings: Record<string, ServerSettings>;
   backdoors: Record<string, BackdoorScan>;
+  integrations: Record<string, IntegrationSuggestions>;
 }
 
 class Store {
   readonly bus = new EventEmitter();
-  private state: State = { players: {}, detections: [], bans: {}, vision: [], commands: [], settings: {}, backdoors: {} };
+  private state: State = { players: {}, detections: [], bans: {}, vision: [], commands: [], settings: {}, backdoors: {}, integrations: {} };
   private log: LogLine[] = [];
   private saveTimer: NodeJS.Timeout | null = null;
   readonly demo: boolean;
@@ -44,6 +45,7 @@ class Store {
     this.demo = process.env.JCKS_AC_DEMO !== "0";
     this.state.settings ??= {};
     this.state.backdoors ??= {};
+    this.state.integrations ??= {};
     if (this.demo && !this.state.settings.main) this.seedSettingsFromResource();
     if (this.demo && Object.keys(this.state.players).length === 0) {
       seedDemo(this);
@@ -216,6 +218,15 @@ class Store {
   setBackdoorScan(serverId: string, findings: BackdoorFinding[]) {
     this.state.backdoors[serverId] = { serverId, at: new Date().toISOString(), findings };
     this.scheduleSave();
+  }
+
+  setIntegrationSuggestions(serverId: string, learning: boolean, suggestions: IntegrationSuggestions["suggestions"]) {
+    this.state.integrations[serverId] = { serverId, at: new Date().toISOString(), learning, suggestions };
+    this.scheduleSave();
+  }
+
+  integrationSuggestions(serverId: string): IntegrationSuggestions | null {
+    return this.state.integrations[serverId] ?? null;
   }
 
   backdoorScan(serverId: string): BackdoorScan | null {

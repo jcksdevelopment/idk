@@ -138,7 +138,24 @@ namespace JcksAnticheat.Server
             }
         }
 
-        private string IntegrationsCommand(string action)
+        private string _lastSuggestions = "";
+
+        private void PushIntegrationSuggestions(bool force)
+        {
+            var s = _cfg.Integrations.Learning ? _learning.Suggest(_integrations) : new Dictionary<string, List<string>>();
+            var payload = new Dictionary<string, object?>
+            {
+                ["learning"] = _cfg.Integrations.Learning,
+                ["suggestions"] = s.OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
+                    .Select(kv => (object?)new Dictionary<string, object?> { ["resource"] = kv.Key, ["behaviours"] = kv.Value.Cast<object?>().ToList() }).ToList(),
+            };
+            var json = MiniJson.Serialize(payload);
+            if (!force && json == _lastSuggestions) return;
+            _lastSuggestions = json;
+            _dashboard.Enqueue("integration_suggestions", payload);
+        }
+
+        private string IntegrationsCommand(string action, string actor = "console (jac integrations apply)")
         {
             switch (action)
             {
@@ -160,10 +177,13 @@ namespace JcksAnticheat.Server
                         if (!edited.Integrations.Resources.TryGetValue(kv.Key, out var list)) edited.Integrations.Resources[kv.Key] = list = new List<string>();
                         foreach (var b in kv.Value) if (!list.Contains(b)) list.Add(b);
                     }
-                    return Apply(edited, "console (jac integrations apply)", save: true);
+                    var applied = Apply(edited, actor, save: true);
+                    PushIntegrationSuggestions(true);
+                    return applied;
                 }
                 case "clear":
                     _learning.Clear();
+                    PushIntegrationSuggestions(true);
                     return "Learning data cleared.";
                 default:
                     foreach (var kv in _integrations.ToClient()) Log($"  {kv.Key} = {string.Join(", ", kv.Value)}");

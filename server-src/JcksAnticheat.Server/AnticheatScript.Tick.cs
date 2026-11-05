@@ -89,6 +89,7 @@ namespace JcksAnticheat.Server
             DrainVisionResults();
 
             if (_tickCount % 3 == 0) _ = _discord.FlushAsync();
+            if (_tickCount % 30 == 0) PushIntegrationSuggestions(false);
             if (_tickCount == 15 && _cfg.Backdoor.ScanOnStart) StartBackdoorScan("server start");
             if (_tickCount == 20)
             {

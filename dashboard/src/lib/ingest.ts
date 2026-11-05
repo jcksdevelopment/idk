@@ -155,6 +155,19 @@ export function applyEvent(serverId: string, ev: Obj) {
       }
       break;
     }
+    case "integration_suggestions": {
+      const d = obj(data);
+      const list = Array.isArray(d.suggestions) ? d.suggestions.map(obj) : [];
+      store.setIntegrationSuggestions(
+        serverId,
+        d.learning === true,
+        list.slice(0, 300).map((x) => ({
+          resource: str(x.resource).slice(0, 64),
+          behaviours: (Array.isArray(x.behaviours) ? x.behaviours : []).map((b) => str(b).slice(0, 24)).slice(0, 20),
+        })),
+      );
+      break;
+    }
     case "connection_rejected": {
       const c = obj(data);
       store.pushLog({ level: "warn", kind: "connect", text: `rejected banned connection ${str(c.name)} (ban ${str(c.banId)})` });
