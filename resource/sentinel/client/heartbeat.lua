@@ -86,6 +86,13 @@ RegisterNetEvent("sentinel:init", function(payload)
   S.server.ssRequest = data.sr
   S.server.ssUpload = data.su
 
+  -- Resources the server starts after we joined; integrity.lua waits for these before flagging.
+  if data.ru then
+    RegisterNetEvent(data.ru, function(name)
+      if type(name) == "string" then S.server.resources[#S.server.resources + 1] = name end
+    end)
+  end
+
   -- Server → client acks carry the next challenge.
   RegisterNetEvent(session.ackEvent, function(nextChallenge)
     if type(nextChallenge) == "string" then session.challenge = nextChallenge end

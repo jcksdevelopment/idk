@@ -48,12 +48,23 @@ S.register("integrity.resources", 15000, function()
   end
 end)
 
-AddEventHandler("onClientResourceStart", function(name)
-  if not S.ready then return end
+local function isKnownResource(name)
   for _, r in ipairs(S.server.resources) do
-    if r == name then return end
+    if r == name then return true end
   end
-  S.flag("EXE_RESOURCE_INJECT", { r = name:sub(1, 48), live = true })
+  return false
+end
+
+AddEventHandler("onClientResourceStart", function(name)
+  if not S.ready or isKnownResource(name) then return end
+  -- A resource the server just started reaches us before (or after) the server's notice of it;
+  -- give that notice time to arrive before calling it an injection.
+  CreateThread(function()
+    Wait(8000)
+    if not isKnownResource(name) and GetResourceState(name) == "started" then
+      S.flag("EXE_RESOURCE_INJECT", { r = name:sub(1, 48), live = true })
+    end
+  end)
 end)
 
 -- Every registered command records the resource that registered it. Built-in console commands

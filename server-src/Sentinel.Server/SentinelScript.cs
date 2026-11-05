@@ -51,6 +51,7 @@ namespace Sentinel.Server
         private readonly string _graceEvent = HeartbeatManager.RandomEventName();
         private readonly string _ssRequestEvent = HeartbeatManager.RandomEventName();
         private readonly string _ssUploadEvent = HeartbeatManager.RandomEventName();
+        private readonly string _resourceEvent = HeartbeatManager.RandomEventName();
 
         private readonly ConcurrentQueue<(ScreenshotAssembler.Completed shot, VisionVerdict verdict)> _visionResults =
             new ConcurrentQueue<(ScreenshotAssembler.Completed, VisionVerdict)>();
@@ -94,6 +95,7 @@ namespace Sentinel.Server
             EventHandlers["playerConnecting"] += new Action<Player, string, CallbackDelegate, IDictionary<string, object>>(OnPlayerConnecting);
             EventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDropped);
             EventHandlers["playerJoining"] += new Action<Player, string>(OnPlayerJoining);
+            EventHandlers["onServerResourceStart"] += new Action<string>(OnServerResourceStart);
             EventHandlers["sentinel:hello"] += new Action<Player>(OnHello);
             EventHandlers[_hbEvent] += new Action<Player, object, string, string, string>(OnHeartbeat);
             EventHandlers[_ssUploadEvent] += new Action<Player, string, int, int, string>(OnScreenshotChunk);
@@ -138,6 +140,17 @@ namespace Sentinel.Server
             ((CallbackDelegate)deferrals["done"])(message);
             Log($"rejected banned connection {name} ({ban.Id})");
             _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = ban.Id });
+        }
+
+        /// <summary>
+        /// A resource started after players joined (e.g. `ensure` from the console) is legitimate:
+        /// tell every client before its own onClientResourceStart check flags it as injected.
+        /// </summary>
+        private void OnServerResourceStart(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name == _resource) return;
+            foreach (var p in Players)
+                if (_heartbeats.HasSession(ToId(p.Handle))) p.TriggerEvent(_resourceEvent, name);
         }
 
         private void OnPlayerJoining([FromSource] Player player, string oldId)
@@ -190,7 +203,7 @@ namespace Sentinel.Server
             var init = new Dictionary<string, object?>
             {
                 ["k"] = key, ["c"] = challenge, ["hb"] = _hbEvent, ["ack"] = _ackEvent, ["gr"] = _graceEvent,
-                ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
+                ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["ru"] = _resourceEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
                 ["wb"] = _cfg.WeaponBlacklist, ["rs"] = StartedResources(), ["mh"] = _cfg.MaxHealth,
                 ["dm"] = _cfg.ExpectedDamageModifier,
             };
