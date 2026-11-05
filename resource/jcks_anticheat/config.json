@@ -96,6 +96,15 @@
     "disabledRules": []
   },
 
+  "messages": {
+    "kick": "[JCKS Anticheat] Disconnected: suspicious activity ({code}).",
+    "ban": "[JCKS Anticheat] Banned. Reason: {reason} | Ban ID: {id}{appeal}",
+    "banned": "[JCKS Anticheat] You are banned. Reason: {reason} | Ban ID: {id} | Expires: {expires}{appeal}",
+    "staffKick": "[JCKS Anticheat] Kicked by staff: {reason}",
+    "nameRejected": "[JCKS Anticheat] {reason} Change your FiveM name and reconnect.",
+    "appealUrl": ""
+  },
+
   "discord": {
     "enabled": false,
     "webhookEnv": "JCKS_AC_DISCORD_WEBHOOK",

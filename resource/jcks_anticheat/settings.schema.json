@@ -984,6 +984,48 @@
       ]
     },
     {
+      "id": "messages",
+      "title": "Messages",
+      "fields": [
+        {
+          "key": "messages.kick",
+          "label": "Kick message",
+          "type": "string",
+          "help": "Shown to a player kicked by the anticheat. Placeholders: {code}, {reason}, {id} (ban ID), {expires}, {name}, {appeal} (adds ' | Appeal: <appealUrl>' when set)."
+        },
+        {
+          "key": "messages.ban",
+          "label": "Ban message",
+          "type": "string",
+          "help": "Shown when a player is banned while online. Placeholders: {code}, {reason}, {id} (ban ID), {expires}, {name}, {appeal} (adds ' | Appeal: <appealUrl>' when set)."
+        },
+        {
+          "key": "messages.banned",
+          "label": "Banned on connect",
+          "type": "string",
+          "help": "Shown when a banned player tries to join. Placeholders: {code}, {reason}, {id} (ban ID), {expires}, {name}, {appeal} (adds ' | Appeal: <appealUrl>' when set)."
+        },
+        {
+          "key": "messages.staffKick",
+          "label": "Staff kick",
+          "type": "string",
+          "help": "Shown when staff kicks from the dashboard. Placeholders: {code}, {reason}, {id} (ban ID), {expires}, {name}, {appeal} (adds ' | Appeal: <appealUrl>' when set)."
+        },
+        {
+          "key": "messages.nameRejected",
+          "label": "Name rejected",
+          "type": "string",
+          "help": "Shown when the player's name is refused; {reason} says why. Placeholders: {code}, {reason}, {id} (ban ID), {expires}, {name}, {appeal} (adds ' | Appeal: <appealUrl>' when set)."
+        },
+        {
+          "key": "messages.appealUrl",
+          "label": "Appeal link",
+          "type": "string",
+          "help": "Discord invite or website where players can appeal. Empty hides it."
+        }
+      ]
+    },
+    {
       "id": "discord",
       "title": "Discord logs",
       "fields": [

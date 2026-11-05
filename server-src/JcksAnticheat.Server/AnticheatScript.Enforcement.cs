@@ -45,7 +45,7 @@ namespace JcksAnticheat.Server
                     break;
                 case EnforcementAction.Kick:
                     if (_removing.ContainsKey(v.Player)) break;
-                    var reason = $"[JCKS Anticheat] Disconnected: suspicious activity ({v.Code}).";
+                    var reason = Msg(_cfg.Messages.Kick, v.Code, v.Code, null, null, player.Name);
                     bool screenshot = _vision.IsConfigured && !_cfg.Scoring.DropImmediately.Contains(v.Code);
                     if (screenshot) RequestScreenshot(v.Player, $"{v.Code} before kick");
                     _removing[v.Player] = (DateTime.UtcNow.AddSeconds(screenshot ? KickScreenshotDelaySeconds : 0), reason, false);
@@ -56,6 +56,14 @@ namespace JcksAnticheat.Server
                     break;
             }
         }
+
+        private string Msg(string template, string? code, string? reason, string? id, string? expires, string? name)
+            => _cfg.Messages.Format(template, new Dictionary<string, string?>
+            {
+                ["code"] = code, ["reason"] = reason, ["id"] = id, ["expires"] = expires, ["name"] = name,
+            });
+
+        private static string ExpiryText(DateTime? at) => at.HasValue ? at.Value.ToString("yyyy-MM-dd HH:mm") + " UTC" : "permanent";
 
         private void BanPlayer(int playerId, string code, string reason, string actor, double? durationHours = null)
         {
@@ -74,7 +82,7 @@ namespace JcksAnticheat.Server
             });
             _dashboard.Enqueue("ban", ban);
             _discord.Ban(ban.Name, ban.Id, reason, actor, ban.ExpiresAt);
-            DropPlayer(player.Handle, $"[JCKS Anticheat] Banned. Reason: {reason} | Ban ID: {ban.Id}");
+            DropPlayer(player.Handle, Msg(_cfg.Messages.Ban, code, reason, ban.Id, ExpiryText(ban.ExpiresAt), player.Name));
         }
 
         private void BanOffline(DashboardCommand cmd)
@@ -119,7 +127,7 @@ namespace JcksAnticheat.Server
                     break;
                 case "kick":
                     var p = Players[cmd.Player];
-                    if (p != null) DropPlayer(p.Handle, "[JCKS Anticheat] Kicked by staff: " + (cmd.Reason ?? "no reason given"));
+                    if (p != null) DropPlayer(p.Handle, Msg(_cfg.Messages.StaffKick, "MANUAL", cmd.Reason ?? "no reason given", null, null, p.Name));
                     break;
                 case "backdoor":
                     var bdArgs = new List<object> { "scan" };

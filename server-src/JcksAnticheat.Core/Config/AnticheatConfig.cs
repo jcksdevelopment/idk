@@ -70,6 +70,7 @@ namespace JcksAnticheat.Core.Config
         public AntiDumpConfig AntiDump { get; set; } = new AntiDumpConfig();
         public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
+        public JcksAnticheat.Core.Messages.MessageSettings Messages { get; set; } = new JcksAnticheat.Core.Messages.MessageSettings();
 
         public List<string> WeaponBlacklist { get; set; } = new List<string>
         {
@@ -316,6 +317,16 @@ namespace JcksAnticheat.Core.Config
                 cfg.Backdoor.IgnoreIds = Strings(bd, "ignoreIds") ?? cfg.Backdoor.IgnoreIds;
                 cfg.Backdoor.IgnoreResources = Strings(bd, "ignoreResources") ?? cfg.Backdoor.IgnoreResources;
                 cfg.Backdoor.DisabledRules = Strings(bd, "disabledRules") ?? cfg.Backdoor.DisabledRules;
+            }
+
+            if (root.Obj("messages") is { } msg)
+            {
+                cfg.Messages.Kick = msg.Str("kick") ?? cfg.Messages.Kick;
+                cfg.Messages.Ban = msg.Str("ban") ?? cfg.Messages.Ban;
+                cfg.Messages.Banned = msg.Str("banned") ?? cfg.Messages.Banned;
+                cfg.Messages.StaffKick = msg.Str("staffKick") ?? cfg.Messages.StaffKick;
+                cfg.Messages.NameRejected = msg.Str("nameRejected") ?? cfg.Messages.NameRejected;
+                cfg.Messages.AppealUrl = msg.Str("appealUrl") ?? cfg.Messages.AppealUrl;
             }
 
             if (root.Obj("discord") is { } dc)

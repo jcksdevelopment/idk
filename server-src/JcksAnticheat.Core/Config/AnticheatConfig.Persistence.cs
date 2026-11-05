@@ -109,6 +109,11 @@ namespace JcksAnticheat.Core.Config
                 ["ignoreIds"] = Backdoor.IgnoreIds.ToList(), ["ignoreResources"] = Backdoor.IgnoreResources.ToList(),
                 ["disabledRules"] = Backdoor.DisabledRules.ToList(),
             },
+            ["messages"] = new Dictionary<string, object?>
+            {
+                ["kick"] = Messages.Kick, ["ban"] = Messages.Ban, ["banned"] = Messages.Banned, ["staffKick"] = Messages.StaffKick,
+                ["nameRejected"] = Messages.NameRejected, ["appealUrl"] = Messages.AppealUrl,
+            },
             ["discord"] = new Dictionary<string, object?>
             {
                 ["enabled"] = Discord.Enabled, ["webhookEnv"] = Discord.WebhookEnv, ["minAction"] = Discord.MinAction, ["username"] = Discord.Username,
@@ -189,6 +194,9 @@ namespace JcksAnticheat.Core.Config
             foreach (var kv in ClientThresholds)
                 Require(kv.Value > 0 && kv.Value < 100000, "client." + kv.Key + " must be positive");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
+            foreach (var m in new[] { Messages.Kick, Messages.Ban, Messages.Banned, Messages.StaffKick, Messages.NameRejected })
+                Require(!string.IsNullOrWhiteSpace(m) && m.Length <= 400, "messages must be 1–400 characters");
+            Require(Messages.AppealUrl.Length <= 200, "messages.appealUrl is too long");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");
             return errors;
         }

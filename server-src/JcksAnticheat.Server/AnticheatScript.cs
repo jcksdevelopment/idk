@@ -146,7 +146,7 @@ namespace JcksAnticheat.Server
             if (nameProblem != null)
             {
                 ((CallbackDelegate)deferrals["defer"])();
-                ((CallbackDelegate)deferrals["done"])("[JCKS Anticheat] " + nameProblem + " Change your FiveM name and reconnect.");
+                ((CallbackDelegate)deferrals["done"])(Msg(_cfg.Messages.NameRejected, null, nameProblem, null, null, name));
                 Log($"refused connection: name '{name}' ({nameProblem})");
                 _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = "name filter" });
                 return;
@@ -156,8 +156,7 @@ namespace JcksAnticheat.Server
             var ban = _bans.Find(ids);
             if (ban == null) return;
 
-            var until = ban.ExpiresAt.HasValue ? ban.ExpiresAt.Value.ToString("yyyy-MM-dd HH:mm") + " UTC" : "permanent";
-            var message = $"[JCKS Anticheat] You are banned. Reason: {ban.Reason} | Ban ID: {ban.Id} | Expires: {until}";
+            var message = Msg(_cfg.Messages.Banned, ban.Code, ban.Reason, ban.Id, ExpiryText(ban.ExpiresAt), name);
             ((CallbackDelegate)deferrals["defer"])();
             ((CallbackDelegate)deferrals["done"])(message);
             Log($"rejected banned connection {name} ({ban.Id})");
