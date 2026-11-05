@@ -217,7 +217,8 @@ function HUD.Build(gui: ScreenGui)
 	end
 
 	navButton(1, "🎒", "Nav_Bag", "I", Theme.Colors.Info, "Inventory")
-	navButton(2, "📦", "Nav_Crates", "B", Theme.Colors.Accent, "Bazaar")
+	local bazaarButton = navButton(2, "📦", "Nav_Crates", "B", Theme.Colors.Accent, "Bazaar")
+	local bazaarBadge = Create.Badge(bazaarButton)
 	local questsButton = navButton(3, "📜", "Nav_Quests", "Q", Theme.Colors.Pink, "Rewards")
 	local indexButton = navButton(4, "📖", "Nav_Index", "C", Theme.Colors.VIP, "Index")
 	local trophiesButton = navButton(5, "🏆", "Nav_Trophies", "T", Theme.Colors.Accent, "Trophies")
@@ -406,6 +407,7 @@ function HUD.Build(gui: ScreenGui)
 		vipButton.Visible = Config.Monetization.ShowUpsells and not snapshot.Passes.VIPAutoCleaner
 
 		questsBadge.Visible = hasClaimableQuest(snapshot)
+		bazaarBadge.Visible = snapshot.FreeBoxAvailable
 		indexBadge.Visible = hasClaimableCollection(snapshot)
 		trophiesBadge.Visible = snapshot.Rebirths < Config.Rebirth.MaxRebirths
 			and snapshot.Level >= snapshot.RebirthLevel

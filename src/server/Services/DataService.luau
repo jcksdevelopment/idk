@@ -131,6 +131,7 @@ local function newData(): Types.PlayerData
 		Achievements = {},
 		EquippedTitle = "",
 		RedeemedCodes = {},
+		LastFreeBoxDay = -1,
 		LastSpinAt = 0,
 		Pets = {},
 		Stats = {
@@ -272,6 +273,7 @@ local function sanitize(raw: any): Types.PlayerData
 	if type(raw.EquippedTitle) == "string" and data.Achievements[raw.EquippedTitle] then
 		data.EquippedTitle = raw.EquippedTitle
 	end
+	data.LastFreeBoxDay = math.floor(readNumber(raw.LastFreeBoxDay, -1, -1, math.huge))
 	readFlags(raw.RedeemedCodes, data.RedeemedCodes, function(key: string): boolean
 		return #key <= 24 -- keep history even for codes that were later removed
 	end)

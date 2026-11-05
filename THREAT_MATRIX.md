@@ -36,6 +36,7 @@ character's network physics. The server owns all state that matters.
 | 28 | Fake friend bonus | Claims friends | Friendship checked by the server (`IsFriendsWith`); bonus capped at +30% | `FriendService` |
 | 29 | Fusion dupes | Fuses with forged/foreign pets or the same pet twice | Only ids in the caller's profile; the two consumed pets are distinct from the base and match kind + stars; removal and upgrade happen in one block | `PetService.onFusePets` |
 | 30 | Code abuse | Redeems a code twice or brute-forces codes | Redeemed codes are stored in the profile and marked in the same block as the grant. `RedeemCode` is limited to ~1 try per 3 s, so guessing is pointless; event-only codes are re-checked by date on the server | `ProgressService.onRedeemCode` |
+| 31 | Free box farming | Buys the free box repeatedly | The free price applies only while `LastFreeBoxDay` differs from the server's UTC day; it is set in the same block as the purchase | `ItemService.onBuyCrate` |
 | 19 | Client code theft | Decompiles LocalScripts | The client holds no secrets or authority: only rendering and requests | architecture |
 
 ## Flag scoring

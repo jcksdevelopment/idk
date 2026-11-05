@@ -22,6 +22,7 @@ local Types = require(Shared.Types)
 local DataService = require(script.Parent.DataService)
 local FlagService = require(script.Parent.FlagService)
 local ProgressService = require(script.Parent.ProgressService)
+local ProgressViews = require(script.Parent.ProgressViews)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
@@ -110,13 +111,20 @@ local function onBuyCrate(player: Player, crateKey: string)
 		SyncService.Notify(player, "error", "N_InventoryFull")
 		return
 	end
-	if data.Cash < crate.Price then
+	local today = ProgressViews.Today()
+	local isFree = Config.FreeDailyBox.Enabled and crateKey == Config.FreeDailyBox.Crate and data.LastFreeBoxDay ~= today
+	local price = if isFree then 0 else crate.Price
+	if data.Cash < price then
 		SyncService.Notify(player, "error", "N_NotEnoughCash")
 		return
 	end
 
 	-- Atomic section (no yields): pay, roll, insert, progress.
-	data.Cash -= crate.Price
+	data.Cash -= price
+	if isFree then
+		data.LastFreeBoxDay = today
+		SyncService.Notify(player, "success", "N_FreeBox")
+	end
 	local item = ItemService.CreateItem(data, ItemService.RollRarity(crate.Weights), crate.Event)
 	data.Inventory[item.Id] = item
 	data.Stats.CratesOpened += 1

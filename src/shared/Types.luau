@@ -74,6 +74,7 @@ export type PlayerData = {
 	Achievements: { [string]: boolean },
 	EquippedTitle: string, -- achievement id, "" = none
 	RedeemedCodes: { [string]: boolean },
+	LastFreeBoxDay: number,
 	LastSpinAt: number,
 	Pets: { [string]: PetRecord }, -- keyed by server GUID
 	Stats: PlayerStats,
@@ -152,6 +153,7 @@ export type Snapshot = {
 	Pets: { PetView },
 	PetBonuses: { [string]: number }, -- Money / Repair / XP / Luck totals from equipped pets
 	ActiveEvents: { string },
+	FreeBoxAvailable: boolean,
 	ServerTime: number,
 }
 

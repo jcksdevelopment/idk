@@ -377,6 +377,12 @@ Config.Codes = {
 	SPOOKY = { Reward = { Cash = 1000, Tokens = 1 }, Event = "Halloween" },
 }
 
+-- First box of the day is free (UTC day). Encourages daily visits without pressure.
+Config.FreeDailyBox = {
+	Enabled = true,
+	Crate = "JunkBox",
+}
+
 Config.Leaderboard = {
 	StoreName = "BazarTopEarners_v1",
 	RefreshSeconds = 120,

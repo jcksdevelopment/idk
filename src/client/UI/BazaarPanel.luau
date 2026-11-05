@@ -27,7 +27,15 @@ local Toast = require(script.Parent.Toast)
 
 local BazaarPanel = {}
 
-type CrateButton = { Card: Frame, Event: string?, Button: TextButton, Price: number, UnlockLevel: number, Lock: TextLabel }
+type CrateButton = {
+	Key: string,
+	Card: Frame,
+	Event: string?,
+	Button: TextButton,
+	Price: number,
+	UnlockLevel: number,
+	Lock: TextLabel,
+}
 
 function BazaarPanel.Build(gui: ScreenGui)
 	local panel, _header, close = Create.Panel("Bazaar", Locale.T("Title_Bazaar"), Theme.Colors.Accent, 1.7, gui)
@@ -150,7 +158,8 @@ function BazaarPanel.Build(gui: ScreenGui)
 				Toast.Show("error", Locale.T("N_InventoryFull"))
 				return
 			end
-			if snapshot and snapshot.Cash < crate.Price then
+			local free = snapshot ~= nil and snapshot.FreeBoxAvailable and key == Config.FreeDailyBox.Crate
+			if snapshot and not free and snapshot.Cash < crate.Price then
 				Toast.Show("error", Locale.T("N_NotEnoughCash"))
 				return
 			end
@@ -171,6 +180,7 @@ function BazaarPanel.Build(gui: ScreenGui)
 		})
 		Create.Corner(UDim.new(0.06, 0)).Parent = lock
 		table.insert(buttons, {
+			Key = key,
 			Card = card,
 			Event = crate.Event,
 			Button = button,
@@ -197,7 +207,13 @@ function BazaarPanel.Build(gui: ScreenGui)
 			for _, entry in buttons do
 				entry.Card.Size = UDim2.fromScale(width, 1)
 				entry.Lock.Visible = snapshot.Level < entry.UnlockLevel
-				Create.SetButtonEnabled(entry.Button, snapshot.Cash >= entry.Price, Theme.Colors.Success)
+				local free = snapshot.FreeBoxAvailable and entry.Key == Config.FreeDailyBox.Crate
+				entry.Button.Text = if free then Locale.T("Bazaar_Free") else Locale.T("Bazaar_Buy", { Format.Cash(entry.Price) })
+				Create.SetButtonEnabled(
+					entry.Button,
+					free or snapshot.Cash >= entry.Price,
+					if free then Theme.Colors.Pink else Theme.Colors.Success
+				)
 				entry.Button.Active = true -- still clickable so the player gets feedback
 			end
 		end

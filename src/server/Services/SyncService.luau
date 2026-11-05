@@ -119,6 +119,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 			Luck = Rules.PetBonus(data, "Luck"),
 		},
 		ActiveEvents = Events.ActiveList(),
+		FreeBoxAvailable = Config.FreeDailyBox.Enabled and data.LastFreeBoxDay ~= today,
 		ServerTime = os.time(),
 	}
 end
