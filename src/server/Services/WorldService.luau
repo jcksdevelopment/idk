@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Events = require(Shared.Events)
+local GamePassService = require(script.Parent.GamePassService)
 local SyncService = require(script.Parent.SyncService)
 
 export type StationKey = "Bazaar" | "Workbench" | "SellCounter"
@@ -543,7 +544,7 @@ function WorldService.Burst(key: StationKey, color: Color3, count: number)
 end
 
 function WorldService.IsNear(player: Player, key: StationKey): boolean
-	if not Config.Stations.RequireProximity then
+	if not Config.Stations.RequireProximity or GamePassService.Has(player, "PocketStalls") then
 		return true
 	end
 	local station = (Config.Stations :: any)[key]

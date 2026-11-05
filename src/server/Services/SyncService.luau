@@ -63,6 +63,10 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 	local level, xpIn, xpNeeded = Progression.FromTotal(data.XP)
 	local today = ProgressViews.Today()
 	local rebirthLevel, rebirthCash = Rules.RebirthRequirement(data)
+	local passes: { [string]: boolean } = {}
+	for key in Config.GamePasses do
+		passes[key] = GamePassService.Has(player, key)
+	end
 	local pets: { Types.PetView } = {}
 	for _, pet in data.Pets do
 		table.insert(pets, {
@@ -97,10 +101,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		InstantRepairTokens = data.InstantRepairTokens,
 		BoostEndsAt = data.BoostEndsAt,
 		MoneyMultiplier = multiplier,
-		Passes = {
-			VIPAutoCleaner = GamePassService.Has(player, "VIPAutoCleaner"),
-			ExtraCapacity = GamePassService.Has(player, "ExtraCapacity"),
-		},
+		Passes = passes,
 		PendingInstantRepair = pendingInstantRepair[player],
 		Quests = ProgressViews.Quests(data),
 		QuestsResetAt = (today + 1) * 86400,
@@ -128,6 +129,9 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		},
 		ActiveEvents = Events.ActiveList(),
 		FreeBoxAvailable = Config.FreeDailyBox.Enabled and data.LastFreeBoxDay ~= today,
+		XPBoostEndsAt = data.XPBoostEndsAt,
+		StarterPackBought = data.StarterPackBought,
+		MaxEquippedPets = Rules.MaxEquippedPets(player),
 		Weekly = ProgressViews.Weekly(data),
 		Request = data.Request,
 		Upgrades = data.Upgrades,
@@ -167,6 +171,7 @@ local function updateLeaderstats(player: Player, data: Types.PlayerData)
 	player:SetAttribute("Level", Rules.Level(data))
 	player:SetAttribute("Rebirths", data.Rebirths)
 	player:SetAttribute("Title", data.EquippedTitle)
+	player:SetAttribute("GoldenName", GamePassService.Has(player, "GoldenName"))
 	local equipped = {}
 	for _, pet in data.Pets do
 		if pet.Equipped then

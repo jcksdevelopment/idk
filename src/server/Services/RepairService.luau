@@ -96,7 +96,8 @@ local function onScrub(player: Player, itemId: string)
 	-- Cap relative to this repair's original length (pets may have shortened it).
 	local original = (item.RepairEndsAt :: number) - (item.RepairStartedAt or 0) + item.ScrubSeconds
 	local maxReduction = math.min(original, Valuation.RepairSeconds(item.Rarity)) * Config.Scrub.MaxReductionRatio
-	local reduction = math.min(Config.Scrub.SecondsPerScrub, maxReduction - item.ScrubSeconds)
+	local perTap = Config.Scrub.SecondsPerScrub * (if GamePassService.Has(player, "SuperScrubber") then 2 else 1)
+	local reduction = math.min(perTap, maxReduction - item.ScrubSeconds)
 	if reduction <= 0 then
 		return -- fully scrubbed; the rest of the timer must run
 	end
@@ -164,6 +165,26 @@ local function onRequestInstantRepair(player: Player, itemId: string)
 end
 
 -- Called from ProcessReceipt. MUST NOT yield or error after mutating.
+-- "Repair Everything" product: every dirty or repairing item becomes clean.
+-- Synchronous (called from ProcessReceipt). With nothing to repair, it turns
+-- into one Instant Repair token so the purchase is never wasted.
+function RepairService.GrantRepairAll(player: Player, data: Types.PlayerData)
+	local fixed = 0
+	for _, item in data.Inventory do
+		if item.State ~= "Clean" then
+			finishRepair(player, data, item)
+			fixed += 1
+		end
+	end
+	if fixed == 0 then
+		data.InstantRepairTokens += 1
+		SyncService.Notify(player, "success", "N_TokenAdded")
+	else
+		SyncService.Notify(player, "levelup", "N_RepairedAll", { tostring(fixed) })
+	end
+	SyncService.MarkDirty(player)
+end
+
 function RepairService.GrantInstantRepair(player: Player, data: Types.PlayerData)
 	data.InstantRepairTokens += 1
 

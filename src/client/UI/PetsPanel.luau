@@ -324,7 +324,7 @@ function PetsPanel.Build(gui: ScreenGui)
 				table.insert(parts, bonusText(kind, amount))
 			end
 		end
-		summary.Text = Locale.T("Pets_Equipped", { tostring(equippedCount), tostring(Config.Pets.MaxEquipped) })
+		summary.Text = Locale.T("Pets_Equipped", { tostring(equippedCount), tostring(snapshot.MaxEquippedPets) })
 			.. (if #parts > 0 then "  ·  " .. Locale.T("Pets_Total", { table.concat(parts, ", ") }) else "")
 		empty.Visible = #snapshot.Pets == 0
 

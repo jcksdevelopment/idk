@@ -7,15 +7,18 @@
 	be sold twice (double-fire, lag switch, or leaving mid-sale).
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Format = require(Shared.Format)
+local Types = require(Shared.Types)
 local Valuation = require(Shared.Valuation)
 
 local DataService = require(script.Parent.DataService)
 local FlagService = require(script.Parent.FlagService)
+local GamePassService = require(script.Parent.GamePassService)
 local PetService = require(script.Parent.PetService)
 local ProgressService = require(script.Parent.ProgressService)
 local RequestService = require(script.Parent.RequestService)
@@ -72,15 +75,9 @@ local function onSellItem(player: Player, itemId: string)
 	WorldService.Burst("SellCounter", Color3.fromRGB(255, 215, 60), 15)
 end
 
-local function onSellAllClean(player: Player)
-	local profile = DataService.GetProfile(player)
-	if not profile then
-		return
-	end
-	if not requireCounter(player) then
-		return
-	end
-	local data = profile.Data
+-- Sells every clean item. `auto` = Auto-Sell pass tick (quiet when empty,
+-- no stall check). Synchronous: price, remove and pay in one block.
+local function sellAllClean(player: Player, data: Types.PlayerData, auto: boolean)
 	local multiplier = Rules.MoneyMultiplier(player, data)
 
 	local toSell: { string } = {}
@@ -90,7 +87,9 @@ local function onSellAllClean(player: Player)
 		end
 	end
 	if #toSell == 0 then
-		SyncService.Notify(player, "info", "N_NothingClean")
+		if not auto then
+			SyncService.Notify(player, "info", "N_NothingClean")
+		end
 		return
 	end
 
@@ -116,11 +115,42 @@ local function onSellAllClean(player: Player)
 	PetService.AddXP(player, data, #toSell)
 	ProgressService.Record(player, data, "CashEarned", earned)
 	SyncService.MarkDirty(player)
-	SyncService.Notify(player, "success", "N_SoldMany", { tostring(#toSell), Format.Cash(total) })
-	WorldService.Burst("SellCounter", Color3.fromRGB(255, 215, 60), 15 + #toSell * 3)
+	SyncService.Notify(player, "success", if auto then "N_AutoSold" else "N_SoldMany", { tostring(#toSell), Format.Cash(total) })
+	if not auto then
+		WorldService.Burst("SellCounter", Color3.fromRGB(255, 215, 60), 15 + #toSell * 3)
+	end
+end
+
+local function onSellAllClean(player: Player)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	if not requireCounter(player) then
+		return
+	end
+	sellAllClean(player, profile.Data, false)
 end
 
 function SellService.Start()
+	-- Auto-Sell pass: clean items are sold automatically every few seconds.
+	task.spawn(function()
+		while true do
+			task.wait(Config.Products.AutoSellSeconds)
+			for _, player in Players:GetPlayers() do
+				if GamePassService.Has(player, "AutoSell") then
+					local profile = DataService.GetProfile(player)
+					if profile then
+						local ok, err = pcall(sellAllClean, player, profile.Data, true)
+						if not ok then
+							warn("[SellService] auto-sell failed:", err)
+						end
+					end
+				end
+			end
+		end
+	end)
+
 	RemoteGuard.Bind("SellItem", { RatePerSecond = 6, Burst = 10, Args = { RemoteGuard.Validators.ItemId } }, onSellItem)
 	RemoteGuard.Bind("SellAllClean", { RatePerSecond = 1, Burst = 2, Args = {} }, onSellAllClean)
 end

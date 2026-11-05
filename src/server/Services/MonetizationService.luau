@@ -31,6 +31,7 @@ local Types = require(Shared.Types)
 local DataService = require(script.Parent.DataService)
 local GamePassService = require(script.Parent.GamePassService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
+local PetService = require(script.Parent.PetService)
 local RepairService = require(script.Parent.RepairService)
 local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
@@ -54,6 +55,40 @@ local grantsByKey: { [string]: Grant } = {
 	CashPackSmall = function(player, data)
 		Rules.AddCash(data, Config.Products.CashPackSmallAmount, false)
 		SyncService.Notify(player, "success", "N_CashAdded", { Format.Cash(Config.Products.CashPackSmallAmount) })
+	end,
+
+	-- One-time Starter Pack. A repeat receipt (bought before the flag synced)
+	-- is still honoured: a paid receipt must always be granted.
+	StarterPack = function(player, data)
+		local pack = Config.Products.StarterPack
+		data.StarterPackBought = true
+		data.InstantRepairTokens += pack.Tokens
+		Rules.ExtendBoost(data, pack.MoneyBoostMinutes * 60)
+		local now = os.time()
+		data.XPBoostEndsAt = math.max(now, data.XPBoostEndsAt) + pack.XPBoostMinutes * 60
+		SyncService.Notify(player, "levelup", "N_StarterPack")
+	end,
+
+	InstantRepair5 = function(player, data)
+		data.InstantRepairTokens += Config.Products.InstantRepairBundle
+		SyncService.Notify(player, "success", "N_TokensAdded", { tostring(Config.Products.InstantRepairBundle) })
+	end,
+
+	XPBoost2x = function(player, data)
+		local now = os.time()
+		data.XPBoostEndsAt = math.min(
+			math.max(now, data.XPBoostEndsAt) + Config.Products.XPBoostDurationSeconds,
+			now + Config.Products.MoneyBoostMaxStackSeconds
+		)
+		SyncService.Notify(player, "success", "N_XPBoostActive", { Format.Duration(data.XPBoostEndsAt - now) })
+	end,
+
+	RepairAllNow = function(player, data)
+		RepairService.GrantRepairAll(player, data)
+	end,
+
+	PetTreat = function(player, data)
+		PetService.GrantTreat(player, data)
 	end,
 }
 
@@ -108,6 +143,13 @@ local function onPromptProduct(player: Player, productKey: string)
 	if type(productId) ~= "number" or productId == 0 or blockedCurrency then
 		SyncService.Notify(player, "error", "N_NotOnSale")
 		return
+	end
+	if productKey == "StarterPack" then
+		local profile = DataService.GetProfile(player)
+		if profile and profile.Data.StarterPackBought then
+			SyncService.Notify(player, "info", "N_AlreadyOwned")
+			return
+		end
 	end
 	if productKey == "InstantRepair" then
 		-- Bought from the shop (no target): it becomes a token.

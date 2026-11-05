@@ -18,7 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Signal = require(Shared.Signal)
 
-export type PassKey = "VIPAutoCleaner" | "ExtraCapacity"
+export type PassKey = string -- any key of Config.GamePasses
 
 local GamePassService = {}
 

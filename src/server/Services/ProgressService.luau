@@ -49,6 +49,9 @@ function ProgressService.AddXP(player: Player, data: Types.PlayerData, amount: n
 	end
 	local before = Progression.LevelFromTotal(data.XP)
 	amount *= 1 + Rules.PetBonus(data, "XP")
+	if data.XPBoostEndsAt > os.time() then
+		amount *= 2 -- 2x XP product
+	end
 	data.XP = math.min(1e12, data.XP + math.floor(amount))
 	local after = Progression.LevelFromTotal(data.XP)
 	for level = before + 1, after do

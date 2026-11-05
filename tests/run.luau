@@ -301,6 +301,32 @@ check(not Events.IsActive("Winter", at(2026, 7, 1)), "Winter inactive in July")
 check(Events.IsActive("Halloween", at(2026, 10, 20)), "Halloween active Oct 20")
 check(not Events.IsActive("Halloween", at(2026, 11, 5)), "Halloween over Nov 5")
 
+-- Monetization: every shop entry has texts, an id slot and (for products) a grant;
+-- nothing sells in-game cash while the policy flag is off.
+for key in Config.ShopDisplay.GamePasses do
+	check(Config.GamePasses[key] ~= nil, "pass id slot for " .. key)
+	check(Locale.T("Pass_" .. key .. "_Title") ~= "Pass_" .. key .. "_Title", "pass title text for " .. key)
+end
+for key in Config.ShopDisplay.DevProducts do
+	check(Config.DevProducts[key] ~= nil, "product id slot for " .. key)
+	check(Locale.T("Product_" .. key .. "_Title") ~= "Product_" .. key .. "_Title", "product title text for " .. key)
+end
+local monetization = fs.readFile("src/server/Services/MonetizationService.luau")
+for key in Config.DevProducts do
+	check(string.find(monetization, "\n\t" .. key .. " = function", 1, true) ~= nil, "ProcessReceipt grant exists for " .. key)
+end
+check(Config.Monetization.SellCurrencyForRobux == false, "no in-game cash is sold for Robux (paid random items policy)")
+local passCount, productCount = 0, 0
+for _ in Config.GamePasses do
+	passCount += 1
+end
+for key in Config.DevProducts do
+	if not Config.Monetization.CurrencyProducts[key] then
+		productCount += 1
+	end
+end
+print(string.format("  shop: %d game passes, %d developer products", passCount, productCount))
+
 -- Pet levels
 local leveling = Config.Pets.Leveling
 check(leveling.MaxLevel >= 5 and leveling.XPPerLevel > 0 and leveling.BonusPerLevel > 0, "pet leveling config sane")

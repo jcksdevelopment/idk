@@ -173,6 +173,34 @@ Výpočet (stredný): 2 400 × 0,8 % = 19,2 platiacich/deň × 70 R$ = 1 344 R$/
 
 ## 4. Ceny v Robuxoch a vytvorenie pasov a produktov
 
+> 🆕 **Rozšírený obchod (9 Game Passov + 7 Developer Products).** Všetko je povolené podľa
+> pravidiel Robloxu – **nič náhodné a žiadne herné peniaze za Robux**. Odporúčané ceny:
+>
+> | Typ | Kľúč v `Config.luau` | Čo robí | Cena |
+> |---|---|---|---|
+> | Game Pass | `DoubleMoney` | 2× peniaze z predaja navždy | **399 R$** |
+> | Game Pass | `VIPAutoCleaner` | opravy samé + 2 miesta v dielni | 249 R$ |
+> | Game Pass | `PetTrainer` | +1 zvieratko s tebou (4) | 199 R$ |
+> | Game Pass | `PocketStalls` | kupuj/opravuj/predávaj odkiaľkoľvek | 179 R$ |
+> | Game Pass | `AutoSell` | čisté predmety sa predajú samé | 149 R$ |
+> | Game Pass | `PetXP2x` | zvieratká rastú 2× rýchlejšie | 129 R$ |
+> | Game Pass | `ExtraCapacity` | +20 miest v batohu | 99 R$ |
+> | Game Pass | `SuperScrubber` | drhnutie sa počíta 2× | 79 R$ |
+> | Game Pass | `GoldenName` | zlaté meno nad hlavou (kozmetika) | 49 R$ |
+> | Dev Product | `StarterPack` | **raz za život**: 5⚡ + 30 min 2× peniaze + 30 min 2× XP | **49 R$** |
+> | Dev Product | `InstantRepair5` | 5 žetónov okamžitej opravy | 59 R$ |
+> | Dev Product | `RepairAllNow` | všetko v batohu hneď čisté | 35 R$ |
+> | Dev Product | `MoneyBoost2x` | 2× peniaze na 15 min | 29 R$ |
+> | Dev Product | `XPBoost2x` | 2× XP na 30 min | 25 R$ |
+> | Dev Product | `PetTreat` | +50 XP pre zvieratká | 19 R$ |
+> | Dev Product | `InstantRepair` | 1 okamžitá oprava | 15 R$ |
+>
+> Každý vytvor v Creator Hub (Monetization → Passes / Developer Products) a jeho ID vlož do
+> `Config.GamePasses` / `Config.DevProducts`. Kým je ID `0`, karta ukazuje „Soon“.
+> `Config.Monetization.ShowUpsells = true` zapína nenásilné ponuky v hre (bez falošných
+> odpočtov a vyskakovacích okien). ⚠️ Pri `MoneyBoost2x`/`DoubleMoney` pozri kapitolu 7.2 –
+> sú bežné v simulátoroch, ale rozhodnutie nechávam na tebe.
+
 ### 4.1 Odporúčané ceny
 
 Typické rozpätia sú môj **odhad z pozorovania simulátorov na Robloxe** (⚠️ nie oficiálne dáta).

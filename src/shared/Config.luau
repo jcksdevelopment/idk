@@ -17,21 +17,36 @@ local Config = {}
 -- Robux
 ------------------------------------------------------------------------
 
+-- Recommended prices (Robux) are in comments; set the real price in Creator Hub.
 Config.GamePasses = {
-	VIPAutoCleaner = 0, -- Game Pass ID: background auto-repair + extra repair slots
-	ExtraCapacity = 0, -- Game Pass ID: +20 inventory capacity
+	VIPAutoCleaner = 0, -- 249 R$: background auto-repair + 2 extra repair slots
+	ExtraCapacity = 0, -- 99 R$: +20 inventory slots
+	DoubleMoney = 0, -- 399 R$: 2x sell money forever
+	SuperScrubber = 0, -- 79 R$: every scrub tap counts double
+	PetTrainer = 0, -- 199 R$: +1 pet can follow you
+	PetXP2x = 0, -- 129 R$: pets level up twice as fast
+	AutoSell = 0, -- 149 R$: clean items sell automatically, anywhere
+	PocketStalls = 0, -- 179 R$: buy, repair and sell from anywhere
+	GoldenName = 0, -- 49 R$: golden ✨ name tag above your head
 }
 
 Config.DevProducts = {
-	InstantRepair = 0, -- Developer Product ID: instantly finish one repair
-	MoneyBoost2x = 0, -- Developer Product ID: 2x sell money for a limited time
-	CashPackSmall = 0, -- Developer Product ID: flat cash bundle
+	StarterPack = 0, -- 49 R$, one-time: 5 Instant Repairs + 30 min 2x Money + 30 min 2x XP
+	InstantRepair = 0, -- 15 R$: instantly finish one repair
+	InstantRepair5 = 0, -- 59 R$: 5 Instant Repair tokens
+	MoneyBoost2x = 0, -- 29 R$: 2x sell money for 15 minutes (stacks)
+	XPBoost2x = 0, -- 25 R$: 2x XP for 30 minutes (stacks)
+	RepairAllNow = 0, -- 35 R$: finish every repair on the workbench now
+	PetTreat = 0, -- 19 R$: +50 XP for your equipped pets
+	CashPackSmall = 0, -- disabled by policy (Config.Monetization.SellCurrencyForRobux)
 }
 
 -- Kid-friendly monetization: no pressure tactics. Everything sold for Robux
 -- can also be earned by playing (quests, daily rewards, collection book).
 Config.Monetization = {
-	ShowUpsells = false, -- true = small "get more" hints in HUD / inventory
+	-- Gentle in-game offers (inventory full -> +20 slots, workbench -> VIP, ⚡R$
+	-- on items, Starter Pack button). No fake timers or pop-ups.
+	ShowUpsells = true,
 	-- Roblox policy: in-game currency bought with Robux that can buy random
 	-- rewards (our mystery boxes / eggs) makes those boxes "paid random items",
 	-- which needs per-item odds + PolicyService restrictions. Keep this false
@@ -43,13 +58,25 @@ Config.Monetization = {
 -- Display metadata for the cash shop. Titles/descriptions come from Locale.
 Config.ShopDisplay = {
 	DevProducts = {
-		InstantRepair = { Icon = "⚡", Ribbon = "Ribbon_Popular", Order = 1 },
-		MoneyBoost2x = { Icon = "💰", Ribbon = "Ribbon_BestValue", Order = 2 },
-		CashPackSmall = { Icon = "💵", Ribbon = "", Order = 3 },
+		StarterPack = { Icon = "🎁", Ribbon = "Ribbon_OneTime", Order = 0, Featured = true },
+		InstantRepair = { Icon = "⚡", Ribbon = "", Order = 1 },
+		InstantRepair5 = { Icon = "⚡", Ribbon = "Ribbon_Save", Order = 2 },
+		MoneyBoost2x = { Icon = "💰", Ribbon = "Ribbon_Popular", Order = 3 },
+		XPBoost2x = { Icon = "⭐", Ribbon = "", Order = 4 },
+		RepairAllNow = { Icon = "🔧", Ribbon = "", Order = 5 },
+		PetTreat = { Icon = "🍖", Ribbon = "", Order = 6 },
+		CashPackSmall = { Icon = "💵", Ribbon = "", Order = 99 },
 	},
 	GamePasses = {
-		VIPAutoCleaner = { Icon = "🤖", Ribbon = "Ribbon_VIP", Order = 1 },
-		ExtraCapacity = { Icon = "🎒", Ribbon = "", Order = 2 },
+		DoubleMoney = { Icon = "💰", Ribbon = "Ribbon_BestValue", Order = 1 },
+		VIPAutoCleaner = { Icon = "🤖", Ribbon = "Ribbon_VIP", Order = 2 },
+		AutoSell = { Icon = "💸", Ribbon = "Ribbon_Popular", Order = 3 },
+		PocketStalls = { Icon = "📱", Ribbon = "", Order = 4 },
+		PetTrainer = { Icon = "🐾", Ribbon = "", Order = 5 },
+		PetXP2x = { Icon = "🍖", Ribbon = "", Order = 6 },
+		ExtraCapacity = { Icon = "🎒", Ribbon = "", Order = 7 },
+		SuperScrubber = { Icon = "🧽", Ribbon = "", Order = 8 },
+		GoldenName = { Icon = "✨", Ribbon = "", Order = 9 },
 	},
 }
 
@@ -58,6 +85,12 @@ Config.Products = {
 	MoneyBoostDurationSeconds = 15 * 60,
 	MoneyBoostMaxStackSeconds = 24 * 60 * 60,
 	CashPackSmallAmount = 2500,
+	XPBoostDurationSeconds = 30 * 60,
+	StarterPack = { Tokens = 5, MoneyBoostMinutes = 30, XPBoostMinutes = 30 },
+	InstantRepairBundle = 5,
+	PetTreatXP = 50,
+	PetTrainerExtraSlots = 1,
+	AutoSellSeconds = 4,
 	PurchaseHistoryLimit = 100,
 }
 
@@ -535,6 +568,18 @@ Config.Images = {
 		InstantRepair = "",
 		MoneyBoost2x = "",
 		CashPackSmall = "",
+		StarterPack = "",
+		InstantRepair5 = "",
+		XPBoost2x = "",
+		RepairAllNow = "",
+		PetTreat = "",
+		DoubleMoney = "",
+		SuperScrubber = "",
+		PetTrainer = "",
+		PetXP2x = "",
+		AutoSell = "",
+		PocketStalls = "",
+		GoldenName = "",
 	},
 }
 

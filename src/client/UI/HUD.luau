@@ -328,6 +328,22 @@ function HUD.Build(gui: ScreenGui)
 	end)
 	Create.Aspect(1).Parent = inviteButton
 
+	-- Starter Pack shortcut (only until bought, only with upsells enabled)
+	local starterButton = Create.Button({
+		Name = "StarterButton",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.985, 0.71),
+		Size = UDim2.fromScale(0.085, 0.15),
+		BackgroundColor3 = Theme.Colors.Pink,
+		Text = Locale.T("HUD_Starter"),
+		MaxTextSize = 20,
+		Visible = false,
+		Parent = root,
+	}, function()
+		UIController.Open("CashShop")
+	end)
+	Create.Aspect(1).Parent = starterButton
+
 	local bonusChip = chip("Bonus", Theme.Colors.VIP, 4)
 	local bonusFrame = bonusChip.Parent :: Frame
 	bonusFrame.Size = UDim2.fromScale(0.18, 1)
@@ -542,10 +558,17 @@ function HUD.Build(gui: ScreenGui)
 		end
 
 		local remaining = snapshot.BoostEndsAt - now
-		boostFrame.Visible = remaining > 0
+		local xpRemaining = snapshot.XPBoostEndsAt - now
+		boostFrame.Visible = remaining > 0 or xpRemaining > 0
+		local parts = {}
 		if remaining > 0 then
-			boostChip.Text = Locale.T("HUD_Boost", { Format.Duration(remaining) })
+			table.insert(parts, Locale.T("HUD_Boost", { Format.Duration(remaining) }))
 		end
+		if xpRemaining > 0 then
+			table.insert(parts, Locale.T("HUD_XPBoost", { Format.Duration(xpRemaining) }))
+		end
+		boostChip.Text = table.concat(parts, "  ")
+		starterButton.Visible = Config.Monetization.ShowUpsells and not snapshot.StarterPackBought
 
 		for index, slot in slots do
 			local item = slotItems[index]

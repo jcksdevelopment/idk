@@ -132,6 +132,8 @@ local function newData(): Types.PlayerData
 		EquippedTitle = "",
 		RedeemedCodes = {},
 		LastFreeBoxDay = -1,
+		XPBoostEndsAt = 0,
+		StarterPackBought = false,
 		Weekly = { Week = -1, Id = "", Progress = 0, Claimed = false },
 		Request = { TemplateId = "", ExpiresAt = 0, NextAt = 0 },
 		Upgrades = {},
@@ -277,6 +279,8 @@ local function sanitize(raw: any): Types.PlayerData
 		data.EquippedTitle = raw.EquippedTitle
 	end
 	data.LastFreeBoxDay = math.floor(readNumber(raw.LastFreeBoxDay, -1, -1, math.huge))
+	data.XPBoostEndsAt = readNumber(raw.XPBoostEndsAt, 0, 0, math.huge)
+	data.StarterPackBought = raw.StarterPackBought == true
 	if type(raw.Upgrades) == "table" then
 		for _, key in Config.Upgrades.Order do
 			local def = (Config.Upgrades :: any)[key]
@@ -316,7 +320,9 @@ local function sanitize(raw: any): Types.PlayerData
 				and type(pet.PetId) == "string"
 				and Pets.Get(pet.PetId) ~= nil
 			then
-				local wantsEquip = pet.Equipped == true and equipped < Config.Pets.MaxEquipped
+				-- Pass ownership isn't known here; allow the Pet Trainer slot, PetService enforces the real cap.
+				local maxEquip = Config.Pets.MaxEquipped + Config.Products.PetTrainerExtraSlots
+				local wantsEquip = pet.Equipped == true and equipped < maxEquip
 				if wantsEquip then
 					equipped += 1
 				end

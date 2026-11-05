@@ -167,6 +167,13 @@ Controls: **I** bag, **B** boxes, **Q** quests, **C** collection book, **T** tro
 ### Adding a language
 Add a table to `src/shared/Locale.luau`, register it in `tables`, and add its code to `Config.Languages`.
 
+## Robux shop (all policy-safe: nothing random, no cash for Robux)
+**Game Passes:** 2x Money Forever, VIP Robo-Cleaner, Pet Trainer (+1 pet), Pocket Stalls
+(use stalls from anywhere), Auto-Sell, Pet XP x2, +20 Bag Slots, Super Scrubber, Golden Name.
+**Developer Products:** one-time Starter Pack, Instant Repair (x1 / x5), Repair Everything,
+2x Money 15 min, 2x XP 30 min, Pet Treat. Recommended prices are next to each id in
+`Config.GamePasses` / `Config.DevProducts`; the shop scrolls and features the Starter Pack.
+
 ## Launch & monetization
 See **[docs/LAUNCH_PLAN.md](docs/LAUNCH_PLAN.md)** (costs, publishing, pricing, marketing, 30-day plan) and **[docs/ART_PROMPTS.md](docs/ART_PROMPTS.md)** (image prompts for every asset).
 

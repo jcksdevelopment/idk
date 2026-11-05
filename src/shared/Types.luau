@@ -79,6 +79,8 @@ export type PlayerData = {
 	EquippedTitle: string, -- achievement id, "" = none
 	RedeemedCodes: { [string]: boolean },
 	LastFreeBoxDay: number,
+	XPBoostEndsAt: number,
+	StarterPackBought: boolean,
 	Weekly: WeeklyState,
 	Request: RequestState,
 	Upgrades: { [string]: number },
@@ -104,10 +106,7 @@ export type ItemView = {
 	AcquiredAt: number,
 }
 
-export type PassFlags = {
-	VIPAutoCleaner: boolean,
-	ExtraCapacity: boolean,
-}
+export type PassFlags = { [string]: boolean } -- key of Config.GamePasses -> owned
 
 export type QuestView = {
 	Index: number, -- position in the server's quest list (used for claims)
@@ -161,6 +160,9 @@ export type Snapshot = {
 	PetBonuses: { [string]: number }, -- Money / Repair / XP / Luck totals from equipped pets
 	ActiveEvents: { string },
 	FreeBoxAvailable: boolean,
+	XPBoostEndsAt: number,
+	StarterPackBought: boolean,
+	MaxEquippedPets: number,
 	Weekly: WeeklyView?,
 	Request: RequestState,
 	Upgrades: { [string]: number },

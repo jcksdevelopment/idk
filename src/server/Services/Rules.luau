@@ -43,6 +43,14 @@ function Rules.RepairSlots(player: Player, data: Types.PlayerData): number
 	return slots
 end
 
+function Rules.MaxEquippedPets(player: Player): number
+	local max = Config.Pets.MaxEquipped
+	if GamePassService.Has(player, "PetTrainer") then
+		max += Config.Products.PetTrainerExtraSlots
+	end
+	return max
+end
+
 function Rules.RebirthBonus(data: Types.PlayerData): number
 	return data.Rebirths * Config.Rebirth.MoneyBonusPerRebirth
 end
@@ -54,6 +62,9 @@ function Rules.MoneyMultiplier(player: Player, data: Types.PlayerData): number
 	multiplier *= 1 + FriendService.Bonus(player)
 	multiplier *= 1 + Rules.PetBonus(data, "Money")
 	multiplier *= 1 + Rules.Upgrade(data, "SellBonus")
+	if GamePassService.Has(player, "DoubleMoney") then
+		multiplier *= 2
+	end
 	multiplier *= 1 + SocialService.Bonus(player)
 	return multiplier
 end

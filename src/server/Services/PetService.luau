@@ -18,6 +18,7 @@ local Pets = require(Shared.Pets)
 local Types = require(Shared.Types)
 
 local DataService = require(script.Parent.DataService)
+local GamePassService = require(script.Parent.GamePassService)
 local ProgressService = require(script.Parent.ProgressService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
@@ -95,7 +96,7 @@ local function onBuyEgg(player: Player, eggKey: string)
 	data.Pets[uid] = {
 		Id = uid,
 		PetId = def.Id,
-		Equipped = equipped < Config.Pets.MaxEquipped,
+		Equipped = equipped < Rules.MaxEquippedPets(player),
 		Stars = 0,
 		Level = 1,
 		XP = 0,
@@ -119,8 +120,8 @@ local function onEquipPet(player: Player, uid: string, equip: boolean)
 	end
 	if equip then
 		local _, equipped = countPets(data)
-		if equipped >= Config.Pets.MaxEquipped then
-			SyncService.Notify(player, "error", "N_PetsEquipFull", { tostring(Config.Pets.MaxEquipped) })
+		if equipped >= Rules.MaxEquippedPets(player) then
+			SyncService.Notify(player, "error", "N_PetsEquipFull", { tostring(Rules.MaxEquippedPets(player)) })
 			return
 		end
 	end
@@ -194,6 +195,9 @@ end
 -- Equipped pets learn while you trade. Called by SellService (server only).
 function PetService.AddXP(player: Player, data: Types.PlayerData, amount: number)
 	local leveling = Config.Pets.Leveling
+	if GamePassService.Has(player, "PetXP2x") then
+		amount *= 2
+	end
 	for _, pet in data.Pets do
 		if pet.Equipped and pet.Level < leveling.MaxLevel then
 			pet.XP += amount
@@ -208,6 +212,33 @@ function PetService.AddXP(player: Player, data: Types.PlayerData, amount: number
 		end
 	end
 	SyncService.MarkDirty(player)
+end
+
+-- "Pet Treat" product: XP for equipped pets (or all pets if none follow you).
+-- With no pets at all it becomes an Instant Repair token. Synchronous.
+function PetService.GrantTreat(player: Player, data: Types.PlayerData)
+	local anyPet, anyEquipped = false, false
+	for _, pet in data.Pets do
+		anyPet = true
+		anyEquipped = anyEquipped or pet.Equipped
+	end
+	if not anyPet then
+		data.InstantRepairTokens += 1
+		SyncService.Notify(player, "success", "N_TokenAdded")
+		return
+	end
+	if not anyEquipped then
+		for _, pet in data.Pets do
+			pet.Equipped = true -- temporarily, so AddXP reaches them
+		end
+		PetService.AddXP(player, data, Config.Products.PetTreatXP)
+		for _, pet in data.Pets do
+			pet.Equipped = false
+		end
+	else
+		PetService.AddXP(player, data, Config.Products.PetTreatXP)
+	end
+	SyncService.Notify(player, "success", "N_PetTreat")
 end
 
 function PetService.Start()

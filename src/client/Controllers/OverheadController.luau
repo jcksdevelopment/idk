@@ -30,6 +30,13 @@ local function render(player: Player)
 	if type(rebirths) == "number" and rebirths > 0 then
 		info ..= "   🔄×" .. tostring(rebirths)
 	end
+	if player:GetAttribute("GoldenName") == true then
+		-- Golden Name pass: sparkly golden name line
+		info = "✨ " .. player.DisplayName .. " ✨   " .. info
+		tag.Info.TextColor3 = Color3.fromRGB(255, 215, 80)
+	else
+		tag.Info.TextColor3 = Color3.new(1, 1, 1)
+	end
 	tag.Info.Text = info
 end
 
@@ -83,7 +90,7 @@ local function track(player: Player)
 	if player.Character then
 		task.spawn(attach, player, player.Character)
 	end
-	for _, attribute in { "Title", "Level", "Rebirths" } do
+	for _, attribute in { "Title", "Level", "Rebirths", "GoldenName" } do
 		player:GetAttributeChangedSignal(attribute):Connect(function()
 			render(player)
 		end)
