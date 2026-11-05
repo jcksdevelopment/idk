@@ -129,7 +129,7 @@ src/
 | 🎁 Login gift | 7-day streak calendar (day 7 is the big one) |
 | 📖 Collection book | Discover every item of a rarity to claim a reward; shinies are tracked too |
 | Tutorial | 4 steps with a glowing beam + arrow to the next stall; reward on completion |
-| 🏆 Trophies | 13 achievements that unlock automatically, each with a reward and a **title** shown above your head to everyone |
+| 🏆 Trophies | 18 achievements that unlock automatically, each with a reward and a **title** shown above your head to everyone |
 | 🔄 New Start (rebirth) | From level 15 + $25,000 (rises each time): reset cash & level, keep items/book/trophies, **+25% money forever** per New Start. Two-tap confirm |
 | 🎡 Lucky Wheel | One **free** spin every 4 h (never for Robux); 7 prizes, cash scales with level; the server picks, the client only animates |
 | ✨ Pet fusion | 3 identical pets (same kind and stars) fuse into one with +1 ⭐ (max 2): ×2 bonus at ⭐, ×4 at ⭐⭐. Team bonuses are capped (money +150%, XP +100%, shiny +7%, repair −50%) |

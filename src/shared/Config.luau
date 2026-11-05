@@ -299,6 +299,9 @@ Config.Achievements = {
 	{ Id = "Seller1000", Icon = "👑", Stat = "ItemsSold", Goal = 1000, Reward = { Tokens = 5 } },
 	{ Id = "FirstPet", Icon = "🐾", Stat = "PetsHatched", Goal = 1, Reward = { Cash = 300 } },
 	{ Id = "PetMaster", Icon = "🐉", Stat = "PetsHatched", Goal = 25, Reward = { Tokens = 3 } },
+	{ Id = "StarTrainer", Icon = "⭐", Stat = "MaxPetStars", Goal = 1, Reward = { Tokens = 1 } },
+	{ Id = "SuperStar", Icon = "🌟", Stat = "MaxPetStars", Goal = 2, Reward = { Cash = 8000 } },
+	{ Id = "Festive", Icon = "🎉", Stat = "EventItemsFound", Goal = 6, Reward = { Cash = 5000 } },
 }
 
 -- Free Lucky Wheel. Never sold for Robux; one free spin per cooldown.

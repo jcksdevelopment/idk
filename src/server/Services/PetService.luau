@@ -177,6 +177,7 @@ local function onFusePets(player: Player, uid: string)
 	data.Pets[candidates[2].Id] = nil
 	base.Stars += 1
 	SyncService.Notify(player, "levelup", "N_PetFused", { "@pet:" .. base.PetId })
+	ProgressService.CheckAchievements(player, data)
 	SyncService.MarkDirty(player)
 end
 

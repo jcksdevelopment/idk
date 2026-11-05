@@ -71,6 +71,21 @@ function ProgressViews.StatValue(data: Types.PlayerData, stat: string): number
 		return Progression.LevelFromTotal(data.XP)
 	elseif stat == "Rebirths" then
 		return data.Rebirths
+	elseif stat == "MaxPetStars" then
+		local best = 0
+		for _, pet in data.Pets do
+			best = math.max(best, pet.Stars or 0)
+		end
+		return best
+	elseif stat == "EventItemsFound" then
+		local count = 0
+		for templateId in data.Collection do
+			local template = Items.Get(templateId)
+			if template and template.Event then
+				count += 1
+			end
+		end
+		return count
 	elseif stat == "Collection" then
 		local count = 0
 		for templateId in data.Collection do
