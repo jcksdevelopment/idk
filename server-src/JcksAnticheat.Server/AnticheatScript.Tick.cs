@@ -25,8 +25,10 @@ namespace JcksAnticheat.Server
             await Delay(1000);
             _tickCount++;
 
-            var players = Players.ToList();
             var now = DateTime.UtcNow;
+            DrainLicense(now);
+            if (!_licensed) return;
+            var players = Players.ToList();
 
             if (players.Count > 0)
             {

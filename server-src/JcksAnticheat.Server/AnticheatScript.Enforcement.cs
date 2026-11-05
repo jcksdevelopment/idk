@@ -20,7 +20,7 @@ namespace JcksAnticheat.Server
 
         private void Punish(Violation v)
         {
-            if (_cfg.Scoring.Ignore.Contains(v.Code)) return;
+            if (!_licensed || _cfg.Scoring.Ignore.Contains(v.Code)) return;
             var player = Players[v.Player];
             if (player == null) return;
             if (_removing.TryGetValue(v.Player, out var leaving) && leaving.banned) return; // already banned

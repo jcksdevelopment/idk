@@ -324,6 +324,43 @@ Set `discord.enabled` and give the FiveM process the webhook URL in the variable
 Bans and settings changes are always posted. Embeds are batched (10 per message) and sent off the
 game thread.
 
+## Licensing (selling the anticheat)
+
+**What Cfx Asset Escrow does and doesn't do.** Escrow (Keymaster/Tebex) encrypts the resource's
+`.lua` files and lets it run only on servers whose license key belongs to the buyer's Cfx account.
+Every server of that account can run it, so escrow alone doesn't mean one server. It also leaves
+`.dll` files unencrypted, and the server half of this anticheat is a .NET DLL.
+
+**The built-in license lock** adds "one key = one server" on top:
+
+1. On your machine (once): `cd license-server && npm run keygen`. Keep
+   `data/license.key.pem` secret and backed up.
+2. Copy `data/license.pub.pem` to `server-src/JcksAnticheat.Server/license.pub.pem`, and put your
+   license server's URL in `server-src/JcksAnticheat.Server/license.url`. Build. Both are compiled
+   into the DLL (and git-ignored). A build without `license.pub.pem` is a development build with
+   no license check.
+3. Run the license server (`JAC_LICENSE_ADMIN_TOKEN=... npm start`, behind HTTPS; set
+   `JAC_TRUST_PROXY=1` behind a reverse proxy). Create a key per sale:
+   ```bash
+   curl -X POST -H "Authorization: Bearer $JAC_LICENSE_ADMIN_TOKEN" -H "content-type: application/json" -d '{"owner":"Customer RP"}' https://your-license-host/v1/admin/licenses
+   ```
+   Also available: `GET /v1/admin/licenses`, `POST /v1/admin/reset {id}` (move a license, limited
+   by `maxResets`) and `POST /v1/admin/revoke {id}`.
+4. The buyer adds `set jcks_ac_license "JAC-XXXXX-XXXXX-XXXXX-XXXXX"` to `server.cfg`.
+
+On start the resource activates the key. The first activation binds it to that server's public IP
+plus an install fingerprint (project name, install path, endpoint). Any other server using the
+same key is refused, however many times the resource is downloaded. Responses are RSA-signed and
+checked against the public key inside the DLL, so a fake license server doesn't work. The license
+is rechecked every 6 hours. If the license server is down, the last activation keeps working for
+72 hours. Without a valid license nothing runs: no handshake, no checks, no punishments.
+
+**Limits.** A .NET DLL can be decompiled and patched, so this is a strong barrier, not an
+unbreakable one. Ship escrow for the Lua part, run an obfuscator over the server DLL (for example
+Obfuscar or ConfuserEx, as a build step), and keep the license server's private key off the
+build machine. Tebex can sell the keys: create a key in your Tebex delivery step through the
+admin API.
+
 ## Dashboard
 
 ```bash
@@ -382,7 +419,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-91 tests cover:
+95 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -408,7 +445,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 91 tests pass.
+- Both C# projects build with no warnings and the 95 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

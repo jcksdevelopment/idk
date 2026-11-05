@@ -92,6 +92,7 @@ namespace JcksAnticheat.Server
             // Players already connected when the resource (re)starts must handshake too.
             foreach (var p in Players) OnPlayerJoining(p, "");
             RegisterExports();
+            InitLicense();
             RebuildIntegrations();
             RegisterSettings();
             Tick += OnTick;
@@ -230,6 +231,7 @@ namespace JcksAnticheat.Server
 
         private void OnHello([FromSource] Player player)
         {
+            if (!_licensed) return;
             int id = ToId(player.Handle);
             if (!_limiter.TryConsume(id, "hello", _helloRule)) return;
 

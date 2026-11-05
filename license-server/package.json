@@ -1,0 +1,11 @@
+{
+  "name": "jcks-anticheat-license-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "keygen": "node keygen.mjs",
+    "test": "node --test"
+  }
+}

@@ -19,3 +19,8 @@ next-env.d.ts
 
 # Packaged resource (scripts/package.sh)
 dist/
+
+# Seller-specific licensing material (see README "Licensing")
+server-src/JcksAnticheat.Server/license.pub.pem
+server-src/JcksAnticheat.Server/license.url
+license-server/data/

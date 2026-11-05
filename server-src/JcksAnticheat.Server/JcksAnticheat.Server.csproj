@@ -14,6 +14,10 @@
     <PackageReference Include="CitizenFX.Core.Server" Version="1.0.26803" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="license.pub.pem" Condition="Exists('license.pub.pem')" LogicalName="license.pub.pem" />
+    <EmbeddedResource Include="license.url" Condition="Exists('license.url')" LogicalName="license.url" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\JcksAnticheat.Core\JcksAnticheat.Core.csproj" />
   </ItemGroup>
 </Project>
