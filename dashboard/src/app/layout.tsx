@@ -4,8 +4,8 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sentinel",
-  description: "Sentinel anticheat moderation dashboard",
+  title: "JCKS Anticheat",
+  description: "JCKS Anticheat moderation dashboard",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

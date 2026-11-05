@@ -12,13 +12,13 @@ import { seedDemo, startDemoFeed } from "./demo";
  * One dashboard instance per deployment: this is a moderation tool, not a multi-region service.
  */
 
-const DATA_DIR = process.env.SENTINEL_DATA_DIR ?? join(process.cwd(), ".data");
+const DATA_DIR = process.env.JCKS_AC_DATA_DIR ?? join(process.cwd(), ".data");
 const STATE_FILE = join(DATA_DIR, "state.json");
 const VISION_DIR = join(DATA_DIR, "vision");
 const MAX_DETECTIONS = 5000;
 const MAX_LOG = 1000;
 /** Captures kept on disk. Beyond this, dismissed/clean ones go first; confirmed evidence goes last. */
-const MAX_VISION = Number(process.env.SENTINEL_MAX_CAPTURES ?? 1000);
+const MAX_VISION = Number(process.env.JCKS_AC_MAX_CAPTURES ?? 1000);
 
 interface State {
   players: Record<string, Player>;
@@ -42,10 +42,10 @@ class Store {
       try {
         this.state = { ...this.state, ...JSON.parse(readFileSync(STATE_FILE, "utf8")) };
       } catch (err) {
-        console.error("[sentinel] could not read state, starting empty:", err);
+        console.error("[jcks_anticheat] could not read state, starting empty:", err);
       }
     }
-    this.demo = process.env.SENTINEL_DEMO !== "0";
+    this.demo = process.env.JCKS_AC_DEMO !== "0";
     if (this.demo && Object.keys(this.state.players).length === 0) {
       seedDemo(this);
     }
@@ -167,7 +167,7 @@ class Store {
       try {
         if (existsSync(file)) unlinkSync(file);
       } catch (err) {
-        console.error("[sentinel] could not delete capture", v.id, err);
+        console.error("[jcks_anticheat] could not delete capture", v.id, err);
       }
     }
   }
@@ -281,7 +281,7 @@ class Store {
         writeFileSync(tmp, JSON.stringify(this.state));
         renameSync(tmp, STATE_FILE);
       } catch (err) {
-        console.error("[sentinel] could not save state:", err);
+        console.error("[jcks_anticheat] could not save state:", err);
       }
     }, 1000);
   }
@@ -302,6 +302,6 @@ function summarise(evidence: Record<string, unknown>) {
 }
 
 // Survive Next.js dev hot reloads: one store per process.
-const g = globalThis as unknown as { __sentinelStore?: Store };
-export const store: Store = g.__sentinelStore ?? (g.__sentinelStore = new Store());
+const g = globalThis as unknown as { __jacStore?: Store };
+export const store: Store = g.__jacStore ?? (g.__jacStore = new Store());
 export type { Store };

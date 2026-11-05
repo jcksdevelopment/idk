@@ -3,10 +3,10 @@ bin/
 obj/
 *.user
 # Built server DLLs land in the resource; build them from server-src (see README).
-resource/sentinel/server/*.dll
-resource/sentinel/server/*.pdb
+resource/jcks_anticheat/server/*.dll
+resource/jcks_anticheat/server/*.pdb
 # Runtime data (bans, captured screenshots)
-resource/sentinel/data/
+resource/jcks_anticheat/data/
 # Node / Next.js
 node_modules/
 .next/

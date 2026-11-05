@@ -12,17 +12,17 @@ import type { Session } from "./types";
  *          → /api/auth/callback?code=…&state=… → signed session cookie → /live
  */
 
-export const SESSION_COOKIE = "sentinel_session";
-export const STATE_COOKIE = "sentinel_oauth_state";
+export const SESSION_COOKIE = "jac_session";
+export const STATE_COOKIE = "jac_oauth_state";
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
 function secret(): string {
   const s = process.env.SESSION_SECRET;
   if (s && s.length >= 32) return s;
-  if (process.env.NODE_ENV === "production" && process.env.SENTINEL_DEMO === "0") {
+  if (process.env.NODE_ENV === "production" && process.env.JCKS_AC_DEMO === "0") {
     throw new Error("SESSION_SECRET (32+ chars) is required in production");
   }
-  return "sentinel-dev-session-secret-change-me-please";
+  return "jac-dev-session-secret-change-me-please";
 }
 
 /** Staff accounts the mock consent screen offers. Real Discord would decide this from guild roles. */
@@ -84,9 +84,9 @@ export function actorName(s: Session) {
   return `${s.username} (Discord)`;
 }
 
-/** Game-server → dashboard API auth: `Authorization: Bearer <SENTINEL_DASHBOARD_SECRET>`. */
+/** Game-server → dashboard API auth: `Authorization: Bearer <JCKS_AC_DASHBOARD_SECRET>`. */
 export function checkServerToken(req: Request): boolean {
-  const expected = process.env.SENTINEL_DASHBOARD_SECRET;
+  const expected = process.env.JCKS_AC_DASHBOARD_SECRET;
   if (!expected) return false;
   const header = req.headers.get("authorization") ?? "";
   const given = header.startsWith("Bearer ") ? header.slice(7) : "";

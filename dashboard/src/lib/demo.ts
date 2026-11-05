@@ -2,9 +2,9 @@ import type { Store } from "./store";
 import type { Action, Source, VisionCapture } from "./types";
 
 /**
- * Demo mode (default unless SENTINEL_DEMO=0): seeds believable data and streams a detection every few
+ * Demo mode (default unless JCKS_AC_DEMO=0): seeds believable data and streams a detection every few
  * seconds, so the dashboard can be evaluated without a running FiveM server. Real ingest works
- * alongside it; set SENTINEL_DEMO=0 in production.
+ * alongside it; set JCKS_AC_DEMO=0 in production.
  */
 
 const NAMES = [
@@ -114,7 +114,7 @@ export function seedDemo(store: Store) {
       identifiers: identifiers(),
       reason: pick(reasons),
       code: pick(["MOV_TELEPORT", "WPN_EXPLOSIVE_AMMO", "HB_INVALID", "MANUAL", "VEH_SPAWN"]),
-      bannedBy: pick(["sentinel", "sentinel", "sentinel", "Mara (Discord)", "Theo (Discord)"]),
+      bannedBy: pick(["jcks_anticheat", "jcks_anticheat", "jcks_anticheat", "Mara (Discord)", "Theo (Discord)"]),
       createdAt: created.toISOString(),
       expiresAt: Math.random() < 0.3 ? new Date(created.getTime() + 7 * 86_400_000).toISOString() : null,
     });
@@ -147,14 +147,14 @@ export function seedDemo(store: Store) {
 }
 
 export function startDemoFeed(store: Store) {
-  const g = globalThis as unknown as { __sentinelDemoFeed?: NodeJS.Timeout };
-  if (g.__sentinelDemoFeed) return;
+  const g = globalThis as unknown as { __jacDemoFeed?: NodeJS.Timeout };
+  if (g.__jacDemoFeed) return;
   const tick = () => {
     emitDetection(store);
-    g.__sentinelDemoFeed = setTimeout(tick, rnd(2500, 7000));
+    g.__jacDemoFeed = setTimeout(tick, rnd(2500, 7000));
   };
-  g.__sentinelDemoFeed = setTimeout(tick, 3000);
-  g.__sentinelDemoFeed.unref?.();
+  g.__jacDemoFeed = setTimeout(tick, 3000);
+  g.__jacDemoFeed.unref?.();
 }
 
 type FrameKind = "menu" | "esp" | "fov" | "clean";

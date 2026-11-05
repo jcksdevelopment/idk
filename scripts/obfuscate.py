@@ -3,8 +3,8 @@
 Build-time hardening for the client Lua (used by scripts/package.sh on dist/ only; sources stay readable).
 
 1. Strips comments and blank lines, so the shipped files carry no explanations of what each check does.
-2. Renames the scanner's global tables (Sentinel, SentinelCrypto) to random identifiers chosen per
-   build, so an executor can't find them by a well-known name and patch e.g. Sentinel.flag.
+2. Renames the scanner's global tables (JcksAC, JcksCrypto) to random identifiers chosen per
+   build, so an executor can't find them by a well-known name and patch e.g. JcksAC.flag.
 
 A real tokenizer handles '...', "...", long strings [[ ]] / [==[ ]==] and long comments, so code
 inside strings is never touched. This is light obfuscation, not protection: a determined attacker
@@ -18,7 +18,7 @@ import re
 import string
 import sys
 
-RENAME = ["SentinelCrypto", "Sentinel"]  # longest first is irrelevant: we match whole identifiers
+RENAME = ["JcksCrypto", "JcksAC"]  # longest first is irrelevant: we match whole identifiers
 
 
 def long_bracket_level(src, i):

@@ -1,12 +1,12 @@
-# Sentinel
+# JCKS Anticheat
 
 An anticheat for FiveM servers, with a moderation dashboard.
 
 | Part | Path | Stack |
 |---|---|---|
-| Client scanner | `resource/sentinel/client`, `shared`, `html` | Lua 5.4, NUI |
-| Server authority | `server-src/Sentinel.Server` → `resource/sentinel/server` | C#, built with the .NET 10 SDK, targets `netstandard2.0` |
-| Detection core, AI vision | `server-src/Sentinel.Core` | C#, no FiveM dependency, unit-tested |
+| Client scanner | `resource/jcks_anticheat/client`, `shared`, `html` | Lua 5.4, NUI |
+| Server authority | `server-src/JcksAnticheat.Server` → `resource/jcks_anticheat/server` | C#, built with the .NET 10 SDK, targets `netstandard2.0` |
+| Detection core, AI vision | `server-src/JcksAnticheat.Core` | C#, no FiveM dependency, unit-tested |
 | Dashboard | `dashboard` | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
 | Threat matrix | `docs/THREAT_MATRIX.md` | Each cheat capability mapped to the code that detects it |
 
@@ -44,7 +44,7 @@ plain net event a cheat could block or spoof to stay clean. Blocking the heartbe
 
 ### The heartbeat
 
-1. The client fires `sentinel:hello`. The server answers on `sentinel:init` with a random 32-byte
+1. The client fires `jcks_anticheat:hello`. The server answers on `jcks_anticheat:init` with a random 32-byte
    session key, a challenge, and four event names randomised per server boot.
 2. Every 5 s the client sends `seq, nonce, ciphertext, mac`, where:
    - `ciphertext` = SHA-256-CTR(key, nonce, `{seq, challenge, flags, state}`)
@@ -54,7 +54,7 @@ plain net event a cheat could block or spoof to stay clean. Blocking the heartbe
    one packet loses the key.
 4. A second handshake after a working session is itself a violation (`HB_INVALID`).
 5. A client that never handshakes can't opt out: once the player has a ped in the world, they
-   have `handshakeTimeoutSeconds` (120) to send `sentinel:hello`, or they get `HB_MISSING`. The
+   have `handshakeTimeoutSeconds` (120) to send `jcks_anticheat:hello`, or they get `HB_MISSING`. The
    server's own movement and health checks run from the moment the ped exists, handshake or not.
 6. An invalid heartbeat (`HB_INVALID`) or 20 s of silence (`HB_MISSING`) disconnects the player
    immediately (`scoring.dropImmediately`). That's a kick, not a ban: a crashed or frozen client
@@ -82,7 +82,7 @@ server-side evidence.
 | `PlayerStateValidator` | Health and armour jumps without a server-granted heal, max-health tampering |
 | Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` against other players |
 | Honeypots | Decoy net events no real resource fires (`honeypotEvents` in config) |
-| `RateLimiter` | Per-player token bucket, shared by Sentinel's own events and other resources through `exports.sentinel:Guard`. A sustained flood (40 denied events in 10 s) disconnects the player. |
+| `RateLimiter` | Per-player token bucket, shared by JCKS Anticheat's own events and other resources through `exports.jcks_anticheat:Guard`. A sustained flood (40 denied events in 10 s) disconnects the player. |
 
 **Idle cost.** Everything is event-driven except one coroutine that wakes once a second and returns
 immediately when nobody is online. Buckets refill lazily and nothing allocates at idle. I designed
@@ -93,7 +93,7 @@ it for 0.00 ms idle in resmon, but I haven't measured it on a live server.
 When a player's score crosses `scoring.screenshotAt`, or a moderator clicks **Capture**, the server
 asks the client for a frame. The frame arrives as base64 chunks over a latent event. The server
 only accepts chunks for capture IDs it issued itself. It saves the frame to
-`resource/sentinel/data/vision/` and sends it to the vision model:
+`resource/jcks_anticheat/data/vision/` and sends it to the vision model:
 
 - **`anthropic`** (default): the Claude Messages API over raw HTTP, model `claude-opus-5-5`. The
   official C# SDK targets modern .NET and can't load inside FiveM's Mono runtime, so the request is
@@ -109,7 +109,7 @@ verdict never pushes anyone toward a kick or ban. Overlays drawn by an external 
 transparent window don't appear in a game screenshot.
 
 The API key is read from the environment variable named in `vision.apiKeyEnv` (default
-`SENTINEL_VISION_API_KEY`), never from `config.json`.
+`JCKS_AC_VISION_API_KEY`), never from `config.json`.
 
 ## Install on a FiveM server
 
@@ -121,19 +121,19 @@ the one external dependency.
    ./scripts/package.sh
    ```
    On Windows: `powershell -ExecutionPolicy Bypass -File scripts\package.ps1`. This checks the Lua,
-   builds the DLLs, runs the tests, and writes `dist/sentinel/` plus `dist/sentinel-<version>.zip`.
+   builds the DLLs, runs the tests, and writes `dist/jcks_anticheat/` plus `dist/jcks_anticheat-<version>.zip`.
    `package.sh` also hardens the shipped client Lua (`scripts/obfuscate.py`): it strips comments and
    renames the scanner's global tables to random names chosen per build, so an executor can't find
    them by a known name. It then reruns the heartbeat interop tests against that obfuscated build.
    This is light obfuscation, not protection; `NO_OBFUSCATE=1` turns it off. The Windows script
    doesn't obfuscate.
-   CI (`.github/workflows/build.yml`) does the same on every push and uploads `dist/sentinel/`
-   as the `sentinel-resource` artifact.
-2. Copy `dist/sentinel` into your server's `resources/` folder.
+   CI (`.github/workflows/build.yml`) does the same on every push and uploads `dist/jcks_anticheat/`
+   as the `jcks_anticheat-resource` artifact.
+2. Copy `dist/jcks_anticheat` into your server's `resources/` folder.
 3. Add to `server.cfg`, after your framework:
    ```
-   ensure sentinel
-   add_ace group.admin sentinel.bypass allow
+   ensure jcks_anticheat
+   add_ace group.admin jcks_anticheat.bypass allow
    ```
 4. Leave `"dryRun": true` in `config.json` for the first sessions. Every detection is logged and
    sent to the dashboard, but nobody is kicked or banned. Tune thresholds against what you see,
@@ -141,15 +141,15 @@ the one external dependency.
 
 ### Integrating with your scripts
 
-Sentinel flags legitimate jumps (hospital heals, admin noclip, apartment teleports) unless you tell
+JCKS Anticheat flags legitimate jumps (hospital heals, admin noclip, apartment teleports) unless you tell
 it about them. Grant grace from the **server**:
 
 ```lua
 -- after your hospital script heals a player
-exports.sentinel:GrantGrace(source, "heal", 5000)
+exports.jcks_anticheat:GrantGrace(source, "heal", 5000)
 -- before an admin teleport / noclip / godmode
-exports.sentinel:GrantGrace(source, "teleport", 10000)
-exports.sentinel:GrantGrace(source, "noclip", 600000)
+exports.jcks_anticheat:GrantGrace(source, "teleport", 10000)
+exports.jcks_anticheat:GrantGrace(source, "noclip", 600000)
 ```
 
 If your server legitimately does something a check looks for (tuning scripts calling
@@ -157,7 +157,7 @@ If your server legitimately does something a check looks for (tuning scripts cal
 `scoring.ignore`, for example `"ignore": ["VEH_HANDLING", "PLY_STAMINA"]`.
 
 Kinds: `heal`, `armor`, `teleport`, `noclip`, `godmode`, `invisible`, `vision`, `ragdoll`, `camera`,
-`vehicle`. Server grace also reaches the client scanner. A client-side `exports.sentinel:GrantGrace`
+`vehicle`. Server grace also reaches the client scanner. A client-side `exports.jcks_anticheat:GrantGrace`
 exists for client-only scripts, but the server ignores it.
 
 Other exports: `Guard(source, bucket)` rate-limits your own net events (it returns `false` when the
@@ -165,7 +165,7 @@ player is over budget), `GetScore(source)`, and `BanPlayer(source, reason)`.
 
 ### Configuration
 
-Everything lives in `resource/sentinel/config.json`: scoring thresholds and half-life, per-code
+Everything lives in `resource/jcks_anticheat/config.json`: scoring thresholds and half-life, per-code
 severity overrides, `ignore` codes (switched off entirely; the client stops sending them), `logOnly` codes, movement and damage limits, explosion and entity rules,
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
@@ -204,22 +204,22 @@ Support-role accounts can kick and capture; bans and unbans need Moderator or ab
 Then give the FiveM process the same secret as the dashboard:
 
 ```bash
-export SENTINEL_DASHBOARD_SECRET="$(openssl rand -hex 32)"
+export JCKS_AC_DASHBOARD_SECRET="$(openssl rand -hex 32)"
 ```
 
 The game server pushes event batches to `POST /api/ingest` and polls `GET /api/server/commands`.
 Every connection is outbound, so the game server needs no open port. A ban issued for a player
 who has already left uses the identifiers the dashboard last saw.
 
-**Demo mode** (`SENTINEL_DEMO=1`, the default) seeds sample players, bans and captures, and
+**Demo mode** (`JCKS_AC_DEMO=1`, the default) seeds sample players, bans and captures, and
 streams a fake detection every few seconds, so you can try the UI without a game server. When no
 game server is connected it also simulates the server's response to staff actions. Set
-`SENTINEL_DEMO=0` in production.
+`JCKS_AC_DEMO=0` in production.
 
 The store is a single process, persisted to `dashboard/.data/` (state JSON plus capture images).
-It keeps at most `SENTINEL_MAX_CAPTURES` (1000) captures, deleting dismissed and clean ones before
+It keeps at most `JCKS_AC_MAX_CAPTURES` (1000) captures, deleting dismissed and clean ones before
 pending ones and confirmed evidence last. The game server keeps the newest `vision.maxStoredCaptures`
-(500) files in `resource/sentinel/data/vision/`.
+(500) files in `resource/jcks_anticheat/data/vision/`.
 Run one dashboard instance per deployment.
 
 ## Development and tests
@@ -239,7 +239,7 @@ cd server-src && dotnet test
   refusals, errors and OpenAI-compatible replies, all against a fake HTTP handler
 - screenshot chunk reassembly
 
-The interop tests need `lua5.4` on `PATH`; set `SENTINEL_SKIP_LUA=1` to skip them.
+The interop tests need `lua5.4` on `PATH`; set `JCKS_AC_SKIP_LUA=1` to skip them.
 
 ```bash
 cd dashboard && npm run lint && npm run build

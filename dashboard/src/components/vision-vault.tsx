@@ -120,7 +120,7 @@ export function VisionVault() {
                 <div className="flex justify-between gap-2"><dt>Captured</dt><dd className="text-muted">{new Date(open.at).toLocaleString()}</dd></div>
                 {open.reviewedBy && <div className="flex justify-between gap-2"><dt>Reviewed by</dt><dd className="text-muted">{open.reviewedBy}</dd></div>}
               </dl>
-              <p className="text-xs leading-relaxed text-subtle">AI verdicts are advisory. Sentinel never bans on a vision verdict alone.</p>
+              <p className="text-xs leading-relaxed text-subtle">AI verdicts are advisory. JCKS Anticheat never bans on a vision verdict alone.</p>
               <div className="mt-auto flex flex-wrap gap-2 pt-2">
                 <Button size="sm" variant="ghost" onClick={() => review(open, "dismissed")}>Dismiss</Button>
                 <Button size="sm" variant="secondary" onClick={() => review(open, "confirmed")}>Confirm</Button>

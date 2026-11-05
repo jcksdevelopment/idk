@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui";
 import { VisionVault } from "@/components/vision-vault";
 
-export const metadata = { title: "Vision Vault · Sentinel" };
+export const metadata = { title: "Vision Vault · JCKS Anticheat" };
 
 export default function VisionPage() {
   return (

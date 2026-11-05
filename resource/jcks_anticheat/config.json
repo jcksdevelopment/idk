@@ -1,0 +1,64 @@
+{
+  "dryRun": true,
+  "heartbeatIntervalMs": 5000,
+  "heartbeatMissingSeconds": 20,
+  "handshakeTimeoutSeconds": 120,
+  "maxHealth": 200,
+  "expectedDamageModifier": 1.0,
+  "eventBurst": 60,
+  "eventRefillPerSecond": 25,
+  "floodDeniedPer10s": 40,
+  "adminAce": ["jcks_anticheat.bypass"],
+
+  "scoring": {
+    "screenshotAt": 40,
+    "kickAt": 80,
+    "banAt": 140,
+    "halfLifeMinutes": 10,
+    "severity": {},
+    "ignore": [],
+    "logOnly": [],
+    "dropImmediately": ["HB_INVALID", "HB_MISSING", "NET_FLOOD"]
+  },
+
+  "movement": { "onFootMaxSpeed": 12, "landMaxSpeed": 110, "airMaxSpeed": 160, "boatMaxSpeed": 60, "teleportMinDistance": 60, "speedSlack": 1.35 },
+  "damage": { "bodyDamageMultiplier": 1.6, "headDamageMultiplier": 4.0, "rangeMultiplier": 1.25, "maxAimAngle": 60, "maxTrajectoryAngle": 45, "headshotRatioMax": 0.7 },
+  "explosions": { "blacklist": [16, 18, 26, 29, 32, 35, 36, 37, 41], "maxPerSecond": 4, "maxPer10Seconds": 12 },
+  "entities": { "maxVehiclesPer10s": 5, "maxEntitiesPer10s": 15, "allowedPedModels": [] },
+
+  "weaponBlacklist": [
+    "WEAPON_RAILGUN", "WEAPON_RAILGUNXM3", "WEAPON_MINIGUN", "WEAPON_RPG", "WEAPON_HOMINGLAUNCHER",
+    "WEAPON_GRENADELAUNCHER", "WEAPON_COMPACTLAUNCHER", "WEAPON_STICKYBOMB", "WEAPON_PROXMINE",
+    "WEAPON_RAYPISTOL", "WEAPON_RAYCARBINE", "WEAPON_RAYMINIGUN", "WEAPON_EMPLAUNCHER", "WEAPON_FIREWORK"
+  ],
+  "vehicleBlacklist": [
+    "rhino", "khanjali", "hydra", "lazer", "oppressor", "oppressor2", "jet", "cargoplane", "blimp", "blimp2",
+    "blimp3", "titan", "volatol", "avenger", "deluxo", "scramjet", "vigilante", "ruiner2", "apc", "chernobog"
+  ],
+  "objectBlacklist": [
+    "prop_beach_fire", "prop_windmill_01", "stt_prop_stunt_track_start", "prop_gold_cont_01",
+    "p_spinning_anus_s", "prop_fnclink_05crnr1", "xs_prop_hamburgher_wl", "prop_container_01a"
+  ],
+  "honeypotEvents": [
+    "esx:giveInventoryItem_admin", "bank:depositAll", "jcks_anticheat:adminGrant", "vrp:giveMoney", "qb-admin:server:setmoney"
+  ],
+
+  "vision": {
+    "enabled": false,
+    "provider": "anthropic",
+    "endpoint": "https://api.anthropic.com/v1/messages",
+    "model": "claude-opus-5-5",
+    "apiKeyEnv": "JCKS_AC_VISION_API_KEY",
+    "effort": "medium",
+    "flagConfidence": 0.8,
+    "cooldownSeconds": 120,
+    "maxStoredCaptures": 500
+  },
+
+  "dashboard": {
+    "enabled": false,
+    "url": "http://localhost:3000",
+    "secretEnv": "JCKS_AC_DASHBOARD_SECRET",
+    "serverId": "main"
+  }
+}

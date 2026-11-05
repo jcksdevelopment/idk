@@ -10,7 +10,7 @@ const obj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v
 const SOURCES = new Set(["client", "server", "heartbeat", "vision"]);
 const ACTIONS = new Set(["none", "log", "screenshot", "kick", "ban"]);
 
-/** Applies one event pushed by Sentinel.Core.Dashboard.DashboardBridge. Unknown types are ignored. */
+/** Applies one event pushed by JcksAnticheat.Core.Dashboard.DashboardBridge. Unknown types are ignored. */
 export function applyEvent(serverId: string, ev: Obj) {
   const type = str(ev.type);
   const at = str(ev.at, new Date().toISOString());
@@ -77,7 +77,7 @@ export function applyEvent(serverId: string, ev: Obj) {
         identifiers: Array.isArray(b.identifiers) ? b.identifiers.filter((x): x is string => typeof x === "string") : [],
         reason: str(b.reason),
         code: str(b.code),
-        bannedBy: str(b.bannedBy, "sentinel"),
+        bannedBy: str(b.bannedBy, "jcks_anticheat"),
         createdAt: str(b.createdAt, at),
         expiresAt: typeof b.expiresAt === "string" ? b.expiresAt : null,
       };

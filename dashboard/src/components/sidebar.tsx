@@ -19,7 +19,7 @@ export function Sidebar({ session, demo }: { session: Session; demo: boolean }) 
     <aside className="flex shrink-0 flex-col border-b border-line md:h-dvh md:w-56 md:border-r md:border-b-0">
       <div className="flex h-14 items-center gap-2.5 px-5">
         <ShieldIcon width={18} height={18} />
-        <span className="text-sm font-semibold tracking-tight">Sentinel</span>
+        <span className="text-sm font-semibold tracking-tight">JCKS Anticheat</span>
         {demo && <span className="ml-auto rounded border border-line-strong px-1.5 py-0.5 font-mono text-[10px] uppercase text-subtle">demo</span>}
       </div>
       <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:pb-0" aria-label="Main">

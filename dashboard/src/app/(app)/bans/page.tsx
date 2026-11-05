@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui";
 import { BansTable } from "@/components/bans-table";
 
-export const metadata = { title: "Bans · Sentinel" };
+export const metadata = { title: "Bans · JCKS Anticheat" };
 
 export default function BansPage() {
   return (

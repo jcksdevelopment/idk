@@ -20,7 +20,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
             <ShieldIcon />
           </div>
           <div className="ml-1">
-            <p className="text-sm font-medium">Sentinel</p>
+            <p className="text-sm font-medium">JCKS Anticheat</p>
             <p className="text-xs text-subtle">wants to access your Discord account</p>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         </fieldset>
 
         <div className="px-5 py-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-subtle">This will allow Sentinel to</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-subtle">This will allow JCKS Anticheat to</p>
           <ul className="space-y-1.5 text-sm text-muted">
             {scopes.includes("identify") && <li>• Access your username and avatar</li>}
             {scopes.includes("guilds.members.read") && <li>• Read your roles in the community server</li>}

@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="w-full max-w-[360px]">
         <div className="mb-10 flex items-center gap-2.5 text-fg">
           <ShieldIcon width={20} height={20} />
-          <span className="text-[15px] font-semibold tracking-tight">Sentinel</span>
+          <span className="text-[15px] font-semibold tracking-tight">JCKS Anticheat</span>
         </div>
 
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>

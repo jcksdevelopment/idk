@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/ui";
 import { PlayersTable } from "@/components/players-table";
 
-export const metadata = { title: "Players · Sentinel" };
+export const metadata = { title: "Players · JCKS Anticheat" };
 
 export default function PlayersPage() {
   return (

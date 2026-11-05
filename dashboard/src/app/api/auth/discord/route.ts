@@ -6,7 +6,7 @@ import { STATE_COOKIE } from "@/lib/auth";
 export async function GET(req: Request) {
   const state = randomBytes(16).toString("hex");
   const url = new URL("/login/authorize", req.url);
-  url.searchParams.set("client_id", "sentinel");
+  url.searchParams.set("client_id", "jcks_anticheat");
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", "identify guilds.members.read");
   url.searchParams.set("state", state);

@@ -1,7 +1,7 @@
 import "server-only";
 
-const g = globalThis as unknown as { __sentinelServers?: Map<string, number> };
-const seen = g.__sentinelServers ?? (g.__sentinelServers = new Map());
+const g = globalThis as unknown as { __jacServers?: Map<string, number> };
+const seen = g.__jacServers ?? (g.__jacServers = new Map());
 
 export function markServerSeen(serverId: string) {
   seen.set(serverId, Date.now());

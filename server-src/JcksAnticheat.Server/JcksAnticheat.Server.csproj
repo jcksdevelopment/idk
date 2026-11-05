@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>JcksAnticheat.Server.net</AssemblyName>
+    <RootNamespace>JcksAnticheat.Server</RootNamespace>
+    <!-- Output straight into the FiveM resource. -->
+    <OutputPath>..\..\resource\jcks_anticheat\server\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Compile-time reference only: FiveM supplies CitizenFX.Core at runtime. -->
+    <PackageReference Include="CitizenFX.Core.Server" Version="1.0.26803" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JcksAnticheat.Core\JcksAnticheat.Core.csproj" />
+  </ItemGroup>
+</Project>
