@@ -22,6 +22,7 @@ local InputController = require(Controllers.InputController)
 local RepairController = require(Controllers.RepairController)
 local SoundController = require(Controllers.SoundController)
 local GuideController = require(Controllers.GuideController)
+local OverheadController = require(Controllers.OverheadController)
 
 local Toast = require(UI.Toast)
 local Effects = require(UI.Effects)
@@ -32,6 +33,8 @@ local CashShopPanel = require(UI.CashShopPanel)
 local RewardsPanel = require(UI.RewardsPanel)
 local IndexPanel = require(UI.IndexPanel)
 local SettingsPanel = require(UI.SettingsPanel)
+local TrophyPanel = require(UI.TrophyPanel)
+local WheelPanel = require(UI.WheelPanel)
 
 local player = Players.LocalPlayer
 
@@ -46,6 +49,8 @@ local function buildUI(gui: ScreenGui)
 	BazaarPanel.Build(gui)
 	RewardsPanel.Build(gui)
 	IndexPanel.Build(gui)
+	TrophyPanel.Build(gui)
+	WheelPanel.Build(gui)
 	CashShopPanel.Build(gui)
 	SettingsPanel.Build(gui)
 end
@@ -57,6 +62,7 @@ StateController.Changed:Connect(function(snapshot)
 		Locale.SetLanguage(wanted)
 		UIController.Rebuild()
 		GuideController.Localize()
+		OverheadController.Refresh()
 	end
 end)
 
@@ -66,4 +72,5 @@ UIController.Start()
 InputController.Start()
 RepairController.Start()
 GuideController.Start()
+OverheadController.Start()
 StateController.Start() -- last: snapshots arrive once every view is listening

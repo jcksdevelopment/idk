@@ -30,6 +30,10 @@ character's network physics. The server owns all state that matters.
 | 22 | **Scrub auto-clicker** | Macro taps the scrub button | Each tap removes at most 0.5 s, capped at 60% of the repair. Taps faster than 8/s are dropped (silently, so excited kids are never flagged) | `RepairService.onScrub`, `RemoteGuard` `Silent` |
 | 23 | Forged settings | Sends odd keys/values to `SetSetting` | Keys whitelisted; values type-checked per key | `ProgressService.onSetSetting` |
 | 24 | Locked crate | Buys a high-level box early | Level re-checked on the server from saved XP | `ItemService.onBuyCrate` |
+| 25 | **Wheel spam / rigging** | Spams `SpinWheel` or tries to choose the prize | The cooldown is stored in the profile (`LastSpinAt`) and set atomically with the grant. The prize is rolled by server RNG, and the client only animates to the announced index | `ProgressService.onSpinWheel` |
+| 26 | Fake achievements / titles | Sends `SetTitle` for a locked title | Achievements unlock only from server stats. `SetTitle` accepts only unlocked ids (or "") | `ProgressService` |
+| 27 | Rebirth abuse | Rebirths without meeting the requirement | Level + cash re-checked on the server; reset and bonus applied in one block; capped at `MaxRebirths` | `ProgressService.onRebirth` |
+| 28 | Fake friend bonus | Claims friends | Friendship checked by the server (`IsFriendsWith`); bonus capped at +30% | `FriendService` |
 | 19 | Client code theft | Decompiles LocalScripts | The client holds no secrets or authority: only rendering and requests | architecture |
 
 ## Flag scoring

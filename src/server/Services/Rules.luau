@@ -11,6 +11,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Progression = require(Shared.Progression)
 local Types = require(Shared.Types)
+local FriendService = require(script.Parent.FriendService)
 local GamePassService = require(script.Parent.GamePassService)
 
 local Rules = {}
@@ -35,11 +36,21 @@ function Rules.RepairSlots(player: Player): number
 	return slots
 end
 
-function Rules.MoneyMultiplier(data: Types.PlayerData): number
-	if data.BoostEndsAt > os.time() then
-		return Config.Products.MoneyBoostMultiplier
-	end
-	return 1
+function Rules.RebirthBonus(data: Types.PlayerData): number
+	return data.Rebirths * Config.Rebirth.MoneyBonusPerRebirth
+end
+
+-- Boost (2x) * (1 + rebirth bonus) * (1 + friends bonus). Server-authoritative.
+function Rules.MoneyMultiplier(player: Player, data: Types.PlayerData): number
+	local multiplier = if data.BoostEndsAt > os.time() then Config.Products.MoneyBoostMultiplier else 1
+	multiplier *= 1 + Rules.RebirthBonus(data)
+	multiplier *= 1 + FriendService.Bonus(player)
+	return multiplier
+end
+
+function Rules.RebirthRequirement(data: Types.PlayerData): (number, number)
+	local r = Config.Rebirth
+	return r.BaseLevel + data.Rebirths * r.LevelPerRebirth, r.BaseCash * (data.Rebirths + 1)
 end
 
 function Rules.InventoryCount(data: Types.PlayerData): number

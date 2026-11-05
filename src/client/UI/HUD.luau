@@ -191,19 +191,19 @@ function HUD.Build(gui: ScreenGui)
 		Name = "Nav",
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.fromScale(0.012, 0.52),
-		Size = UDim2.fromScale(0.08, 0.66),
+		Size = UDim2.fromScale(0.075, 0.76),
 		BackgroundTransparency = 1,
 		Parent = root,
 	}, {
-		Create.List(Enum.FillDirection.Vertical, 0.02),
-		Create.Aspect(0.2),
+		Create.List(Enum.FillDirection.Vertical, 0.015),
+		Create.Aspect(0.15),
 	})
 
 	local function navButton(order: number, icon: string, labelKey: string, key: string, color: Color3, panel: string): TextButton
 		local button = Create.Button({
 			Name = panel,
 			LayoutOrder = order,
-			Size = UDim2.fromScale(1, 0.15),
+			Size = UDim2.fromScale(1, 0.128),
 			BackgroundColor3 = color,
 			Text = icon .. "\n" .. Locale.T(labelKey) .. (if key ~= "" then " [" .. key .. "]" else ""),
 			MaxTextSize = 22,
@@ -219,10 +219,42 @@ function HUD.Build(gui: ScreenGui)
 	navButton(2, "📦", "Nav_Crates", "B", Theme.Colors.Accent, "Bazaar")
 	local questsButton = navButton(3, "📜", "Nav_Quests", "Q", Theme.Colors.Pink, "Rewards")
 	local indexButton = navButton(4, "📖", "Nav_Index", "C", Theme.Colors.VIP, "Index")
-	navButton(5, "🛒", "Nav_Shop", "P", Theme.Colors.Robux, "CashShop")
-	navButton(6, "⚙️", "Nav_Settings", "", Theme.Colors.PanelLight, "Settings")
+	local trophiesButton = navButton(5, "🏆", "Nav_Trophies", "T", Theme.Colors.Accent, "Trophies")
+	navButton(6, "🛒", "Nav_Shop", "P", Theme.Colors.Robux, "CashShop")
+	navButton(7, "⚙️", "Nav_Settings", "", Theme.Colors.PanelLight, "Settings")
 	local questsBadge = Create.Badge(questsButton)
 	local indexBadge = Create.Badge(indexButton)
+	local trophiesBadge = Create.Badge(trophiesButton)
+
+	------------------------------------------------------------------
+	-- Lucky Wheel button (top right) + permanent bonus chip
+	------------------------------------------------------------------
+	local wheelButton = Create.Button({
+		Name = "WheelButton",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.985, 0.2),
+		Size = UDim2.fromScale(0.085, 0.15),
+		BackgroundColor3 = Theme.Colors.Accent,
+		Text = "🎡",
+		MaxTextSize = 22,
+		Parent = root,
+	}, function()
+		UIController.Toggle("Wheel")
+	end)
+	Create.Aspect(1).Parent = wheelButton
+	local wheelBadge = Create.Badge(wheelButton)
+	local wheelScale = wheelButton:FindFirstChildOfClass("UIScale")
+	local wheelPulse = if wheelScale
+		then TweenService:Create(
+			wheelScale,
+			TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+			{ Scale = 1.1 }
+		)
+		else nil
+
+	local bonusChip = chip("Bonus", Theme.Colors.VIP, 4)
+	local bonusFrame = bonusChip.Parent :: Frame
+	bonusFrame.Size = UDim2.fromScale(0.22, 1)
 
 	------------------------------------------------------------------
 	-- Workbench strip (tap a slot to scrub!)
@@ -360,6 +392,16 @@ function HUD.Build(gui: ScreenGui)
 
 		questsBadge.Visible = hasClaimableQuest(snapshot)
 		indexBadge.Visible = hasClaimableCollection(snapshot)
+		trophiesBadge.Visible = snapshot.Rebirths < Config.Rebirth.MaxRebirths
+			and snapshot.Level >= snapshot.RebirthLevel
+			and snapshot.Cash >= snapshot.RebirthCash
+
+		local permanent = (1 + snapshot.RebirthBonus) * (1 + snapshot.FriendsBonus)
+		bonusFrame.Visible = permanent > 1.001
+		if bonusFrame.Visible then
+			bonusChip.Text = Locale.T("HUD_Bonus", { string.format("%.2g", permanent) })
+				.. (if snapshot.FriendsBonus > 0 then " 👫" else "")
+		end
 
 		local step = snapshot.TutorialStep
 		tutorial.Visible = step < Config.Tutorial.DoneStep
@@ -388,6 +430,18 @@ function HUD.Build(gui: ScreenGui)
 			return
 		end
 		local now = StateController.ServerNow()
+
+		local spinLeft = snapshot.NextSpinAt - now
+		local spinReady = spinLeft <= 0
+		wheelButton.Text = if spinReady then "🎡\n" .. Locale.T("Wheel_Ready") else "🎡\n" .. Format.Duration(spinLeft)
+		wheelBadge.Visible = spinReady
+		if wheelPulse then
+			if spinReady and wheelPulse.PlaybackState ~= Enum.PlaybackState.Playing then
+				wheelPulse:Play()
+			elseif not spinReady and wheelPulse.PlaybackState == Enum.PlaybackState.Playing then
+				wheelPulse:Cancel()
+			end
+		end
 
 		local remaining = snapshot.BoostEndsAt - now
 		boostFrame.Visible = remaining > 0

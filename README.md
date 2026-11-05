@@ -99,7 +99,9 @@ src/
       GamePassService.luau     server-side pass ownership
       Rules.luau               capacity, repair slots, money multiplier, cash/boost
       ProgressService.luau     XP/levels, daily quests, login gift, collection, tutorial, settings
-      ProgressViews.luau       read-only quest/daily projections for snapshots
+      ProgressViews.luau       read-only quest/daily/achievement projections for snapshots
+      FriendService.luau       friends-in-server bonus (server-side IsFriendsWith)
+      LeaderboardService.luau  global top-10 board
       SyncService.luau         per-player state snapshots + leaderstats
       WorldService.luau        map build + station proximity
       ItemService.luau         crates, rarity rolls (70/25/5), item creation
@@ -107,9 +109,9 @@ src/
       SellService.luau         id-only selling
       MonetizationService.luau ProcessReceipt + server-side prompts
   client/      → StarterPlayerScripts.Client  (init.client.luau = bootstrap)
-    Controllers/  State, UI, Input, Repair, Proximity, Sound, Guide (tutorial beam)
+    Controllers/  State, UI, Input, Repair, Proximity, Sound, Guide (tutorial beam), Overhead (name tags)
     UI/           Theme, Create, Effects, Toast, HUD, InventoryPanel, BazaarPanel,
-                  RewardsPanel, IndexPanel, CashShopPanel, SettingsPanel
+                  RewardsPanel, IndexPanel, TrophyPanel, WheelPanel, CashShopPanel, SettingsPanel
 ```
 
 ## Game loop and monetization
@@ -127,13 +129,18 @@ src/
 | 🎁 Login gift | 7-day streak calendar (day 7 is the big one) |
 | 📖 Collection book | Discover every item of a rarity to claim a reward; shinies are tracked too |
 | Tutorial | 4 steps with a glowing beam + arrow to the next stall; reward on completion |
+| 🏆 Trophies | 13 achievements that unlock automatically, each with a reward and a **title** shown above your head to everyone |
+| 🔄 New Start (rebirth) | From level 15 + $25,000 (rises each time): reset cash & level, keep items/book/trophies, **+25% money forever** per New Start. Two-tap confirm |
+| 🎡 Lucky Wheel | One **free** spin every 4 h (never for Robux); 7 prizes, cash scales with level; the server picks, the client only animates |
+| 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
+| 📊 Leaderboard | Top 10 lifetime earners on a board in the plaza (OrderedDataStore, refreshed every 2 min) |
 | Selling | Clean items sell at full value; dirty items at 35% |
 | **Instant Repair** (Dev Product) | ⚡ on a card prompts a purchase that finishes that item. A purchase with no target becomes a reusable token |
 | **2x Money Boost** (Dev Product) | 15 min, stacks up to 24 h, expiry tracked with `os.time()` |
 | **VIP Auto-Cleaner** (Game Pass) | +2 workbench slots; repairs start and finish in the background |
 | **+20 Inventory** (Game Pass) | Capacity 10 → 30 |
 
-Controls: **I** bag, **B** boxes, **Q** quests, **C** collection book, **P** shop,
+Controls: **I** bag, **B** boxes, **Q** quests, **C** collection book, **T** trophies, **L** lucky wheel, **P** shop,
 **Backspace** close, **E** at a stall. Gamepad: Y / X / L1 / R1 / B. Touch: HUD buttons.
 
 ### Kid-friendly defaults

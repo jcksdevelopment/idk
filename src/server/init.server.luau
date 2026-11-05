@@ -18,6 +18,7 @@ local START_ORDER = {
 	"FlagService",
 	"RemoteGuard",
 	"GamePassService",
+	"FriendService",
 	"SyncService",
 	"WorldService",
 	"ProgressService",
@@ -26,6 +27,7 @@ local START_ORDER = {
 	"RepairService",
 	"SellService",
 	"MonetizationService",
+	"LeaderboardService",
 	"DataService",
 }
 

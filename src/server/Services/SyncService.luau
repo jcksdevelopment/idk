@@ -17,8 +17,10 @@ local Net = require(Shared.Net)
 local Progression = require(Shared.Progression)
 local Types = require(Shared.Types)
 local Valuation = require(Shared.Valuation)
+local Config = require(Shared.Config)
 
 local DataService = require(script.Parent.DataService)
+local FriendService = require(script.Parent.FriendService)
 local GamePassService = require(script.Parent.GamePassService)
 local ProgressViews = require(script.Parent.ProgressViews)
 local RemoteGuard = require(script.Parent.RemoteGuard)
@@ -30,7 +32,7 @@ local dirty: { [Player]: boolean } = {}
 local pendingInstantRepair: { [Player]: string } = {}
 
 local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snapshot
-	local multiplier = Rules.MoneyMultiplier(data)
+	local multiplier = Rules.MoneyMultiplier(player, data)
 	local views: { Types.ItemView } = {}
 	for _, item in data.Inventory do
 		local template = Items.Get(item.TemplateId)
@@ -58,6 +60,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 
 	local level, xpIn, xpNeeded = Progression.FromTotal(data.XP)
 	local today = ProgressViews.Today()
+	local rebirthLevel, rebirthCash = Rules.RebirthRequirement(data)
 
 	return {
 		Cash = data.Cash,
@@ -85,6 +88,15 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		CollectionClaims = data.CollectionClaims,
 		TutorialStep = data.TutorialStep,
 		Settings = data.Settings,
+		Rebirths = data.Rebirths,
+		RebirthLevel = rebirthLevel,
+		RebirthCash = rebirthCash,
+		RebirthBonus = Rules.RebirthBonus(data),
+		FriendsBonus = FriendService.Bonus(player),
+		Achievements = data.Achievements,
+		AchievementProgress = ProgressViews.AchievementProgress(data),
+		EquippedTitle = data.EquippedTitle,
+		NextSpinAt = data.LastSpinAt + Config.Wheel.CooldownSeconds,
 		ServerTime = os.time(),
 	}
 end
@@ -112,6 +124,11 @@ local function updateLeaderstats(player: Player, data: Types.PlayerData)
 	ensureValue(folder, "Level").Value = Rules.Level(data)
 	ensureValue(folder, "Cash").Value = math.floor(math.min(data.Cash, 2 ^ 53))
 	ensureValue(folder, "Flips").Value = data.Stats.ItemsSold
+
+	-- Public, server-owned attributes for the overhead name tags (localized on each client).
+	player:SetAttribute("Level", Rules.Level(data))
+	player:SetAttribute("Rebirths", data.Rebirths)
+	player:SetAttribute("Title", data.EquippedTitle)
 end
 
 local function flush()
@@ -160,6 +177,15 @@ function SyncService.Start()
 		SyncService.MarkDirty(player)
 	end)
 	GamePassService.Changed:Connect(function(player)
+		SyncService.MarkDirty(player)
+	end)
+	local lastFriendBonus: { [Player]: number } = {}
+	FriendService.Changed:Connect(function(player)
+		local bonus = FriendService.Bonus(player)
+		if bonus > (lastFriendBonus[player] or 0) and player.Parent == Players then
+			SyncService.Notify(player, "success", "N_FriendBonus", { tostring(math.floor(bonus * 100 + 0.5)) })
+		end
+		lastFriendBonus[player] = if player.Parent == Players then bonus else nil
 		SyncService.MarkDirty(player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)

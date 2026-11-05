@@ -31,6 +31,9 @@ Net.ClientToServer = table.freeze({
 	"ClaimCollection", -- (rarity: string)
 	"SetSetting", -- (key: string, value: boolean | string)
 	"SkipTutorial", -- ()
+	"Rebirth", -- ()
+	"SpinWheel", -- ()
+	"SetTitle", -- (achievementId: string) "" = none
 })
 
 -- Server -> Client

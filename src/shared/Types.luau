@@ -35,6 +35,7 @@ export type PlayerStats = {
 	ItemsRepaired: number,
 	RobuxPurchases: number,
 	ShiniesFound: number,
+	LegendariesFound: number,
 }
 
 export type Moderation = {
@@ -65,6 +66,10 @@ export type PlayerData = {
 	Daily: DailyState,
 	TutorialStep: number,
 	Settings: Settings,
+	Rebirths: number,
+	Achievements: { [string]: boolean },
+	EquippedTitle: string, -- achievement id, "" = none
+	LastSpinAt: number,
 	Stats: PlayerStats,
 	Moderation: Moderation,
 }
@@ -128,9 +133,18 @@ export type Snapshot = {
 	CollectionClaims: { [string]: boolean },
 	TutorialStep: number,
 	Settings: Settings,
+	Rebirths: number,
+	RebirthLevel: number, -- level needed for the next rebirth
+	RebirthCash: number, -- cash needed for the next rebirth
+	RebirthBonus: number, -- current permanent bonus, e.g. 0.5 = +50%
+	FriendsBonus: number, -- e.g. 0.2 = +20%
+	Achievements: { [string]: boolean },
+	AchievementProgress: { [string]: number },
+	EquippedTitle: string,
+	NextSpinAt: number,
 	ServerTime: number,
 }
 
-export type NotifyKind = "success" | "error" | "info" | "reveal" | "levelup"
+export type NotifyKind = "success" | "error" | "info" | "reveal" | "levelup" | "wheel"
 
 return nil

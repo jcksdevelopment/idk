@@ -52,7 +52,7 @@ local function onSellItem(player: Player, itemId: string)
 	end
 
 	-- Atomic section (no yields): price, remove, pay.
-	local value = Valuation.SellValue(item, Rules.MoneyMultiplier(data))
+	local value = Valuation.SellValue(item, Rules.MoneyMultiplier(player, data))
 	data.Inventory[itemId] = nil
 	local earned = Rules.AddCash(data, value, true)
 	data.Stats.ItemsSold += 1
@@ -73,7 +73,7 @@ local function onSellAllClean(player: Player)
 		return
 	end
 	local data = profile.Data
-	local multiplier = Rules.MoneyMultiplier(data)
+	local multiplier = Rules.MoneyMultiplier(player, data)
 
 	local toSell: { string } = {}
 	for id, item in data.Inventory do

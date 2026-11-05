@@ -250,4 +250,65 @@ Config.Debug = {
 	VerboseLogging = false,
 }
 
+------------------------------------------------------------------------
+-- v3: rebirth, achievements, lucky wheel, friends, leaderboard
+------------------------------------------------------------------------
+
+-- Rebirth ("New Start"): reset cash + level for a permanent money bonus.
+-- Items, collection, quests and achievements are kept.
+Config.Rebirth = {
+	BaseLevel = 15, -- level needed for the first rebirth
+	LevelPerRebirth = 5, -- each further rebirth needs this many more levels
+	BaseCash = 25000, -- cash needed = BaseCash * (rebirths + 1)
+	MoneyBonusPerRebirth = 0.25, -- +25% sell money forever, per rebirth
+	MaxRebirths = 50,
+}
+
+-- Achievements unlock automatically and grant a reward + an overhead title.
+-- Stat: a key of PlayerData.Stats, or "LifetimeEarned", "Level", "Rebirths", "Collection".
+Config.Achievements = {
+	{ Id = "FirstFlip", Icon = "🌱", Stat = "ItemsSold", Goal = 1, Reward = { Cash = 50 } },
+	{ Id = "Repair50", Icon = "🔧", Stat = "ItemsRepaired", Goal = 50, Reward = { Cash = 500 } },
+	{ Id = "Seller100", Icon = "💼", Stat = "ItemsSold", Goal = 100, Reward = { Cash = 2000 } },
+	{ Id = "Crates250", Icon = "📦", Stat = "CratesOpened", Goal = 250, Reward = { Cash = 1500 } },
+	{ Id = "Shiny1", Icon = "✨", Stat = "ShiniesFound", Goal = 1, Reward = { Tokens = 1 } },
+	{ Id = "Legend10", Icon = "🏆", Stat = "LegendariesFound", Goal = 10, Reward = { Cash = 5000 } },
+	{ Id = "Level20", Icon = "⭐", Stat = "Level", Goal = 20, Reward = { Cash = 3000 } },
+	{ Id = "Rich", Icon = "💰", Stat = "LifetimeEarned", Goal = 100000, Reward = { BoostMinutes = 30 } },
+	{ Id = "Rebirth1", Icon = "🔄", Stat = "Rebirths", Goal = 1, Reward = { Tokens = 2 } },
+	{ Id = "Repair500", Icon = "🛠️", Stat = "ItemsRepaired", Goal = 500, Reward = { Tokens = 3 } },
+	{ Id = "Shiny10", Icon = "🌈", Stat = "ShiniesFound", Goal = 10, Reward = { Cash = 10000 } },
+	{ Id = "Collector", Icon = "📖", Stat = "Collection", Goal = 21, Reward = { Cash = 25000 } },
+	{ Id = "Seller1000", Icon = "👑", Stat = "ItemsSold", Goal = 1000, Reward = { Tokens = 5 } },
+}
+
+-- Free Lucky Wheel. Never sold for Robux; one free spin per cooldown.
+-- Cash prizes scale with level so the wheel stays exciting.
+Config.Wheel = {
+	CooldownSeconds = 4 * 60 * 60,
+	CashLevelScale = 0.15, -- cash prize * (1 + level * this)
+	Prizes = {
+		{ Weight = 30, Reward = { Cash = 100 }, Icon = "💵" },
+		{ Weight = 15, Reward = { Tokens = 1 }, Icon = "⚡" },
+		{ Weight = 20, Reward = { Cash = 300 }, Icon = "💰" },
+		{ Weight = 15, Reward = { BoostMinutes = 10 }, Icon = "🚀" },
+		{ Weight = 8, Reward = { XP = 60 }, Icon = "⭐" },
+		{ Weight = 8, Reward = { Cash = 1000 }, Icon = "💎" },
+		{ Weight = 4, Reward = { Tokens = 3 }, Icon = "🎁" },
+	},
+}
+
+-- Playing with friends: +10% sell money per friend in the same server.
+Config.Friends = {
+	BonusPerFriend = 0.1,
+	MaxFriends = 3,
+}
+
+Config.Leaderboard = {
+	StoreName = "BazarTopEarners_v1",
+	RefreshSeconds = 120,
+	Size = 10,
+	Position = Vector3.new(44, 0, 8),
+}
+
 return Config

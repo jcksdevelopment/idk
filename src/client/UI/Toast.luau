@@ -272,8 +272,8 @@ function Toast.Build(gui: ScreenGui)
 	})
 
 	UIController.Track(Net.Get("Notify").OnClientEvent:Connect(function(kind: unknown, key: unknown, args: unknown)
-		if type(kind) ~= "string" or type(key) ~= "string" then
-			return
+		if type(kind) ~= "string" or type(key) ~= "string" or kind == "wheel" then
+			return -- "wheel" results are animated by WheelPanel
 		end
 		local argList: { any } = if type(args) == "table" then args :: any else {}
 		if kind == "reveal" then

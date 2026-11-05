@@ -32,9 +32,14 @@ local SyncService = require(script.Parent.SyncService)
 
 local ProgressService = {}
 
+local rng = Random.new()
+local checkingAchievements: { [Player]: boolean } = {}
+
 ------------------------------------------------------------------------
 -- XP & rewards
 ------------------------------------------------------------------------
+
+local checkAchievements: (Player, Types.PlayerData) -> ()
 
 function ProgressService.AddXP(player: Player, data: Types.PlayerData, amount: number)
 	if amount <= 0 then
@@ -47,6 +52,9 @@ function ProgressService.AddXP(player: Player, data: Types.PlayerData, amount: n
 		local bonus = level * Config.Progression.LevelUpCashPerLevel
 		Rules.AddCash(data, bonus, false)
 		SyncService.Notify(player, "levelup", "N_LevelUp", { tostring(level), Format.Cash(bonus) })
+	end
+	if after > before then
+		checkAchievements(player, data)
 	end
 	SyncService.MarkDirty(player)
 end
@@ -69,6 +77,33 @@ function ProgressService.GrantReward(player: Player, data: Types.PlayerData, rew
 end
 
 ------------------------------------------------------------------------
+-- Achievements (automatic unlock + reward + title)
+------------------------------------------------------------------------
+
+checkAchievements = function(player: Player, data: Types.PlayerData)
+	if checkingAchievements[player] then
+		return -- a reward is being granted inside a check; the outer loop continues
+	end
+	checkingAchievements[player] = true
+	for _, def in Config.Achievements do
+		if not data.Achievements[def.Id] then
+			if ProgressViews.StatValue(data, def.Stat) >= ProgressViews.AchievementGoal(def) then
+				data.Achievements[def.Id] = true
+				ProgressService.GrantReward(player, data, def.Reward)
+				SyncService.Notify(player, "levelup", "N_Achievement", { "@ach:" .. def.Id, Locale.EncodeReward(def.Reward) })
+				if data.EquippedTitle == "" then
+					data.EquippedTitle = def.Id -- first title is worn automatically
+				end
+			end
+		end
+	end
+	checkingAchievements[player] = nil
+	SyncService.MarkDirty(player)
+end
+
+ProgressService.CheckAchievements = checkAchievements
+
+------------------------------------------------------------------------
 -- Quests
 ------------------------------------------------------------------------
 
@@ -79,11 +114,11 @@ function ProgressService.EnsureQuests(player: Player, data: Types.PlayerData): b
 		return false
 	end
 	local pool = table.clone(Config.Quests.Pool)
-	local rng = Random.new(player.UserId * 31 + today)
+	local questRng = Random.new(player.UserId * 31 + today)
 	local entries: { Types.QuestEntry } = {}
 	local usedEvents: { [string]: boolean } = {}
 	while #entries < Config.Quests.PerDay and #pool > 0 do
-		local index = rng:NextInteger(1, #pool)
+		local index = questRng:NextInteger(1, #pool)
 		local def = table.remove(pool, index) :: any
 		-- Prefer variety: avoid two quests on the same event when possible.
 		if not usedEvents[def.Event] or #pool < Config.Quests.PerDay - #entries then
@@ -145,6 +180,7 @@ function ProgressService.Record(player: Player, data: Types.PlayerData, event: s
 		end
 	end
 	advanceTutorial(player, data, event)
+	checkAchievements(player, data)
 	SyncService.MarkDirty(player)
 end
 
@@ -174,6 +210,7 @@ function ProgressService.Discover(player: Player, data: Types.PlayerData, item: 
 	if item.Rarity == "Rare" then
 		ProgressService.Record(player, data, "FoundRare", 1)
 	elseif item.Rarity == "Legendary" then
+		data.Stats.LegendariesFound += 1
 		ProgressService.Record(player, data, "FoundLegendary", 1)
 	end
 end
@@ -269,6 +306,82 @@ local function onSetSetting(player: Player, key: string, value: any)
 	SyncService.MarkDirty(player)
 end
 
+local function onRebirth(player: Player)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	if data.Rebirths >= Config.Rebirth.MaxRebirths then
+		return
+	end
+	local needLevel, needCash = Rules.RebirthRequirement(data)
+	if Rules.Level(data) < needLevel or data.Cash < needCash then
+		SyncService.Notify(player, "error", "N_RebirthNotReady", { tostring(needLevel), Format.Cash(needCash) })
+		return
+	end
+	-- Atomic: reset progress, grant the permanent bonus.
+	data.Cash = Config.Economy.StartingCash
+	data.XP = 0
+	data.Rebirths += 1
+	local bonusPercent = math.floor(Rules.RebirthBonus(data) * 100 + 0.5)
+	SyncService.Notify(player, "levelup", "N_Rebirth", { tostring(bonusPercent) })
+	checkAchievements(player, data)
+	SyncService.MarkDirty(player)
+end
+
+local function onSpinWheel(player: Player)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	local now = os.time()
+	local readyAt = data.LastSpinAt + Config.Wheel.CooldownSeconds
+	if now < readyAt then
+		SyncService.Notify(player, "info", "N_WheelWait", { Format.Duration(readyAt - now) })
+		return
+	end
+
+	local total = 0
+	for _, prize in Config.Wheel.Prizes do
+		total += prize.Weight
+	end
+	local roll = rng:NextNumber() * total
+	local index = #Config.Wheel.Prizes
+	for i, prize in Config.Wheel.Prizes do
+		roll -= prize.Weight
+		if roll < 0 then
+			index = i
+			break
+		end
+	end
+
+	local base = Config.Wheel.Prizes[index].Reward :: any
+	local reward: Types.Reward = {
+		Cash = if base.Cash then math.floor(base.Cash * (1 + Rules.Level(data) * Config.Wheel.CashLevelScale)) else nil,
+		Tokens = base.Tokens,
+		BoostMinutes = base.BoostMinutes,
+		XP = base.XP,
+	}
+	-- Atomic: start the cooldown, then grant.
+	data.LastSpinAt = now
+	ProgressService.GrantReward(player, data, reward)
+	SyncService.Notify(player, "wheel", "N_WheelWin", { tostring(index), Locale.EncodeReward(reward) })
+end
+
+local function onSetTitle(player: Player, achievementId: string)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	if achievementId == "" or data.Achievements[achievementId] then
+		data.EquippedTitle = achievementId
+		SyncService.MarkDirty(player)
+	end
+end
+
 function ProgressService.Start()
 	local V = RemoteGuard.Validators
 	RemoteGuard.Bind("ClaimDaily", { RatePerSecond = 1, Burst = 3, Args = {} }, onClaimDaily)
@@ -289,8 +402,24 @@ function ProgressService.Start()
 		Args = { V.OneOf({ "Sound", "Music", "Language" }), V.BooleanOrShortString },
 	}, onSetSetting)
 
+	RemoteGuard.Bind("Rebirth", { RatePerSecond = 0.5, Burst = 2, Args = {} }, onRebirth)
+	RemoteGuard.Bind("SpinWheel", { RatePerSecond = 0.5, Burst = 2, Args = {} }, onSpinWheel)
+	RemoteGuard.Bind("SetTitle", {
+		RatePerSecond = 1,
+		Burst = 3,
+		Args = {
+			function(value: unknown): boolean
+				return type(value) == "string" and #value <= 40
+			end,
+		},
+	}, onSetTitle)
+
 	DataService.ProfileLoaded:Connect(function(player, profile)
 		ProgressService.EnsureQuests(player, profile.Data)
+		checkAchievements(player, profile.Data) -- catches stats from older saves
+	end)
+	Players.PlayerRemoving:Connect(function(player)
+		checkingAchievements[player] = nil
 	end)
 
 	-- Midnight (UTC) rollover for players who stay online.

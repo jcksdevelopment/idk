@@ -43,7 +43,7 @@ local Signal = require(Shared.Signal)
 local Types = require(Shared.Types)
 local MockDataStore = require(script.Parent.MockDataStore)
 
-local SCHEMA_VERSION = 2
+local SCHEMA_VERSION = 3
 
 export type Profile = {
 	Player: Player,
@@ -126,7 +126,18 @@ local function newData(): Types.PlayerData
 		Daily = { Streak = 0, LastClaimDay = -10 },
 		TutorialStep = 1,
 		Settings = { Sound = true, Music = true, Language = "auto" },
-		Stats = { CratesOpened = 0, ItemsSold = 0, ItemsRepaired = 0, RobuxPurchases = 0, ShiniesFound = 0 },
+		Rebirths = 0,
+		Achievements = {},
+		EquippedTitle = "",
+		LastSpinAt = 0,
+		Stats = {
+			CratesOpened = 0,
+			ItemsSold = 0,
+			ItemsRepaired = 0,
+			RobuxPurchases = 0,
+			ShiniesFound = 0,
+			LegendariesFound = 0,
+		},
 		Moderation = { TotalFlags = 0, LastFlagAt = 0, LastFlagReason = "" },
 	}
 end
@@ -245,6 +256,19 @@ local function sanitize(raw: any): Types.PlayerData
 		end
 	end
 
+	data.Rebirths = math.floor(readNumber(raw.Rebirths, 0, 0, Config.Rebirth.MaxRebirths))
+	data.LastSpinAt = readNumber(raw.LastSpinAt, 0, 0, math.huge)
+	local achievementIds: { [string]: boolean } = {}
+	for _, def in Config.Achievements do
+		achievementIds[def.Id] = true
+	end
+	readFlags(raw.Achievements, data.Achievements, function(key: string): boolean
+		return achievementIds[key] == true
+	end)
+	if type(raw.EquippedTitle) == "string" and data.Achievements[raw.EquippedTitle] then
+		data.EquippedTitle = raw.EquippedTitle
+	end
+
 	if type(raw.PurchaseHistory) == "table" then
 		for _, purchaseId in ipairs(raw.PurchaseHistory) do
 			if type(purchaseId) == "string" then
@@ -262,6 +286,7 @@ local function sanitize(raw: any): Types.PlayerData
 		data.Stats.ItemsRepaired = readNumber(raw.Stats.ItemsRepaired, 0, 0, math.huge)
 		data.Stats.RobuxPurchases = readNumber(raw.Stats.RobuxPurchases, 0, 0, math.huge)
 		data.Stats.ShiniesFound = readNumber(raw.Stats.ShiniesFound, 0, 0, math.huge)
+		data.Stats.LegendariesFound = readNumber(raw.Stats.LegendariesFound, 0, 0, math.huge)
 	end
 
 	if type(raw.Moderation) == "table" then
