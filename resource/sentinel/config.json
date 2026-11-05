@@ -16,6 +16,7 @@
     "banAt": 140,
     "halfLifeMinutes": 10,
     "severity": {},
+    "ignore": [],
     "logOnly": [],
     "dropImmediately": ["HB_INVALID", "HB_MISSING", "NET_FLOOD"]
   },

@@ -69,6 +69,11 @@ namespace Sentinel.Core.Detection
         /// <summary>Score halves every N minutes, so one-off false positives fade.</summary>
         public double HalfLifeMinutes { get; set; } = 10;
         public Dictionary<string, int> SeverityOverrides { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
+        /// <summary>
+        /// Codes switched off entirely for this server (e.g. VEH_HANDLING where tuning scripts edit
+        /// handling legitimately). Not scored, logged or sent to the dashboard; the client stops sending them.
+        /// </summary>
+        public HashSet<string> Ignore { get; set; } = new HashSet<string>(StringComparer.Ordinal);
         /// <summary>Codes that may only ever log (for tuning a noisy detection on a live server).</summary>
         public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal);
         /// <summary>Codes that disconnect the player at once, whatever the score (still never a ban by themselves).</summary>

@@ -13,6 +13,7 @@ namespace Sentinel.Server
     {
         private void Punish(Violation v)
         {
+            if (_cfg.Scoring.Ignore.Contains(v.Code)) return;
             var player = Players[v.Player];
             if (player == null) return;
 

@@ -205,7 +205,7 @@ namespace Sentinel.Server
                 ["k"] = key, ["c"] = challenge, ["hb"] = _hbEvent, ["ack"] = _ackEvent, ["gr"] = _graceEvent,
                 ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["ru"] = _resourceEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
                 ["wb"] = _cfg.WeaponBlacklist, ["rs"] = StartedResources(), ["mh"] = _cfg.MaxHealth,
-                ["dm"] = _cfg.ExpectedDamageModifier,
+                ["dm"] = _cfg.ExpectedDamageModifier, ["ig"] = _cfg.Scoring.Ignore.ToList(),
             };
             player.TriggerEvent("sentinel:init", MiniJson.Serialize(init));
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));

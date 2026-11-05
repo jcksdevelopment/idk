@@ -113,6 +113,7 @@ namespace Sentinel.Core.Config
                 if (s.Obj("severity") is { } sev)
                     foreach (var kv in sev) if (kv.Value is double d) cfg.Scoring.SeverityOverrides[kv.Key] = (int)d;
                 if (Strings(s, "logOnly") is { } lo) cfg.Scoring.LogOnly = new HashSet<string>(lo, StringComparer.Ordinal);
+                if (Strings(s, "ignore") is { } ig) cfg.Scoring.Ignore = new HashSet<string>(ig, StringComparer.Ordinal);
                 if (Strings(s, "dropImmediately") is { } di) cfg.Scoring.DropImmediately = new HashSet<string>(di, StringComparer.Ordinal);
             }
 

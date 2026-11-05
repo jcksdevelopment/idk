@@ -85,6 +85,8 @@ RegisterNetEvent("sentinel:init", function(payload)
   S.server.graceEvent = data.gr
   S.server.ssRequest = data.sr
   S.server.ssUpload = data.su
+  S.server.ignore = {}
+  for _, code in ipairs(data.ig or {}) do S.server.ignore[code] = true end
 
   -- Resources the server starts after we joined; integrity.lua waits for these before flagging.
   if data.ru then

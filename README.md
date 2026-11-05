@@ -148,6 +148,10 @@ exports.sentinel:GrantGrace(source, "teleport", 10000)
 exports.sentinel:GrantGrace(source, "noclip", 600000)
 ```
 
+If your server legitimately does something a check looks for (tuning scripts calling
+`SetVehicleHandlingFloat`, infinite stamina, custom vision modes), add the code to
+`scoring.ignore`, for example `"ignore": ["VEH_HANDLING", "PLY_STAMINA"]`.
+
 Kinds: `heal`, `armor`, `teleport`, `noclip`, `godmode`, `invisible`, `vision`, `ragdoll`, `camera`,
 `vehicle`. Server grace also reaches the client scanner. A client-side `exports.sentinel:GrantGrace`
 exists for client-only scripts, but the server ignores it.
@@ -158,7 +162,7 @@ player is over budget), `GetScore(source)`, and `BanPlayer(source, reason)`.
 ### Configuration
 
 Everything lives in `resource/sentinel/config.json`: scoring thresholds and half-life, per-code
-severity overrides, `logOnly` codes, movement and damage limits, explosion and entity rules,
+severity overrides, `ignore` codes (switched off entirely; the client stops sending them), `logOnly` codes, movement and damage limits, explosion and entity rules,
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
 
@@ -217,7 +221,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-40 tests cover:
+41 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -243,7 +247,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 40 tests pass.
+- Both C# projects build with no warnings and the 41 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

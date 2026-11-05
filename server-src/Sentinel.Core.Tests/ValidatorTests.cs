@@ -261,6 +261,15 @@ public class IterationTwoTests
         Assert.Equal(30f, cfg.Damage.MaxTrajectoryAngle);
         Assert.Equal(10, cfg.FloodDeniedPer10s);
     }
+
+    [Fact]
+    public void IgnoreListParses()
+    {
+        var cfg = SentinelConfig.Parse("{\"scoring\":{\"ignore\":[\"VEH_HANDLING\",\"PLY_STAMINA\"]}}");
+        Assert.Contains("VEH_HANDLING", cfg.Scoring.Ignore);
+        Assert.Contains("PLY_STAMINA", cfg.Scoring.Ignore);
+        Assert.Empty(SentinelConfig.Parse("{}").Scoring.Ignore);
+    }
 }
 
 public class StateConsistencyTests

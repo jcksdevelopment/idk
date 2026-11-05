@@ -43,6 +43,7 @@ local MAX_PENDING = 32
 
 --- Queue a detection for the next heartbeat. `data` is a small table of evidence.
 function S.flag(code, data)
+  if S.server.ignore and S.server.ignore[code] then return end -- switched off for this server
   local now = GetGameTimer()
   local last = S.lastFlagAt[code]
   if last and now - last < FLAG_COOLDOWN then return end
