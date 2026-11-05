@@ -24,3 +24,4 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#71717a}
 .jac-btn{height:30px;padding:0 12px;border-radius:6px;border:1px solid #2a2a30;background:none;color:#fafafa;font:500 12px inherit;cursor:pointer}
 .jac-btn:hover{background:#111114}.jac-btn.primary{background:#fafafa;color:#09090b;border-color:#fafafa}
 .jac-btn.primary:hover{background:#e4e4e7}.jac-btn:disabled{opacity:.4;cursor:default}
+.jac-search{margin-bottom:8px}

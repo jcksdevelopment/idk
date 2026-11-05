@@ -24,6 +24,7 @@ export function SettingsEditor() {
   const [data, setData] = useState<Response | null>(null);
   const [draft, setDraft] = useState<Config | null>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [status, setStatus] = useState<{ kind: "ok" | "err" | "info"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -90,16 +91,21 @@ export function SettingsEditor() {
   }
   const section = schema.sections.find((s) => s.id === active) ?? schema.sections[0];
   const readOnly = !data.canEdit;
+  const q = query.trim().toLowerCase();
+  const shown = q
+    ? schema.sections.flatMap((s) => s.fields.filter((f) => [f.label, f.key, f.help ?? ""].some((t) => t.toLowerCase().includes(q))))
+    : section.fields;
 
   return (
     <div className="grid md:grid-cols-[220px_1fr]">
       <nav className="flex gap-1 overflow-x-auto border-line px-4 py-4 md:flex-col md:border-r" aria-label="Settings sections">
+        <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search settings" aria-label="Search settings" className="mb-2 h-8 shrink-0 text-xs max-md:w-48" />
         {schema.sections.map((s) => (
           <button
             key={s.id}
-            onClick={() => setActive(s.id)}
-            aria-current={s.id === section.id ? "page" : undefined}
-            className={cx("h-8 shrink-0 rounded-md px-2.5 text-left text-sm", s.id === section.id ? "bg-elevated text-fg" : "text-muted hover:bg-elevated/60 hover:text-fg")}
+            onClick={() => { setActive(s.id); setQuery(""); }}
+            aria-current={!q && s.id === section.id ? "page" : undefined}
+            className={cx("h-8 shrink-0 rounded-md px-2.5 text-left text-sm", !q && s.id === section.id ? "bg-elevated text-fg" : "text-muted hover:bg-elevated/60 hover:text-fg")}
           >
             {s.title}
           </button>
@@ -118,8 +124,8 @@ export function SettingsEditor() {
         </div>
 
         <div className="divide-y divide-line px-6">
-          <h2 className="py-4 text-sm font-semibold">{section.title}</h2>
-          {section.fields.map((f) => (
+          <h2 className="py-4 text-sm font-semibold">{q ? `Search: ${shown.length} setting(s)` : section.title}</h2>
+          {shown.map((f) => (
             <div key={f.key} className="grid gap-3 py-3.5 sm:grid-cols-[1fr_280px]">
               <div>
                 <label htmlFor={f.key} className="text-sm font-medium">{f.label}</label>

@@ -99,12 +99,17 @@
     }
   }
 
+  let query = "";
+  const matches = (f, q) => [f.label, f.key, f.help || ""].some((t) => t.toLowerCase().includes(q));
+
   function renderSection(body, nav) {
     const section = schema.sections.find((s) => s.id === active) || schema.sections[0];
     active = section.id;
-    for (const b of nav.children) b.classList.toggle("active", b.dataset.id === active);
-    body.replaceChildren(el("h2", {}, section.title));
-    for (const f of section.fields) {
+    const q = query.trim().toLowerCase();
+    for (const b of nav.children) if (b.dataset.id) b.classList.toggle("active", !q && b.dataset.id === active);
+    const fields = q ? schema.sections.flatMap((s) => s.fields.filter((f) => matches(f, q))) : section.fields;
+    body.replaceChildren(el("h2", {}, q ? `Search: ${fields.length} setting(s)` : section.title));
+    for (const f of fields) {
       body.append(el("div", { class: "jac-field" },
         el("div", {}, el("label", {}, f.label), f.help ? el("p", {}, f.help) : null, el("code", {}, f.key)),
         input(f)));
@@ -114,8 +119,12 @@
   function build() {
     const body = el("div", { class: "jac-body" });
     const nav = el("nav", { class: "jac-nav" });
+    const search = el("input", { type: "text", placeholder: "Search settings", class: "jac-search" });
+    search.value = query;
+    search.addEventListener("input", () => { query = search.value; renderSection(body, nav); });
+    nav.append(search);
     for (const s of schema.sections) {
-      const b = el("button", { onclick: () => { active = s.id; renderSection(body, nav); } }, s.title);
+      const b = el("button", { onclick: () => { active = s.id; query = ""; search.value = ""; renderSection(body, nav); } }, s.title);
       b.dataset.id = s.id;
       nav.append(b);
     }
