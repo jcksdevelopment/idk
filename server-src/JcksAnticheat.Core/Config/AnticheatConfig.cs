@@ -72,6 +72,7 @@ namespace JcksAnticheat.Core.Config
         public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
         public JcksAnticheat.Core.Validation.VpnConfig Vpn { get; set; } = new JcksAnticheat.Core.Validation.VpnConfig();
+        public JcksAnticheat.Core.Logging.DetectionLogConfig DetectionLog { get; set; } = new JcksAnticheat.Core.Logging.DetectionLogConfig();
         public JcksAnticheat.Core.Logging.StaffAlertConfig StaffAlerts { get; set; } = new JcksAnticheat.Core.Logging.StaffAlertConfig();
         public JcksAnticheat.Core.Messages.MessageSettings Messages { get; set; } = new JcksAnticheat.Core.Messages.MessageSettings();
 
@@ -347,6 +348,12 @@ namespace JcksAnticheat.Core.Config
                 cfg.Vpn.CacheHours = (int)(vc.Num("cacheHours") ?? cfg.Vpn.CacheHours);
                 cfg.Vpn.TimeoutMs = (int)(vc.Num("timeoutMs") ?? cfg.Vpn.TimeoutMs);
                 if (Strings(vc, "allowIdentifiers") is { } allow) cfg.Vpn.AllowIdentifiers = allow;
+            }
+
+            if (root.Obj("detectionLog") is { } dl)
+            {
+                cfg.DetectionLog.Enabled = dl.Bool("enabled") ?? cfg.DetectionLog.Enabled;
+                cfg.DetectionLog.KeepDays = (int)(dl.Num("keepDays") ?? cfg.DetectionLog.KeepDays);
             }
 
             if (root.Obj("staffAlerts") is { } sa)

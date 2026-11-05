@@ -399,6 +399,12 @@ when AI vision is on, the dashboard secret and Discord webhook variables, and wh
 countermeasures are set the way you expect, and the server artifact build (old builds lack
 `sv_stateBagStrictMode` and the game-event relevance checks).
 
+### Detection log
+
+Every detection, including repeats folded in the console and dashboard, is appended with its full
+evidence to `data/detections/detections-YYYY-MM-DD.jsonl` in the resource folder (`detectionLog`,
+kept 14 days by default). These files are what to look at, or send, when tuning thresholds.
+
 ### Staff in game
 
 Players with `jcks_anticheat.admin` or `jcks_anticheat.alerts` get a chat line for each detection

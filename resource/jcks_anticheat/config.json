@@ -110,6 +110,8 @@
     "allowIdentifiers": []
   },
 
+  "detectionLog": { "enabled": true, "keepDays": 14 },
+
   "staffAlerts": { "enabled": true, "minAction": "log", "cooldownSeconds": 30 },
 
   "messages": {

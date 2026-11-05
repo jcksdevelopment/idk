@@ -1090,6 +1090,26 @@
       ]
     },
     {
+      "id": "detectionLog",
+      "title": "Detection log",
+      "fields": [
+        {
+          "key": "detectionLog.enabled",
+          "label": "Write every detection to a file",
+          "type": "bool",
+          "help": "Each detection, with its full evidence, score, action, dry-run and bypass state, is appended as one JSON line to data/detections/detections-YYYY-MM-DD.jsonl in the resource folder, including repeats that are folded in the console and dashboard. Use it to review and tune detections."
+        },
+        {
+          "key": "detectionLog.keepDays",
+          "label": "Keep files (days)",
+          "type": "number",
+          "min": 1,
+          "max": 365,
+          "step": 1
+        }
+      ]
+    },
+    {
       "id": "staffAlerts",
       "title": "Staff alerts",
       "fields": [

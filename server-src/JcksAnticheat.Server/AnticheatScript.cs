@@ -45,6 +45,7 @@ namespace JcksAnticheat.Server
         private readonly MassKillTracker _massKills;
         private readonly VpnChecker _vpn;
         private readonly ScopeTracker _scope = new ScopeTracker();
+        private JcksAnticheat.Core.Logging.DetectionLog _detectionLog = null!;
         private readonly JcksAnticheat.Core.Logging.ReportThrottle _throttle = new JcksAnticheat.Core.Logging.ReportThrottle();
         private ConfigHistory _history = null!;
         private readonly JcksAnticheat.Core.Logging.RecentViolations _recent = new JcksAnticheat.Core.Logging.RecentViolations();
@@ -94,6 +95,7 @@ namespace JcksAnticheat.Server
             _dataDir = Path.Combine(GetResourcePath(_resource), "data");
             Directory.CreateDirectory(Path.Combine(_dataDir, "vision"));
             _history = new ConfigHistory(Path.Combine(_dataDir, "config-history"));
+            _detectionLog = new JcksAnticheat.Core.Logging.DetectionLog(_cfg.DetectionLog, Path.Combine(_dataDir, "detections"));
             _bans = new BanStore(Path.Combine(_dataDir, "bans.json"));
             _vision = new AIVisionEvaluator(_cfg.Vision);
             _dashboard = new DashboardBridge(_cfg.Dashboard);

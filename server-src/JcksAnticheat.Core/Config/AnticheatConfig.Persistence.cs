@@ -116,6 +116,7 @@ namespace JcksAnticheat.Core.Config
                 ["enabled"] = Vpn.Enabled, ["urlTemplate"] = Vpn.UrlTemplate, ["apiKeyEnv"] = Vpn.ApiKeyEnv, ["blockRegex"] = Vpn.BlockRegex,
                 ["cacheHours"] = Vpn.CacheHours, ["timeoutMs"] = Vpn.TimeoutMs, ["allowIdentifiers"] = Vpn.AllowIdentifiers.ToList(),
             },
+            ["detectionLog"] = new Dictionary<string, object?> { ["enabled"] = DetectionLog.Enabled, ["keepDays"] = DetectionLog.KeepDays },
             ["staffAlerts"] = new Dictionary<string, object?>
             {
                 ["enabled"] = StaffAlerts.Enabled, ["minAction"] = StaffAlerts.MinAction, ["cooldownSeconds"] = StaffAlerts.CooldownSeconds,
@@ -207,6 +208,7 @@ namespace JcksAnticheat.Core.Config
             Require(IsRegex(Vpn.BlockRegex), "vpnCheck.blockRegex is not a valid regular expression");
             Require(Vpn.CacheHours >= 0 && Vpn.CacheHours <= 720 && Vpn.TimeoutMs >= 500 && Vpn.TimeoutMs <= 10000, "vpnCheck cacheHours 0–720, timeoutMs 500–10000");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(StaffAlerts.MinAction), "staffAlerts.minAction must be log, screenshot, kick or ban");
+            Require(DetectionLog.KeepDays >= 1 && DetectionLog.KeepDays <= 365, "detectionLog.keepDays must be 1–365");
             Require(StaffAlerts.CooldownSeconds >= 0 && StaffAlerts.CooldownSeconds <= 3600, "staffAlerts.cooldownSeconds must be 0–3600");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(Discord.MinAction), "discord.minAction must be log, screenshot, kick or ban");
             foreach (var kv in ServerThresholds)

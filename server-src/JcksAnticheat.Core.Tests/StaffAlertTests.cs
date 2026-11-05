@@ -67,3 +67,28 @@ public class ReportThrottleTests
         Assert.Equal(1, folded);
     }
 }
+
+public class DetectionLogTests
+{
+    [Fact]
+    public void WritesOneJsonLinePerDetectionWithEvidence()
+    {
+        var dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "jac-log-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var log = new DetectionLog(new DetectionLogConfig(), dir);
+            var v = new Violation(7, "PLY_GODMODE_FLAG", ViolationSource.Server, new System.Collections.Generic.Dictionary<string, object?> { ["serverObserved"] = true });
+            var now = new DateTime(2026, 11, 5, 12, 0, 0, DateTimeKind.Utc);
+            log.Write("Tester", new[] { "license:abc", "discord:1" }, v, false, true, true, now);
+            log.Write("Tester", new[] { "license:abc" }, v, false, true, false, now);
+            var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "detections-2026-11-05.jsonl"));
+            Assert.Equal(2, lines.Length);
+            var first = (System.Collections.Generic.Dictionary<string, object?>)JcksAnticheat.Core.Json.MiniJson.Parse(lines[0])!;
+            Assert.Equal("PLY_GODMODE_FLAG", first["code"]);
+            Assert.Equal("license:abc", first["license"]);
+            Assert.Equal(true, first["dryRun"]);
+            Assert.False((bool)((System.Collections.Generic.Dictionary<string, object?>)JcksAnticheat.Core.Json.MiniJson.Parse(lines[1])!)["reported"]!);
+        }
+        finally { if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true); }
+    }
+}
