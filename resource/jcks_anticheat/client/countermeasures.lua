@@ -35,6 +35,7 @@ local ACT = {
   PLY_GODMODE_FLAG = function()
     local ped, pid = PlayerPedId(), PlayerId()
     SetPlayerInvincible(pid, false)
+    SetPlayerInvincibleKeepRagdollEnabled(pid, false)
     SetEntityInvincible(ped, false)
     SetEntityCanBeDamaged(ped, true)
   end,

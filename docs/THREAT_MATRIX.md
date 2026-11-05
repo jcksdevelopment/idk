@@ -19,7 +19,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
-| `PLY_GODMODE_FLAG` | Godmode (invincible flag) | `GetPlayerInvincible`/`GetPlayerInvincible_2` true, or `GetEntityCanBeDamaged` false, while server hasn't authorised it | C | `client/detections/player.lua` | 40 |
+| `PLY_GODMODE_FLAG` | Godmode (invincible flag) | `GetPlayerInvincible`/`GetPlayerInvincible_2` true, or `GetEntityCanBeDamaged` false, while server hasn't authorised it; server reads `GetPlayerInvincible` from sync | C+S | `client/detections/player.lua`, server state tick | 40 |
 | `PLY_GODMODE_PROOFS` | Semi-godmode (proofs, defense) | `GetEntityProofs` returns bullet/explosion/fire/melee proofs set; weapon defense modifier below 1.0 (server reads `GetPlayerWeaponDefenseModifier`/`_2` from sync) | C+S | `player.lua`, `weapon.lua`, `PlayerFlagsValidator` | 35 |
 | `PLY_HEALTH_REGEN` | Health lock / instant regen | Health rises faster than natural regen with no server-authorised heal | C+S | `player.lua`, `PlayerStateValidator` | 25 |
 | `PLY_ARMOR_REGEN` | Armour lock / instant refill | Armour rises with no server-authorised armour event | C+S | `player.lua`, `PlayerStateValidator` | 25 |
@@ -86,7 +86,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `VEH_DMG_MODIFIER` | Ramming damage boost | `GetPlayerVehicleDamageModifier` above `client.vehicleDamageModifierMax` | C | `vehicle.lua` | 30 |
 | `VEH_RAINBOW` | Rainbow vehicle | Paint colour changes 12+ times within 5 s without a `vehicle` grant | C | `vehicle.lua` | 20 |
 | `VEH_HIJACK` | Hijack / warp into another player's vehicle | Driver seat of a locked vehicle another online player spawned, without a `vehicle` grant | S | `VehicleOwnership` | 40 |
-| `VEH_REPAIR` | Instant vehicle repair ("fix vehicle") | Engine or body health jumps from < 600 to full in 0.5 s without a `vehicle` grant | C | `vehicle.lua` | 25 |
+| `VEH_REPAIR` | Instant vehicle repair ("fix vehicle") | Engine or body health jumps from < 600 to full in 0.5 s without a `vehicle` grant, while this client owns the vehicle (a mechanic repairing it from another client is not counted) | C | `vehicle.lua` | 25 |
 | `VEH_PLATE` | Plate changer | Plate text changes while driving the same vehicle without a `vehicle` grant | C | `vehicle.lua` | 20 |
 | `VEH_GODMODE` | Vehicle godmode | `GetEntityCanBeDamaged` false on own vehicle, or every damage proof set | C | `vehicle.lua` | 30 |
 

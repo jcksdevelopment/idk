@@ -53,7 +53,7 @@ do
     end
 
     if veh ~= 0 and inAircraft(ped) then floatSince = nil return end
-    if IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) >= 0 or IsPedClimbing(ped)
+    if IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) > 0 or IsPedClimbing(ped)
         or IsPedSwimming(ped) or IsEntityAttached(subject) then
       floatSince = nil
       return

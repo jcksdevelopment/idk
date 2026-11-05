@@ -44,7 +44,7 @@ end
 
 local KIND = {
   SetEntityHealth = "heal", NetworkResurrectLocalPlayer = "heal", SetPedArmour = "armor",
-  SetEntityInvincible = "godmode", SetPlayerInvincible = "godmode", SetEntityProofs = "godmode", SetEntityCanBeDamaged = "godmode",
+  SetEntityInvincible = "godmode", SetPlayerInvincible = "godmode", SetEntityProofs = "godmode", SetEntityCanBeDamaged = "godmode", SetPlayerInvincibleKeepRagdollEnabled = "godmode",
   SetEntityCoords = "teleport", SetEntityCoordsNoOffset = "teleport", SetPedCoordsKeepVehicle = "teleport", StartPlayerTeleport = "teleport",
   SetEntityVisible = "invisible", SetEntityCollision = "noclip", NetworkSetInSpectatorMode = "spectate",
   SetVehicleFixed = "vehicle", SetVehicleEngineHealth = "vehicle", SetVehicleCheatPowerIncrease = "vehicle", SetVehicleHandlingFloat = "vehicle",
@@ -55,7 +55,7 @@ local KIND = {
   ModifyVehicleTopSpeed = "vehicle", SetVehicleGravityAmount = "vehicle", SetPlayerVehicleDamageModifier = "vehicle",
   SetWeaponDamageModifier = "weapons", SetPlayerWeaponDamageModifier = "weapons", SetPlayerMeleeWeaponDamageModifier = "weapons",
 }
-local SELF_ARG = { SetPlayerInvincible = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false, SetSeethrough = false, SetNightvision = false, SetSuperJumpThisFrame = true, SetPlayerVehicleDamageModifier = true, SetWeaponDamageModifier = false, SetPlayerWeaponDamageModifier = true, SetPlayerMeleeWeaponDamageModifier = true }
+local SELF_ARG = { SetPlayerInvincible = true, SetPlayerInvincibleKeepRagdollEnabled = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false, SetSeethrough = false, SetNightvision = false, SetSuperJumpThisFrame = true, SetPlayerVehicleDamageModifier = true, SetWeaponDamageModifier = false, SetPlayerWeaponDamageModifier = true, SetPlayerMeleeWeaponDamageModifier = true }
 
 local lastUse = {}
 local function aboutMe(name, first)
@@ -98,7 +98,7 @@ local GUARDED = {
   "CreateVehicle", "CreatePed", "CreateObject", "CreateObjectNoOffset",
   "GiveWeaponToPed", "SetPedAmmo", "SetPedInfiniteAmmoClip", "SetPlayerWeaponDamageModifier",
   "SetEntityCoords", "SetEntityCoordsNoOffset", "SetPedCoordsKeepVehicle", "StartPlayerTeleport",
-  "SetEntityInvincible", "SetPlayerInvincible", "SetEntityProofs", "SetEntityCanBeDamaged",
+  "SetEntityInvincible", "SetPlayerInvincible", "SetPlayerInvincibleKeepRagdollEnabled", "SetEntityProofs", "SetEntityCanBeDamaged",
   "SetEntityHealth", "SetPedArmour", "SetEntityVisible", "SetEntityCollision",
   "AddExplosion", "AddOwnedExplosion", "ShootSingleBulletBetweenCoords", "StartScriptFire",
   "SetVehicleFixed", "SetVehicleEngineHealth", "SetVehicleCheatPowerIncrease", "SetVehicleHandlingFloat",

@@ -5,13 +5,14 @@ local FIELDS = {
   "fMass", "fBrakeForce", "fInitialDragCoeff", "fDriveInertia",
 }
 
-local lastVeh, lastEngine, lastBody, lastPlate
+local lastVeh, lastEngine, lastBody, lastPlate, lastMine
 S.register("vehicle.repair", 500, function()
   local ped = PlayerPedId()
   local veh = GetVehiclePedIsIn(ped, false)
   if veh == 0 or GetPedInVehicleSeat(veh, -1) ~= ped then lastVeh = nil return end
   local engine, body, plate = GetVehicleEngineHealth(veh), GetVehicleBodyHealth(veh), GetVehicleNumberPlateText(veh)
-  if veh == lastVeh and not S.allowed("vehicle") then
+  local mine = NetworkGetEntityOwner(veh) == PlayerId()
+  if veh == lastVeh and mine and lastMine and not S.allowed("vehicle") then
     if (lastEngine < S.t("repairFromHealth") and engine >= 990) or (lastBody < S.t("repairFromHealth") and body >= 990) then
       S.flag("VEH_REPAIR", { e0 = math.floor(lastEngine), e1 = math.floor(engine), b0 = math.floor(lastBody), b1 = math.floor(body) })
     end
@@ -19,7 +20,7 @@ S.register("vehicle.repair", 500, function()
       S.flag("VEH_PLATE", { from = lastPlate, to = plate })
     end
   end
-  lastVeh, lastEngine, lastBody, lastPlate = veh, engine, body, plate
+  lastVeh, lastEngine, lastBody, lastPlate, lastMine = veh, engine, body, plate, mine
 end)
 
 local paintChanges, paintWindowStart, lastPaint = 0, 0, nil

@@ -77,7 +77,7 @@ do
   S.register("player.motion", 250, function()
     local ped = PlayerPedId()
     if IsPedInAnyVehicle(ped, false) or IsPedRagdoll(ped) or IsPedFalling(ped)
-        or IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) >= 0 or S.allowed("superjump") then
+        or IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) > 0 or S.allowed("superjump") then
       jumpActive = false
       return
     end
