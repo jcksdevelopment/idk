@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/client";
 import type { ServerSettings, SettingsField } from "@/lib/types";
-import { Button, cx, Empty, Input, timeAgo } from "./ui";
+import { Button, cx, Dialog, Empty, Input, timeAgo } from "./ui";
 
 type Config = Record<string, unknown>;
 type Response = { settings: ServerSettings | null; connected: boolean; demo: boolean; canEdit: boolean };
@@ -20,6 +20,20 @@ function setPath(obj: Config, path: string, value: unknown): Config {
   return copy;
 }
 
+const show = (v: unknown) => {
+  const s = v === undefined ? "—" : typeof v === "string" ? v : JSON.stringify(v);
+  return s.length > 120 ? s.slice(0, 117) + "…" : s;
+};
+
+function changedKeys(a: unknown, b: unknown, prefix = ""): { key: string; from: unknown; to: unknown }[] {
+  const isObj = (x: unknown): x is Config => !!x && typeof x === "object" && !Array.isArray(x);
+  if (isObj(a) && isObj(b)) {
+    const keys = Array.from(new Set([...Object.keys(a), ...Object.keys(b)])).sort();
+    return keys.flatMap((k) => changedKeys(a[k], b[k], prefix ? `${prefix}.${k}` : k));
+  }
+  return JSON.stringify(a) === JSON.stringify(b) ? [] : [{ key: prefix, from: a, to: b }];
+}
+
 export function SettingsEditor() {
   const [data, setData] = useState<Response | null>(null);
   const [draft, setDraft] = useState<Config | null>(null);
@@ -27,6 +41,7 @@ export function SettingsEditor() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<{ kind: "ok" | "err" | "info"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [review, setReview] = useState(false);
 
   const load = useCallback(async (resetDraft: boolean) => {
     const r = await api<Response>("/api/settings?serverId=main");
@@ -54,8 +69,11 @@ export function SettingsEditor() {
     return () => clearInterval(t);
   }, [data?.settings?.pending, load]);
 
+  const changes = useMemo(() => (draft && original ? changedKeys(original, draft) : []), [draft, original]);
+
   async function save() {
     if (!draft) return;
+    setReview(false);
     setBusy(true);
     setStatus(null);
     try {
@@ -145,11 +163,29 @@ export function SettingsEditor() {
             <>
               <Button size="sm" variant="ghost" onClick={() => original && setDraft(original)} disabled={!dirty}>Discard</Button>
               <Button size="sm" variant="secondary" onClick={reloadFromFile} disabled={!data.connected}>Reload from file</Button>
-              <Button size="sm" variant="primary" onClick={save} disabled={!dirty || busy}>{busy ? "Saving…" : "Save & apply"}</Button>
+              <Button size="sm" variant="primary" onClick={() => setReview(true)} disabled={!dirty || busy}>{busy ? "Saving…" : "Save & apply"}</Button>
             </>
           )}
         </div>
       </div>
+      <Dialog open={review} onClose={() => setReview(false)} title={`Apply ${changes.length} change(s)?`} wide>
+        <div className="space-y-4 px-5 py-4">
+          <ul className="scroll-quiet max-h-80 divide-y divide-line overflow-y-auto rounded-md border border-line font-mono text-xs">
+            {changes.map((c) => (
+              <li key={c.key} className="space-y-0.5 px-3 py-2">
+                <div className="text-fg">{c.key}</div>
+                <div className="break-all text-red-300/80">− {show(c.from)}</div>
+                <div className="break-all text-emerald-300/90">+ {show(c.to)}</div>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted">The game server validates them, keeps the previous config.json in its history (jac rollback) and applies them at once.</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setReview(false)}>Cancel</Button>
+            <Button variant="primary" onClick={save}>Apply</Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
