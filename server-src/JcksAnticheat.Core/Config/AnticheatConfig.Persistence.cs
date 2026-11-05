@@ -26,6 +26,9 @@ namespace JcksAnticheat.Core.Config
             ["adminAce"] = AdminAce.ToList(),
             ["maxWeapons"] = MaxWeapons,
             ["textureBlacklist"] = TextureBlacklist.ToList(),
+            ["blockHtmlNames"] = BlockHtmlNames,
+            ["nameBlacklist"] = NameBlacklist.ToList(),
+            ["chatSpoofCheck"] = ChatSpoofCheck,
             ["protectedEvents"] = ProtectedEvents.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["scoring"] = new Dictionary<string, object?>
             {

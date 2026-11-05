@@ -598,3 +598,24 @@ public class MassTeleportTests
         Assert.Equal(2, MassTeleportDetector.Process(teleports, new List<(int, Vec3)>()).Count);
     }
 }
+
+public class NameFilterTests
+{
+    [Theory]
+    [InlineData("<img src=x onerror=alert(1)>", true)]
+    [InlineData("Tony <b>Boss</b>", true)]
+    [InlineData("<script>", true)]
+    [InlineData("Marcus Vane", false)]
+    [InlineData("x < y > z", false)]
+    [InlineData("~r~Red Name", false)]
+    public void HtmlNamesAreRefused(string name, bool refused)
+        => Assert.Equal(refused, NameFilter.Check(name, true, Array.Empty<string>()) != null);
+
+    [Fact]
+    public void BlacklistIsCaseInsensitive()
+    {
+        Assert.NotNull(NameFilter.Check("xX_ModMenu_Xx", true, new[] { "modmenu" }));
+        Assert.Null(NameFilter.Check("Tony", true, new[] { "modmenu" }));
+        Assert.NotNull(NameFilter.Check("  ", true, Array.Empty<string>()));
+    }
+}

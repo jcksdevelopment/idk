@@ -94,6 +94,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `NET_FLOOD` | Event flood / spam triggers | 40+ rate-limited events within 10 s: the player is disconnected at once | S | `AnticheatScript.cs` (`Guard`) | 40 |
 | `NET_PTFX_SPAM` | Particle spam (crash/blind players) | `ptFxEvent` over 40 per 10 s, scale > 5, or attached to another player. Cancelled. | S | `GameEventValidator` | 35 |
 | `NET_EVENT_SPAM` | Spamming money/item server events (executor loops) | A server event listed in `protectedEvents` triggered more times per minute than its limit. Cancelled. | S | `AnticheatScript.cs` | 30 |
+| `NET_CHAT_SPOOF` | Fake chat messages as another player | `_chat:messageEntered` author differs from the sender's name. Cancelled. | S | `AnticheatScript.cs` | 40 |
 | `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `AnticheatScript.cs` (honeypot events) | 60 |
 | `HB_MISSING` | Scanner killed or never started | No valid heartbeat for > 20 s, or in the world for > 120 s without the `jcks_anticheat:hello` handshake | H | `HeartbeatManager` | 60 |
 | `HB_INVALID` | Heartbeat forgery/replay | MAC mismatch, sequence replay, or stale challenge | H | `HeartbeatManager` | 60 |

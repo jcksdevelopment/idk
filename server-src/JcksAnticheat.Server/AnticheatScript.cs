@@ -99,6 +99,7 @@ namespace JcksAnticheat.Server
             EventHandlers["playerConnecting"] += new Action<Player, string, CallbackDelegate, IDictionary<string, object>>(OnPlayerConnecting);
             EventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDropped);
             EventHandlers["playerJoining"] += new Action<Player, string>(OnPlayerJoining);
+            EventHandlers["_chat:messageEntered"] += new Action<Player, object, object, object>(OnChatMessage);
             EventHandlers["onServerResourceStart"] += new Action<string>(OnServerResourceStart);
             EventHandlers["jcks_anticheat:hello"] += new Action<Player>(OnHello);
             EventHandlers[_hbEvent] += new Action<Player, object, string, string, string>(OnHeartbeat);
@@ -136,6 +137,16 @@ namespace JcksAnticheat.Server
 
         private void OnPlayerConnecting([FromSource] Player player, string name, CallbackDelegate setKickReason, IDictionary<string, object> deferrals)
         {
+            var nameProblem = NameFilter.Check(name, _cfg.BlockHtmlNames, _cfg.NameBlacklist);
+            if (nameProblem != null)
+            {
+                ((CallbackDelegate)deferrals["defer"])();
+                ((CallbackDelegate)deferrals["done"])("[JCKS Anticheat] " + nameProblem + " Change your FiveM name and reconnect.");
+                Log($"refused connection: name '{name}' ({nameProblem})");
+                _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = "name filter" });
+                return;
+            }
+
             var ids = IdentifiersOf(player.Handle);
             var ban = _bans.Find(ids);
             if (ban == null) return;
@@ -157,6 +168,24 @@ namespace JcksAnticheat.Server
             if (string.IsNullOrEmpty(name) || name == _resource) return;
             foreach (var p in Players)
                 if (_heartbeats.HasSession(ToId(p.Handle))) p.TriggerEvent(_resourceEvent, name);
+        }
+
+        /// <summary>
+        /// cfx chat: the client sends its own author name with each message. A menu sends someone
+        /// else's name to speak as them. The chat resource skips cancelled messages.
+        /// </summary>
+        private void OnChatMessage([FromSource] Player player, object author, object color, object message)
+        {
+            if (!_cfg.ChatSpoofCheck) return;
+            int id = ToId(player.Handle);
+            if (id <= 0) return;
+            var claimed = author?.ToString() ?? "";
+            if (claimed.Length == 0 || claimed == player.Name) return;
+            CancelEvent();
+            Punish(new Violation(id, "NET_CHAT_SPOOF", ViolationSource.Server, new Dictionary<string, object?>
+            {
+                ["claimed"] = claimed.Length > 48 ? claimed.Substring(0, 48) : claimed,
+            }));
         }
 
         private void OnPlayerJoining([FromSource] Player player, string oldId)

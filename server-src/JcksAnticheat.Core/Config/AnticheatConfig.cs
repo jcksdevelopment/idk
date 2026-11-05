@@ -89,6 +89,12 @@ namespace JcksAnticheat.Core.Config
         /// <summary>Texture dictionaries only cheat menus load (operator-maintained; empty by default).</summary>
         public List<string> TextureBlacklist { get; set; } = new List<string>();
         /// <summary>Server events to rate-limit per player: event name → max triggers per minute.</summary>
+        /// <summary>Refuse connections whose name contains HTML/script (chat and NUI injection).</summary>
+        public bool BlockHtmlNames { get; set; } = true;
+        /// <summary>Case-insensitive words that may not appear in player names.</summary>
+        public List<string> NameBlacklist { get; set; } = new List<string>();
+        /// <summary>Report chat messages whose author isn't the sender (_chat:messageEntered).</summary>
+        public bool ChatSpoofCheck { get; set; } = true;
         public Dictionary<string, int> ProtectedEvents { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         public List<string> AdminAce { get; set; } = new List<string> { "jcks_anticheat.bypass" };
 
@@ -114,6 +120,9 @@ namespace JcksAnticheat.Core.Config
             cfg.AdminAce = Strings(root, "adminAce") ?? cfg.AdminAce;
             cfg.MaxWeapons = (int)(root.Num("maxWeapons") ?? cfg.MaxWeapons);
             cfg.TextureBlacklist = Strings(root, "textureBlacklist") ?? cfg.TextureBlacklist;
+            cfg.BlockHtmlNames = root.Bool("blockHtmlNames") ?? cfg.BlockHtmlNames;
+            cfg.NameBlacklist = Strings(root, "nameBlacklist") ?? cfg.NameBlacklist;
+            cfg.ChatSpoofCheck = root.Bool("chatSpoofCheck") ?? cfg.ChatSpoofCheck;
             if (root.Obj("protectedEvents") is { } pe)
             {
                 cfg.ProtectedEvents = new Dictionary<string, int>(StringComparer.Ordinal);

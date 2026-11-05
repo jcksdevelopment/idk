@@ -120,6 +120,7 @@ on the server-side checks, the heartbeat and AI vision.
 | Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` against other players |
 | Honeypots | Decoy net events no real resource fires (`honeypotEvents` in config) |
 | Protected events | `protectedEvents` (event = max per minute) rate-limits sensitive server events of other resources (payouts, transfers, item grants) per player; over the limit they're reported (`NET_EVENT_SPAM`) and cancelled. Editable live in the panel and dashboard. |
+| Names & chat | Connections whose name contains HTML/script (chat/NUI injection) or an operator-blocked word are refused; chat messages sent under another player's name are cancelled (`NET_CHAT_SPOOF`). |
 | `RateLimiter` | Per-player token bucket, shared by JCKS Anticheat's own events and other resources through `exports.jcks_anticheat:Guard`. A sustained flood (40 denied events in 10 s) disconnects the player. |
 
 **Idle cost.** Everything is event-driven except one coroutine that wakes once a second and returns
@@ -298,7 +299,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-64 tests cover:
+74 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -324,7 +325,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 64 tests pass.
+- Both C# projects build with no warnings and the 74 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

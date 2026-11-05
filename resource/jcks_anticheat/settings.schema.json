@@ -405,6 +405,30 @@
       ]
     },
     {
+      "id": "players",
+      "title": "Names & chat",
+      "fields": [
+        {
+          "key": "blockHtmlNames",
+          "label": "Refuse names with HTML/script",
+          "type": "bool",
+          "help": "Blocks chat/scoreboard/NUI injection through player names."
+        },
+        {
+          "key": "nameBlacklist",
+          "label": "Blocked words in names",
+          "type": "list",
+          "help": "Case-insensitive; players whose name contains one are refused at connect."
+        },
+        {
+          "key": "chatSpoofCheck",
+          "label": "Detect chat spoofing",
+          "type": "bool",
+          "help": "Reports and cancels chat messages sent under another player's name (cfx chat)."
+        }
+      ]
+    },
+    {
       "id": "vision",
       "title": "AI vision",
       "fields": [
