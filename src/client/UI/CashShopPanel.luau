@@ -239,6 +239,10 @@ function CashShopPanel.Build(gui: ScreenGui)
 	local entries: { Entry } = {}
 
 	for order, key in sortedKeys(Config.ShopDisplay.DevProducts) do
+		local isCurrency = (Config.Monetization.CurrencyProducts :: any)[key] == true
+		if isCurrency and not Config.Monetization.SellCurrencyForRobux then
+			continue -- policy: don't sell cash that can buy random boxes
+		end
 		local display = (Config.ShopDisplay.DevProducts :: any)[key]
 		local button = buildCard(productRow, order, "Product_", key, display, false, Theme.Colors.Accent)
 		local entry: Entry = { Key = key, Kind = "Product", Id = (Config.DevProducts :: any)[key] or 0, Button = button, PriceText = "…" }

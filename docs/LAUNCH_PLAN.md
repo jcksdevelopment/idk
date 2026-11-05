@@ -378,6 +378,11 @@ Toto je **pre detskú hru kľúčové** – bez toho ju deti pod 16 rokov neuvid
 
 ### 7.2 ⚠️ Dôležité: Balík peňazí a náhodné krabice
 
+> ✅ **Už vyriešené v kóde:** `Config.Monetization.SellCurrencyForRobux = false` (predvolené).
+> Balík peňazí sa v obchode vôbec nezobrazí a server ho odmietne ponúknuť, takže hra
+> **nepredáva náhodné predmety za Robux ani nepriamo**. Ak by si ho niekedy chcel zapnúť,
+> najprv urob oba body nižšie.
+
 Roblox považuje za **„paid random items“** aj náhodné odmeny kúpené **nepriamo** – teda za hernú
 menu, ktorú sa dá kúpiť za Robux. Hra predáva **Balík peňazí** (Robux → herné peniaze) a za herné
 peniaze sa kupujú **náhodné krabice a vajíčka**. Podľa oficiálnych pravidiel to znamená:

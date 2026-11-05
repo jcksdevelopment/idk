@@ -32,6 +32,12 @@ Config.DevProducts = {
 -- can also be earned by playing (quests, daily rewards, collection book).
 Config.Monetization = {
 	ShowUpsells = false, -- true = small "get more" hints in HUD / inventory
+	-- Roblox policy: in-game currency bought with Robux that can buy random
+	-- rewards (our mystery boxes / eggs) makes those boxes "paid random items",
+	-- which needs per-item odds + PolicyService restrictions. Keep this false
+	-- unless you implement both (see docs/LAUNCH_PLAN.md, section 7.2).
+	SellCurrencyForRobux = false,
+	CurrencyProducts = { CashPackSmall = true }, -- products that sell in-game cash
 }
 
 -- Display metadata for the cash shop. Titles/descriptions come from Locale.

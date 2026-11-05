@@ -103,7 +103,9 @@ end
 
 local function onPromptProduct(player: Player, productKey: string)
 	local productId = (Config.DevProducts :: any)[productKey]
-	if type(productId) ~= "number" or productId == 0 then
+	local blockedCurrency = (Config.Monetization.CurrencyProducts :: any)[productKey] == true
+		and not Config.Monetization.SellCurrencyForRobux
+	if type(productId) ~= "number" or productId == 0 or blockedCurrency then
 		SyncService.Notify(player, "error", "N_NotOnSale")
 		return
 	end
