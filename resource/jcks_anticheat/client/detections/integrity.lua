@@ -88,6 +88,7 @@ S.register("integrity.textures", 10000, function()
 end)
 
 JcksAC.shielded = JcksAC.shielded or {}
+local URGENT = { teleport = true, noclip = true, heal = true, armor = true, godmode = true, invisible = true, vehicle = true }
 AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
   if type(resource) ~= "string" or type(kind) ~= "string" or type(detail) ~= "table" then return end
   if kind == "hello" then
@@ -104,6 +105,7 @@ AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
       S.grant(behaviour, 3000)
     end
     S.queueUse(resource, behaviour, ok and true or false)
+    if S.sendNow and URGENT[behaviour] then S.sendNow() end
     return
   end
   local evidence = { r = resource:sub(1, 48), fn = tostring(detail.fn):sub(1, 48), src = tostring(detail.src):sub(1, 80), kind = kind }

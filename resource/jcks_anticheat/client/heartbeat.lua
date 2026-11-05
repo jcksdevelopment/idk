@@ -123,11 +123,22 @@ RegisterNetEvent("jcks_anticheat:init", function(payload)
   S.ready = true
   TriggerEvent("jcks_anticheat:ready")
 
+  local lastSent, nextDue = 0, 0
+  local function send()
+    lastSent = GetGameTimer()
+    nextDue = lastSent + session.interval
+    local ok, err = pcall(sendHeartbeat)
+    if not ok then print(("[jcks_anticheat] heartbeat error: %s"):format(err)) end
+  end
+
+  function S.sendNow()
+    if GetGameTimer() - lastSent >= 400 then send() end
+  end
+
   CreateThread(function()
     while true do
-      local ok, err = pcall(sendHeartbeat)
-      if not ok then print(("[jcks_anticheat] heartbeat error: %s"):format(err)) end
-      Wait(session.interval)
+      if GetGameTimer() >= nextDue then send() end
+      Wait(math.max(50, nextDue - GetGameTimer()))
     end
   end)
 end)

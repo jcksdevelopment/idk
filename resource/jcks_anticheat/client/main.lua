@@ -48,7 +48,7 @@ end
 
 S.uses = {}
 function S.queueUse(resource, kind, allowed)
-  if not allowed and not S.server.integrationLearning then return end
+  if not allowed and not S.server.integrationLearning and not S.server.integrationTrustAll then return end
   if #S.uses >= 32 then return end
   for i = 1, #S.uses do
     local u = S.uses[i]

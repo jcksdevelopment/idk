@@ -239,6 +239,7 @@ namespace JcksAnticheat.Core.Config
                 cfg.Integrations.UsePresets = igr.Bool("usePresets") ?? cfg.Integrations.UsePresets;
                 cfg.Integrations.Learning = igr.Bool("learning") ?? cfg.Integrations.Learning;
                 cfg.Integrations.ClientTrustAllResources = igr.Bool("clientTrustAllResources") ?? cfg.Integrations.ClientTrustAllResources;
+                cfg.Integrations.ServerTrustReportedResources = igr.Bool("serverTrustReportedResources") ?? cfg.Integrations.ServerTrustReportedResources;
                 cfg.Integrations.GraceMs = (int)(igr.Num("graceMs") ?? cfg.Integrations.GraceMs);
                 if (igr.Obj("resources") is { } rs)
                 {

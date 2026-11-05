@@ -204,6 +204,7 @@ namespace JcksAnticheat.Server
             _state.Forget(id);
             _consistency.Forget(id);
             ForgetAntiDump(id);
+            ForgetDeferred(id);
             _removing.TryRemove(id, out _);
             _ledger.Park(id, LicenseOf(player.Handle));
             _lastCapture.TryRemove(id, out _);
@@ -289,11 +290,15 @@ namespace JcksAnticheat.Server
                 var resource = u.Str("r") ?? "";
                 var kind = u.Str("k") ?? "";
                 if (_cfg.Integrations.Learning) _learning.Record(resource, kind);
-                if (u.Bool("a") != true || !_integrations.Allows(resource, kind)) continue;
+                bool listed = u.Bool("a") == true && _integrations.Allows(resource, kind);
+                bool reported = _cfg.Integrations.ServerTrustReportedResources && resource != _resource
+                                && Behaviours.IsKnown(kind) && kind != "*" && GetResourceState(resource) == "started";
+                if (!listed && !reported) continue;
                 if (!_limiter.TryConsume(id, "grace:" + kind, _graceRule)) continue;
-                var duration = TimeSpan.FromMilliseconds(_cfg.Integrations.GraceMs);
+                var duration = TimeSpan.FromMilliseconds(listed ? _cfg.Integrations.GraceMs : 3000);
                 if (kind == "teleport" || kind == "noclip") _movement.GrantGrace(id, duration, now);
                 _state.GrantGrace(id, kind, duration, now);
+                RecordGrant(id, kind, now);
             }
         }
 
@@ -607,6 +612,7 @@ namespace JcksAnticheat.Server
             var duration = TimeSpan.FromMilliseconds(Math.Max(0, Math.Min(ms, 600_000)));
             if (kind == "teleport" || kind == "noclip") _movement.GrantGrace(player, duration);
             _state.GrantGrace(player, kind, duration);
+            RecordGrant(player, kind, DateTime.UtcNow);
             Players[player]?.TriggerEvent(_graceEvent, kind, ms);
         }
 

@@ -136,6 +136,12 @@
           "help": "When any resource's own script (not injected code) heals, revives, teleports, etc. the player, the matching client detections and countermeasures pause for 3 s. Prevents killing players revived by a custom death script you haven't listed. Server-side grace still requires Trusted resources. Code injected by executors is never trusted."
         },
         {
+          "key": "integrations.serverTrustReportedResources",
+          "label": "Server trusts reported resource actions",
+          "type": "bool",
+          "help": "The server accepts heals/teleports/etc. that the shield saw a running resource perform (sent inside the encrypted heartbeat), pausing its own checks for 3 s. Turn off for strict mode: only Trusted resources get server-side grace."
+        },
+        {
           "key": "integrations.learning",
           "label": "Learning mode",
           "type": "bool",

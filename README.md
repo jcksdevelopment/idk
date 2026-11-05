@@ -272,7 +272,9 @@ integrations.resources:   qb-ambulancejob=heal,armor,teleport
 ```
 
 The shield, running inside every resource, sees which resource calls e.g. `SetEntityHealth` on
-the local player. When that resource is trusted for `heal`, the matching detections pause for
+the local player. That report goes out with an immediate heartbeat. Server-side movement and
+health verdicts wait 2.5 s for it, so a legitimate teleport or heal is never punished or put back
+just because the report arrived a moment after the position or health changed. When that resource is trusted for `heal`, the matching detections pause for
 `integrations.graceMs` on the client, and the server grants the same grace after checking the
 rule itself (rate-limited).
 
@@ -438,7 +440,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-97 tests cover:
+102 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -464,7 +466,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 97 tests pass.
+- Both C# projects build with no warnings and the 102 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

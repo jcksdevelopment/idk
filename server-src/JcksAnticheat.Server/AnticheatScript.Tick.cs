@@ -34,12 +34,24 @@ namespace JcksAnticheat.Server
                 if (_tickTeleports.Count > 0)
                 {
                     var outcome = MassTeleportDetector.Process(_tickTeleports, _tickPositions);
-                    foreach (var v in outcome) Punish(v);
+                    foreach (var v in outcome)
+                    {
+                        if (v.Code == "MOV_BRING_ALL") Punish(v);
+                        else Defer(v.Player, "teleport", now, v, null);
+                    }
                     if (CountermeasureOn("MOV_BRING_ALL"))
                         foreach (var t in _tickTeleports)
-                            if (!outcome.Contains(t.violation) && Players[t.player] is { } victim)
-                                PutBack(t.player, GetPlayerPed(victim.Handle));
+                            if (!outcome.Contains(t.violation))
+                            {
+                                int victimId = t.player;
+                                Defer(victimId, "teleport", now, null, () =>
+                                {
+                                    if (Players[victimId] is { } victim) PutBack(victimId, GetPlayerPed(victim.Handle));
+                                });
+                            }
                 }
+
+                ResolveDeferred(now);
 
                 foreach (var (player, silent) in _heartbeats.FindMissing(now))
                     Punish(new Violation(player, "HB_MISSING", ViolationSource.Heartbeat, new Dictionary<string, object?>
@@ -114,9 +126,14 @@ namespace JcksAnticheat.Server
             foreach (var v in _movement.Evaluate(id, sample))
             {
                 if (v.Code == "MOV_TELEPORT") _tickTeleports.Add((id, v, sample.Position));
+                else if (GraceKindFor(v.Code) is { } kind) Defer(id, kind, now, v, null);
                 else Punish(v);
             }
-            foreach (var v in _state.Evaluate(id, health, armor, dead, now)) Punish(v);
+            foreach (var v in _state.Evaluate(id, health, armor, dead, now))
+            {
+                if (GraceKindFor(v.Code) is { } kind) Defer(id, kind, now, v, null);
+                else Punish(v);
+            }
 
             if (!_state.HasGrace(id, "godmode", now) && GetPlayerInvincible(player.Handle))
                 Punish(new Violation(id, "PLY_GODMODE_FLAG", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }));
