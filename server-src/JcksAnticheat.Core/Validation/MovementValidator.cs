@@ -117,6 +117,8 @@ namespace JcksAnticheat.Core.Validation
                 }
             }
 
+            if (_last.TryGetValue(player, out var before) && before.Position.Equals(sample.Position) && before.Mode == sample.Mode && sample.At - before.At < TimeSpan.FromSeconds(3))
+                sample = new MovementSample(sample.Position, sample.Velocity, sample.Mode, before.At, sample.HeightAboveGround);
             _last[player] = sample;
             if (found.Count == 0 && sample.Mode != MovementMode.Dead) _lastGood[player] = sample.Position;
             return found;

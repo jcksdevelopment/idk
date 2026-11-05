@@ -20,13 +20,13 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
 | `PLY_GODMODE_FLAG` | Godmode (invincible flag) | `GetPlayerInvincible`/`GetPlayerInvincible_2` true, or `GetEntityCanBeDamaged` false, while server hasn't authorised it; server reads `GetPlayerInvincible` from sync | C+S | `client/detections/player.lua`, server state tick | 40 |
-| `PLY_GODMODE_PROOFS` | Semi-godmode (proofs, defense) | `GetEntityProofs` returns bullet/explosion/fire/melee proofs set; weapon defense modifier below 1.0 (server reads `GetPlayerWeaponDefenseModifier`/`_2` from sync) | C+S | `player.lua`, `weapon.lua`, `PlayerFlagsValidator` | 35 |
+| `PLY_GODMODE_PROOFS` | Semi-godmode (proofs, defense) | `GetEntityProofs` returns bullet/explosion/fire/melee proofs set; weapon defense modifier below `client.defenseModifierMin` (server reads `GetPlayerWeaponDefenseModifier`/`_2` from sync) | C+S | `player.lua`, `weapon.lua`, `PlayerFlagsValidator` | 35 |
 | `PLY_HEALTH_REGEN` | Health lock / instant regen | Health rises faster than natural regen with no server-authorised heal | C+S | `player.lua`, `PlayerStateValidator` | 25 |
 | `PLY_ARMOR_REGEN` | Armour lock / instant refill | Armour rises with no server-authorised armour event | C+S | `player.lua`, `PlayerStateValidator` | 25 |
 | `PLY_HEALTH_CAP` | Max-health tampering | Health > `GetEntityMaxHealth` or max health > configured cap; server reads `GetPlayerMaxHealth` | C+S | `player.lua`, `PlayerFlagsValidator` | 30 |
 | `PLY_DAMAGE_ABSORB` | Semi-godmode (absorbs hits) | Server sees confirmed `weaponDamageEvent` hits, but victim health never drops | S | `DamageValidator` | 30 |
 | `PLY_NO_RAGDOLL` | No ragdoll | `CanPedRagdoll` false while on foot and not authorised | C | `player.lua` | 15 |
-| `PLY_SUPERJUMP` | Super jump | Jump apex height above ground > 3.5 m, or `IsPedJumping` with vertical speed > 9 m/s; server sees the super-jump flag in sync (`IsPlayerUsingSuperJump`) | C+S | `player.lua`, `PlayerFlagsValidator` | 30 |
+| `PLY_SUPERJUMP` | Super jump | Rise above the take-off point > 3.5 m (jumping off a ledge doesn't count), or `IsPedJumping` with vertical speed > 9 m/s; server sees the super-jump flag in sync (`IsPlayerUsingSuperJump`) | C+S | `player.lua`, `PlayerFlagsValidator` | 30 |
 | `PLY_SPEED_FOOT` | Speedhack (on foot) | Ped speed > 12 m/s on foot, not falling, not ragdolled | C+S | `player.lua`, `MovementValidator` | 30 |
 | `PLY_STAMINA` | Infinite stamina | Sprinting for > 25 s with stamina still at 100 | C | `player.lua` | 10 |
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
@@ -60,7 +60,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `WPN_FIRE_PLAYER` | Set players on fire | `fireEvent` with a fire attached to another player's ped. Cancelled. | S | `GameEventValidator` | 45 |
 | `WPN_FIRE_SPAM` | Fire spam | More than 10 fires in 10 s | S | `GameEventValidator` | 40 |
 | `WPN_GIVE_EVENT` | Give or strip weapons | `giveWeaponEvent`, `removeWeaponEvent` or `removeAllWeaponsEvent` from a client (always malicious under OneSync; cancelled) | S | `AnticheatScript.cs` | 50 |
-| `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ `expectedDamageModifier` (client and server sync), `GetWeaponDamageModifier` on the weapon in hand above `client.weaponDamageModifierMax`, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `PlayerFlagsValidator`, `DamageValidator` | 40 |
+| `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` above `expectedDamageModifier` (client and server sync; nerfs below it are allowed), `GetWeaponDamageModifier` on the weapon in hand above `client.weaponDamageModifierMax`, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `PlayerFlagsValidator`, `DamageValidator` | 40 |
 | `WPN_MASS_KILL` | Kill-all / mass kill | One player kills more than `damage.maxKillsPer10s` players in 10 s (server `onPedDeath`, any weapon, explosion or vehicle) | S | `MassKillTracker` | 45 |
 | `WPN_OUT_OF_SCOPE` | Damaging players the attacker's game can't even see (forged damage events, kill-all) | `weaponDamageEvent` against a player who left the attacker's scope (`playerLeftScope`) more than 3 s earlier and hasn't re-entered it. The hit is cancelled | S | `ScopeTracker` | 45 |
 | `WPN_RANGE` | Out-of-range hits | Hit distance > weapon effective range × 1.25 | S | `DamageValidator` | 25 |

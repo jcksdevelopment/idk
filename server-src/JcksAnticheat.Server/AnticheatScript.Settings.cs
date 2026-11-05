@@ -226,6 +226,7 @@ namespace JcksAnticheat.Server
             _flags.MaxHealth = _cfg.MaxHealth;
             _flags.ExpectedDamageModifier = _cfg.ExpectedDamageModifier;
             _flags.CollisionStreak = (int)_cfg.ServerThresholds["collisionStreakSeconds"];
+            _flags.MinDefense = (float)_cfg.ClientThresholds["defenseModifierMin"];
         }
 
         private string _lastSuggestions = "";
@@ -335,7 +336,7 @@ namespace JcksAnticheat.Server
             ["wb"] = _cfg.WeaponBlacklist, ["mh"] = _cfg.MaxHealth, ["dm"] = _cfg.ExpectedDamageModifier,
             ["ig"] = _cfg.Scoring.Ignore.ToList(), ["iv"] = _cfg.HeartbeatIntervalMs,
             ["mw"] = _cfg.MaxWeapons, ["tb"] = _cfg.TextureBlacklist, ["ct"] = _cfg.ClientThresholds,
-            ["cm"] = _cfg.Countermeasures.Enabled, ["cs"] = _cfg.Countermeasures.Skip,
+            ["cm"] = CountermeasuresActive, ["cs"] = _cfg.Countermeasures.Skip,
             ["it"] = _integrations.ToClient(), ["ig2"] = _cfg.Integrations.GraceMs, ["il"] = _cfg.Integrations.Learning, ["ita"] = _cfg.Integrations.ClientTrustAllResources,
         };
 

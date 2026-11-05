@@ -70,6 +70,8 @@ do
   local HEALTH_JUMP = function() return S.t("healthJump") end
   local ARMOR_JUMP = function() return S.t("armorJump") end
 
+    S.onReset(function() lastHealth, lastArmor = nil, nil end)
+
   S.register("player.regen", 500, function()
     local ped = PlayerPedId()
     local health, armor = GetEntityHealth(ped), GetPedArmour(ped)
@@ -92,12 +94,13 @@ S.register("player.ragdoll", 3000, function()
 end)
 
 do
-  local jumpPeak, jumpActive = 0.0, false
+  local jumpPeak, jumpActive, jumpStartZ = 0.0, false, nil
+  S.onReset(function() jumpActive, jumpPeak, jumpStartZ = false, 0.0, nil end)
   S.register("player.motion", 250, function()
     local ped = PlayerPedId()
-    if IsPedInAnyVehicle(ped, false) or IsPedRagdoll(ped) or IsPedFalling(ped)
-        or IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) > 0 or S.allowed("superjump") then
-      jumpActive = false
+    if IsPedInAnyVehicle(ped, false) or IsPedRagdoll(ped) or IsPedFalling(ped) or IsPedOnVehicle(ped)
+        or IsEntityAttached(ped) or IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) > 0 or S.allowed("superjump") then
+      jumpActive, jumpPeak, jumpStartZ = false, 0.0, nil
       return
     end
 
@@ -108,17 +111,18 @@ do
     end
 
     if IsPedJumping(ped) then
-      jumpActive = true
-      local h = GetEntityHeightAboveGround(ped)
-      if h > jumpPeak then jumpPeak = h end
+      local z = GetEntityCoords(ped).z
+      if not jumpActive then jumpActive, jumpStartZ, jumpPeak = true, z, 0.0 end
+      local rise = z - jumpStartZ
+      if rise > jumpPeak then jumpPeak = rise end
       if vel.z > S.t("superjumpVelocity") then
         S.flag("PLY_SUPERJUMP", { vz = math.floor(vel.z * 10) / 10 })
       end
     elseif jumpActive then
       if jumpPeak > S.t("superjumpHeight") then
-        S.flag("PLY_SUPERJUMP", { peak = math.floor(jumpPeak * 10) / 10 })
+        S.flag("PLY_SUPERJUMP", { rise = math.floor(jumpPeak * 10) / 10 })
       end
-      jumpActive, jumpPeak = false, 0.0
+      jumpActive, jumpPeak, jumpStartZ = false, 0.0, nil
     end
   end)
 end

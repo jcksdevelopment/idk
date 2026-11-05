@@ -122,7 +122,8 @@ namespace JcksAnticheat.Server
             bool dead = health <= 100;
 
             int veh = GetVehiclePedIsIn(ped, false);
-            var mode = dead ? MovementMode.Dead : veh == 0 ? MovementMode.OnFoot : ModeOf(GetVehicleType(veh));
+            int carrier = veh == 0 ? GetEntityAttachedTo(ped) : 0;
+            var mode = dead || carrier != 0 ? MovementMode.Dead : veh == 0 ? MovementMode.OnFoot : ModeOf(GetVehicleType(veh));
             var subject = veh != 0 ? veh : ped;
             var sample = new MovementSample(ToVec(GetEntityCoords(subject)), ToVec(GetEntityVelocity(subject)), mode, now);
 

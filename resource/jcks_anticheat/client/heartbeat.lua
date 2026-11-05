@@ -125,8 +125,8 @@ RegisterNetEvent("jcks_anticheat:init", function(payload)
     end)
   end
 
-  if data.cm then
-    RegisterNetEvent(data.cm, function(code)
+  if type(data.ce) == "string" then
+    RegisterNetEvent(data.ce, function(code)
       if type(code) == "string" and S.counter then S.counter(code, {}) end
     end)
   end
@@ -143,13 +143,14 @@ RegisterNetEvent("jcks_anticheat:init", function(payload)
   end
 
   function S.sendNow()
-    if GetGameTimer() - lastSent >= 400 then send() end
+    local now = GetGameTimer()
+    if now - lastSent >= 400 then send() else nextDue = math.min(nextDue, lastSent + 400) end
   end
 
   CreateThread(function()
     while true do
       if GetGameTimer() >= nextDue then send() end
-      Wait(math.max(50, nextDue - GetGameTimer()))
+      Wait(math.max(50, math.min(250, nextDue - GetGameTimer())))
     end
   end)
 end)

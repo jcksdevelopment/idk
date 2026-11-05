@@ -94,7 +94,7 @@ namespace JcksAnticheat.Core.Config
             },
             ["countermeasures"] = new Dictionary<string, object?>
             {
-                ["enabled"] = Countermeasures.Enabled, ["skip"] = Countermeasures.Skip.ToList(),
+                ["enabled"] = Countermeasures.Enabled, ["applyInDryRun"] = Countermeasures.ApplyInDryRun, ["skip"] = Countermeasures.Skip.ToList(),
             },
             ["integrations"] = new Dictionary<string, object?>
             {

@@ -302,7 +302,7 @@ namespace JcksAnticheat.Server
 
             var init = new Dictionary<string, object?>
             {
-                ["k"] = key, ["c"] = challenge, ["hb"] = _hbEvent, ["ack"] = _ackEvent, ["gr"] = _graceEvent, ["cm"] = _counterEvent,
+                ["k"] = key, ["c"] = challenge, ["hb"] = _hbEvent, ["ack"] = _ackEvent, ["gr"] = _graceEvent, ["ce"] = _counterEvent,
                 ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["ru"] = _resourceEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
                 ["wb"] = _cfg.WeaponBlacklist, ["rs"] = StartedResources(), ["mh"] = _cfg.MaxHealth,
                 ["dm"] = _cfg.ExpectedDamageModifier, ["ig"] = _cfg.Scoring.Ignore.ToList(),

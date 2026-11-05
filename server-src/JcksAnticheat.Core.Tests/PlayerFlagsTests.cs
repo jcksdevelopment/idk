@@ -34,6 +34,7 @@ public class PlayerFlagsTests
         var v = new PlayerFlagsValidator { ExpectedDamageModifier = 0.5 };
         Assert.Empty(v.Evaluate(1, Clean(dmg: 0.5f, melee: 0.5f)));
         Assert.Single(v.Evaluate(1, Clean(dmg: 1f, melee: 0.5f)), x => x.Code == "WPN_DMG_MODIFIER");
+        Assert.Empty(new PlayerFlagsValidator().Evaluate(9, Clean(melee: 0.1f)));
     }
 
     [Fact]
@@ -159,5 +160,29 @@ public class ScopeTrackerTests
         s.Left(2, 1, now);
         s.Forget(2);
         Assert.False(s.KnownOutOfScope(1, 2, now.AddSeconds(6)));
+    }
+}
+
+public class MovementStaleSampleTests
+{
+    [Fact]
+    public void AStalledPositionUpdateIsNotReadAsSpeed()
+    {
+        var m = new MovementValidator(new MovementLimits());
+        var t = new System.DateTime(2026, 1, 1, 12, 0, 0, System.DateTimeKind.Utc);
+        var mode = MovementMode.LandVehicle;
+        Assert.Empty(m.Evaluate(1, new MovementSample(new Vec3(0, 0, 0), default, mode, t)));
+        Assert.Empty(m.Evaluate(1, new MovementSample(new Vec3(0, 0, 0), default, mode, t.AddSeconds(1))));
+        Assert.Empty(m.Evaluate(1, new MovementSample(new Vec3(0, 0, 0), default, mode, t.AddSeconds(2))));
+        Assert.Empty(m.Evaluate(1, new MovementSample(new Vec3(200, 0, 0), default, mode, t.AddSeconds(3))));
+    }
+
+    [Fact]
+    public void ATeleportAfterStandingStillIsStillCaught()
+    {
+        var m = new MovementValidator(new MovementLimits());
+        var t = new System.DateTime(2026, 1, 1, 12, 0, 0, System.DateTimeKind.Utc);
+        for (int i = 0; i <= 20; i++) m.Evaluate(1, new MovementSample(new Vec3(0, 0, 30), default, MovementMode.OnFoot, t.AddSeconds(i)));
+        Assert.Contains(m.Evaluate(1, new MovementSample(new Vec3(1500, 0, 30), default, MovementMode.OnFoot, t.AddSeconds(21))), v => v.Code == "MOV_TELEPORT");
     }
 }

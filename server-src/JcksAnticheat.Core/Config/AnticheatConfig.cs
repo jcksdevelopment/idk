@@ -40,6 +40,7 @@ namespace JcksAnticheat.Core.Config
     public sealed class CountermeasuresConfig
     {
         public bool Enabled { get; set; } = true;
+        public bool ApplyInDryRun { get; set; }
         public List<string> Skip { get; set; } = new List<string>();
     }
 
@@ -137,6 +138,7 @@ namespace JcksAnticheat.Core.Config
             ["weaponDamageModifierMax"] = 1.5,
             ["scanIntervalScale"] = 1,
             ["espBlipPlayers"] = 4,
+            ["defenseModifierMin"] = 0.5,
         };
         public static readonly Dictionary<string, double> ServerThresholdDefaults = new Dictionary<string, double>(StringComparer.Ordinal)
         {
@@ -304,6 +306,7 @@ namespace JcksAnticheat.Core.Config
             if (root.Obj("countermeasures") is { } cmo)
             {
                 cfg.Countermeasures.Enabled = cmo.Bool("enabled") ?? cfg.Countermeasures.Enabled;
+                cfg.Countermeasures.ApplyInDryRun = cmo.Bool("applyInDryRun") ?? cfg.Countermeasures.ApplyInDryRun;
                 cfg.Countermeasures.Skip = Strings(cmo, "skip") ?? cfg.Countermeasures.Skip;
             }
 

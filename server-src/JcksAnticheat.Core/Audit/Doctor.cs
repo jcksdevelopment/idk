@@ -48,7 +48,7 @@ namespace JcksAnticheat.Core.Audit
                 else if (build < 12739) Add("info", $"Server artifact {build}: sv_stateBagStrictMode needs 12739 or newer.");
                 else Add("ok", $"Server artifact {build}.");
             }
-            if (i.DryRun) Add("info", "dryRun is on: nobody is kicked or banned (countermeasures still apply). Turn it off once the logs look clean.");
+            if (i.DryRun) Add("info", "dryRun is on: nobody is kicked or banned, and cheat effects are not undone unless countermeasures.applyInDryRun is on. Turn dryRun off once the logs look clean.");
             if (!i.Countermeasures) Add("info", "Countermeasures are off: cheat effects are only reported, not undone.");
             return r;
         }

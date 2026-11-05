@@ -32,6 +32,7 @@ namespace JcksAnticheat.Core.Validation
         public int MaxHealth { get; set; } = 200;
         public int CollisionStreak { get; set; } = 3;
         public float Tolerance { get; set; } = 0.05f;
+        public float MinDefense { get; set; } = 0.5f;
 
         public void Forget(int player) => _collisionStreak.TryRemove(player, out _);
 
@@ -43,13 +44,13 @@ namespace JcksAnticheat.Core.Validation
             if (f.SuperJump)
                 found.Add(Server(player, "PLY_SUPERJUMP", new Dictionary<string, object?> { ["superJumpFlag"] = true }));
 
-            if (Math.Abs(f.WeaponDamage - ExpectedDamageModifier) > Tolerance || Math.Abs(f.MeleeDamage - ExpectedDamageModifier) > Tolerance)
+            if (f.WeaponDamage > ExpectedDamageModifier + Tolerance || f.MeleeDamage > ExpectedDamageModifier + Tolerance)
                 found.Add(Server(player, "WPN_DMG_MODIFIER", new Dictionary<string, object?>
                 {
                     ["weapon"] = Math.Round(f.WeaponDamage, 2), ["melee"] = Math.Round(f.MeleeDamage, 2),
                 }));
 
-            if (f.Defense < 1f - Tolerance || f.Defense2 < 1f - Tolerance)
+            if (f.Defense < MinDefense || f.Defense2 < MinDefense)
                 found.Add(Server(player, "PLY_GODMODE_PROOFS", new Dictionary<string, object?>
                 {
                     ["defense"] = Math.Round(f.Defense, 2), ["defense2"] = Math.Round(f.Defense2, 2),

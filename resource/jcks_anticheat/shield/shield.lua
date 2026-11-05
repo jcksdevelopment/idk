@@ -15,7 +15,7 @@ local function legitSource(src)
     local res = src:match("^@@?([%w%._%-]+)/.+")
     if res then
       local state = GetResourceState(res)
-      ok = state == "started" or state == "starting"
+      ok = state == "started" or state == "starting" or state == "stopping"
     end
   end
   sourceCache[src] = ok

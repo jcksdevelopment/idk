@@ -14,6 +14,7 @@ end
 
 do
   local farSince
+  S.onReset(function() farSince = nil end)
   S.register("movement.freecam", 1000, function()
     local ped = PlayerPedId()
     if S.allowed("noclip") or S.allowed("camera") or IsCutsceneActive() or IsPlayerSwitchInProgress()
@@ -42,6 +43,7 @@ end
 
 do
   local floatSince
+  S.onReset(function() floatSince = nil end)
   S.register("movement.noclip", 500, function()
     if S.allowed("noclip") then floatSince = nil return end
     local ped = PlayerPedId()
@@ -54,7 +56,8 @@ do
 
     if veh ~= 0 and inAircraft(ped) then floatSince = nil return end
     if IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) > 0 or IsPedClimbing(ped)
-        or IsPedSwimming(ped) or IsEntityAttached(subject) then
+        or IsPedSwimming(ped) or IsEntityAttached(subject) or IsEntityInWater(subject) or IsPedOnVehicle(ped)
+        or (veh ~= 0 and GetVehicleClass(veh) == 14) then
       floatSince = nil
       return
     end

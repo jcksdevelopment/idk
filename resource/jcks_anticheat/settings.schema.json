@@ -48,6 +48,12 @@
           "help": "Even when a detection only logs or warns, its effect is reverted: spawned entities deleted/blocked, godmode/invisibility/noclip/spectate switched off, health/armour/vehicle repair/plate/handling restored, teleports put back, unauthorised revives killed, extra weapons removed, explosions/projectiles/fires/particles cancelled. Health, armour and revive reverts need the shield installed (it tells legitimate heals apart)."
         },
         {
+          "key": "countermeasures.applyInDryRun",
+          "label": "Undo cheat effects during dry run",
+          "type": "bool",
+          "help": "Off by default: while dryRun is on, nothing is undone either, so a false positive you are still tuning never teleports, kills or strips a real player. Turn on to test countermeasures before enforcing."
+        },
+        {
           "key": "countermeasures.skip",
           "label": "Codes to leave alone",
           "type": "codes",
@@ -500,6 +506,15 @@
           "max": 100,
           "step": 1,
           "help": "How many other players may carry a map blip that no shielded resource created before PLY_ESP_BLIPS (blip ESP) is raised; those blips are removed. Needs the shield. Police/gang scripts that add player blips are recognised through the shield, or trust them with the 'blips' behaviour."
+        },
+        {
+          "key": "client.defenseModifierMin",
+          "label": "Lowest weapon defense modifier",
+          "type": "number",
+          "min": 0.05,
+          "max": 1,
+          "step": 0.05,
+          "help": "Players whose weapon defense modifier is below this take much less damage than normal (semi-godmode, PLY_GODMODE_PROOFS); checked on the client and from server sync. 1.0 is normal. Lower it if an armour or perk script reduces damage on purpose."
         }
       ]
     },

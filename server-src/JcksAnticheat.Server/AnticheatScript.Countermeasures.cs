@@ -12,7 +12,9 @@ namespace JcksAnticheat.Server
             "PLY_SUPERJUMP", "WPN_DMG_MODIFIER", "PLY_GODMODE_PROOFS", "PLY_HEALTH_CAP", "MOV_NOCLIP_COLLISION", "PLY_GODMODE_FLAG", "PLY_INVISIBLE",
         };
 
-        private bool CountermeasureOn(string code) => _cfg.Countermeasures.Enabled && !_cfg.Countermeasures.Skip.Contains(code);
+        private bool CountermeasuresActive => _cfg.Countermeasures.Enabled && (!_cfg.DryRun || _cfg.Countermeasures.ApplyInDryRun);
+
+        private bool CountermeasureOn(string code) => CountermeasuresActive && !_cfg.Countermeasures.Skip.Contains(code);
 
         private void ApplyServerCountermeasure(Violation v, string handle)
         {

@@ -38,6 +38,7 @@ local DEFAULTS = {
   weaponDamageModifierMax = 1.5,
   scanIntervalScale = 1,
   espBlipPlayers = 4,
+  defenseModifierMin = 0.5,
 }
 
 function S.t(name)
@@ -47,6 +48,9 @@ function S.t(name)
 end
 
 local checks = {}
+
+local resets = {}
+function S.onReset(fn) resets[#resets + 1] = fn end
 
 function S.register(name, intervalMs, fn)
   checks[#checks + 1] = { name = name, interval = intervalMs, fn = fn, nextAt = 0 }
@@ -116,7 +120,9 @@ CreateThread(function()
   while true do
     local now = GetGameTimer()
     local nextWake = now + 1000
-    if not isTransitioning() then
+    if isTransitioning() then
+      for i = 1, #resets do pcall(resets[i]) end
+    else
       for i = 1, #checks do
         local c = checks[i]
         if now >= c.nextAt then

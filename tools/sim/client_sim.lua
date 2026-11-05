@@ -74,6 +74,7 @@ function N.GetVehicleTopSpeedModifier() return W.vehicle.topSpeed or -1.0 end
 function N.GetVehicleGravityAmount() return W.vehicle.gravity or 9.8 end
 function N.GetVehicleClass() return 0 end
 function N.DoesEntityExist(e) return W.blips[e] ~= nil or e == W.ped end
+function N.IsEntityInWater() return W.inWater == true end
 function N.GetActivePlayers() return { 0, 1, 2, 3, 4, 5, 6 } end
 function N.GetPlayerPed(p) return p == 0 and W.ped or 1000 + p end
 function N.GetBlipFromEntity(e) return W.blips[e] or 0 end
@@ -201,6 +202,8 @@ local SCENARIOS = {
   menu_texture = { what = "Menu texture dictionary loaded", run = function() W.textures["menu_textures"] = true end },
   resource_stop = { what = "Menu stops es_extended on the client", run = function() W.stopped = { es_extended = true } handlers.onClientResourceStop("es_extended") end },
   resource_restart = { what = "Server restarts es_extended (must NOT flag)", run = function() handlers.onClientResourceStop("es_extended") end },
+  jump_off_roof = { what = "Jumping off a 20 m roof (must NOT flag)", run = function() W.jumping = true W.height = 20.0 W.velocity = { x = 3.0, y = 0.0, z = -4.0 } end },
+  standing_in_water = { what = "Floating at the surface over deep water (must NOT flag)", run = function() W.inWater = true W.height = 25.0 end },
   esp_blips = { what = "Blip ESP on 6 other players", run = function() S.shielded = { es_extended = true } for p = 1, 6 do W.blips[1000 + p] = 500 + p end end, undone = function() return next(W.blips) == nil end },
   police_blips = { what = "Police script blips on 6 players via a shielded resource (must NOT flag)", run = function() S.shielded = { es_extended = true } S.legitBlips = {} for p = 1, 6 do W.blips[1000 + p] = 500 + p S.legitBlips[1000 + p] = true end end },
 }
@@ -213,7 +216,7 @@ local EXPECT = {
   blacklisted_weapon = "WPN_BLACKLIST", give_all_weapons = "WPN_GIVE_ALL", damage_multiplier = "WPN_DMG_MODIFIER",
   weapon_modifier = "WPN_DMG_MODIFIER", vehicle_repair = "VEH_REPAIR", plate_change = "VEH_PLATE", power_boost = "VEH_POWER",
   top_speed = "VEH_TOP_SPEED", gravity = "VEH_GRAVITY", ram_damage = "VEH_DMG_MODIFIER", vehicle_godmode = "VEH_GODMODE",
-  injected_resource = "EXE_RESOURCE_INJECT", esp_blips = "PLY_ESP_BLIPS", resource_stop = "EXE_RESOURCE_STOP", resource_restart = "none", police_blips = "none", injected_command = "EXE_COMMAND_INJECT", menu_texture = "EXE_MENU_TEXTURE",
+  injected_resource = "EXE_RESOURCE_INJECT", esp_blips = "PLY_ESP_BLIPS", resource_stop = "EXE_RESOURCE_STOP", resource_restart = "none", jump_off_roof = "none", standing_in_water = "none", police_blips = "none", injected_command = "EXE_COMMAND_INJECT", menu_texture = "EXE_MENU_TEXTURE",
 }
 
 if scenarioName == "all" then
