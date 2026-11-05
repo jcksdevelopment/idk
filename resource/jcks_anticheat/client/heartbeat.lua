@@ -75,6 +75,8 @@ local function applySettings(data)
   S.server.ignore = {}
   for _, code in ipairs(data.ig or {}) do S.server.ignore[code] = true end
   if data.iv then session.interval = data.iv end
+  S.server.maxWeapons = data.mw or 25
+  S.server.textureBlacklist = data.tb or {}
 end
 
 RegisterNetEvent("jcks_anticheat:init", function(payload)

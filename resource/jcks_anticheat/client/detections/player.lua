@@ -36,6 +36,14 @@ S.register("player.state", 2000, function()
   end
 end)
 
+-- Spectating other players (menus' "spectate player" option) without an admin grant.
+S.register("player.spectate", 3000, function()
+  if S.allowed("spectate") or S.allowed("noclip") then return end
+  if NetworkIsInSpectatorMode() then
+    S.flag("PLY_SPECTATE", {})
+  end
+end)
+
 -- Health / armour regeneration: sample every 500 ms, compare against natural regen.
 do
   local lastHealth, lastArmor

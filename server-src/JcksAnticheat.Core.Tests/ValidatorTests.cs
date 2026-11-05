@@ -432,3 +432,60 @@ public class LiveSettingsTests
         Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{not json"));
     }
 }
+
+public class GameEventTests
+{
+    private static readonly DateTime T0 = new(2026, 11, 5, 12, 0, 0, DateTimeKind.Utc);
+    private static GameEventValidator V() => new(new GameEventPolicy(), () => new HashSet<uint> { Joaat.Hash("WEAPON_RPG") });
+
+    [Fact]
+    public void NormalShotPasses()
+    {
+        var (v, cancel) = V().Projectile(new ProjectileInfo { Source = 1, WeaponHash = Joaat.Hash("WEAPON_GRENADE"), Origin = new Vec3(1, 1, 1), ShooterPos = new Vec3(0, 0, 0), At = T0 });
+        Assert.Empty(v);
+        Assert.False(cancel);
+    }
+
+    [Fact]
+    public void ProjectileSpawnedAtAnotherPlayerIsCancelled()
+    {
+        var (v, cancel) = V().Projectile(new ProjectileInfo { Source = 1, WeaponHash = Joaat.Hash("WEAPON_GRENADE"), Origin = new Vec3(300, 0, 0), ShooterPos = new Vec3(0, 0, 0), At = T0 });
+        Assert.True(cancel);
+        Assert.Contains(v, x => x.Code == "WPN_PROJECTILE_ORIGIN");
+    }
+
+    [Fact]
+    public void VehicleWeaponsMayStartAwayFromThePed()
+        => Assert.Empty(V().Projectile(new ProjectileInfo { Source = 1, Origin = new Vec3(30, 0, 0), ShooterPos = new Vec3(0, 0, 0), ShooterInVehicle = true, At = T0 }).violations);
+
+    [Fact]
+    public void BlacklistedProjectileAndSpamAreFlagged()
+    {
+        var val = V();
+        Assert.Contains(val.Projectile(new ProjectileInfo { Source = 2, WeaponHash = Joaat.Hash("WEAPON_RPG"), At = T0 }).violations, x => x.Code == "WPN_BLACKLIST");
+        var all = new List<Violation>();
+        for (int i = 0; i < 25; i++) all.AddRange(val.Projectile(new ProjectileInfo { Source = 3, At = T0.AddMilliseconds(i * 100) }).violations);
+        Assert.Contains(all, x => x.Code == "WPN_PROJECTILE_SPAM");
+    }
+
+    [Fact]
+    public void FireOnAnotherPlayerAndFireSpam()
+    {
+        var val = V();
+        Assert.Contains(val.Fire(new FireInfo { Source = 1, TargetPlayer = 2, At = T0 }).violations, x => x.Code == "WPN_FIRE_PLAYER");
+        Assert.Empty(val.Fire(new FireInfo { Source = 4, TargetPlayer = 4, At = T0 }).violations); // own ped (molotov mishap)
+        Assert.Contains(val.Fire(new FireInfo { Source = 5, Count = 12, At = T0 }).violations, x => x.Code == "WPN_FIRE_SPAM");
+    }
+
+    [Fact]
+    public void PtfxScaleTargetAndSpam()
+    {
+        var val = V();
+        Assert.Empty(val.Ptfx(new PtfxInfo { Source = 1, Scale = 1, At = T0 }).violations);
+        Assert.NotEmpty(val.Ptfx(new PtfxInfo { Source = 1, Scale = 50, At = T0 }).violations);
+        Assert.NotEmpty(val.Ptfx(new PtfxInfo { Source = 1, Scale = 1, TargetPlayer = 9, At = T0 }).violations);
+        var all = new List<Violation>();
+        for (int i = 0; i < 45; i++) all.AddRange(val.Ptfx(new PtfxInfo { Source = 6, Scale = 1, At = T0 }).violations);
+        Assert.NotEmpty(all);
+    }
+}

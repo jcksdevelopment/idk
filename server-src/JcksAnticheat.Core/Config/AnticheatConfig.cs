@@ -42,6 +42,7 @@ namespace JcksAnticheat.Core.Config
         public DamageLimits Damage { get; set; } = new DamageLimits();
         public ExplosionPolicy Explosions { get; set; } = new ExplosionPolicy();
         public EntityPolicy Entities { get; set; } = new EntityPolicy();
+        public GameEventPolicy GameEvents { get; set; } = new GameEventPolicy();
         public VisionConfig Vision { get; set; } = new VisionConfig();
         public DashboardConfig Dashboard { get; set; } = new DashboardConfig();
 
@@ -83,6 +84,10 @@ namespace JcksAnticheat.Core.Config
         public int MaxHealth { get; set; } = 200;
         public double ExpectedDamageModifier { get; set; } = 1.0;
         public bool DryRun { get; set; }
+        /// <summary>More weapons than this at once looks like a "give all weapons" menu option.</summary>
+        public int MaxWeapons { get; set; } = 25;
+        /// <summary>Texture dictionaries only cheat menus load (operator-maintained; empty by default).</summary>
+        public List<string> TextureBlacklist { get; set; } = new List<string>();
         public List<string> AdminAce { get; set; } = new List<string> { "jcks_anticheat.bypass" };
 
         public static AnticheatConfig Parse(string json)
@@ -105,6 +110,8 @@ namespace JcksAnticheat.Core.Config
             cfg.ObjectBlacklist = Strings(root, "objectBlacklist") ?? cfg.ObjectBlacklist;
             cfg.HoneypotEvents = Strings(root, "honeypotEvents") ?? cfg.HoneypotEvents;
             cfg.AdminAce = Strings(root, "adminAce") ?? cfg.AdminAce;
+            cfg.MaxWeapons = (int)(root.Num("maxWeapons") ?? cfg.MaxWeapons);
+            cfg.TextureBlacklist = Strings(root, "textureBlacklist") ?? cfg.TextureBlacklist;
 
             if (root.Obj("scoring") is { } s)
             {
@@ -155,6 +162,15 @@ namespace JcksAnticheat.Core.Config
                     cfg.Entities.AllowedPedModelNames = peds;
                     cfg.Entities.AllowedPedModels = new HashSet<uint>(peds.Select(Joaat.Hash));
                 }
+            }
+
+            if (root.Obj("gameEvents") is { } ge)
+            {
+                cfg.GameEvents.ProjectileOriginMaxDistance = (float)(ge.Num("projectileOriginMaxDistance") ?? cfg.GameEvents.ProjectileOriginMaxDistance);
+                cfg.GameEvents.MaxProjectilesPer10s = (int)(ge.Num("maxProjectilesPer10s") ?? cfg.GameEvents.MaxProjectilesPer10s);
+                cfg.GameEvents.MaxFiresPer10s = (int)(ge.Num("maxFiresPer10s") ?? cfg.GameEvents.MaxFiresPer10s);
+                cfg.GameEvents.MaxPtfxPer10s = (int)(ge.Num("maxPtfxPer10s") ?? cfg.GameEvents.MaxPtfxPer10s);
+                cfg.GameEvents.MaxPtfxScale = (float)(ge.Num("maxPtfxScale") ?? cfg.GameEvents.MaxPtfxScale);
             }
 
             if (root.Obj("vision") is { } v)

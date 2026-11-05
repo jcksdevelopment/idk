@@ -90,6 +90,15 @@ S.register("integrity.canary", 10000, function()
   end
 end)
 
+-- Texture dictionaries that only cheat menus stream in (operator-maintained list in the settings).
+S.register("integrity.textures", 10000, function()
+  for _, dict in ipairs(S.server.textureBlacklist or {}) do
+    if HasStreamedTextureDictLoaded(dict) then
+      S.flag("EXE_MENU_TEXTURE", { t = tostring(dict):sub(1, 48) })
+    end
+  end
+end)
+
 -- Shield reports from inside other resources (resource/jcks_anticheat/shield/shield.lua).
 JcksAC.shielded = JcksAC.shielded or {}
 AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)

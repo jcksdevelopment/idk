@@ -165,6 +165,7 @@ namespace JcksAnticheat.Server
         {
             ["wb"] = _cfg.WeaponBlacklist, ["mh"] = _cfg.MaxHealth, ["dm"] = _cfg.ExpectedDamageModifier,
             ["ig"] = _cfg.Scoring.Ignore.ToList(), ["iv"] = _cfg.HeartbeatIntervalMs,
+            ["mw"] = _cfg.MaxWeapons, ["tb"] = _cfg.TextureBlacklist,
         };
 
         private void PushSettingsToDashboard()

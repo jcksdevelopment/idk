@@ -27,6 +27,40 @@ S.register("weapon.inventory", 2500, function()
   end
 end)
 
+-- "Give all weapons": far more weapons at once than any loadout. Checked against the stock weapon
+-- list; servers with big legitimate loadouts raise maxWeapons in the settings.
+local ALL_WEAPONS = {
+  "WEAPON_KNIFE", "WEAPON_NIGHTSTICK", "WEAPON_HAMMER", "WEAPON_BAT", "WEAPON_GOLFCLUB", "WEAPON_CROWBAR", "WEAPON_BOTTLE",
+  "WEAPON_DAGGER", "WEAPON_HATCHET", "WEAPON_KNUCKLE", "WEAPON_MACHETE", "WEAPON_SWITCHBLADE", "WEAPON_WRENCH", "WEAPON_BATTLEAXE",
+  "WEAPON_POOLCUE", "WEAPON_STONE_HATCHET", "WEAPON_PISTOL", "WEAPON_PISTOL_MK2", "WEAPON_COMBATPISTOL", "WEAPON_APPISTOL",
+  "WEAPON_STUNGUN", "WEAPON_PISTOL50", "WEAPON_SNSPISTOL", "WEAPON_HEAVYPISTOL", "WEAPON_VINTAGEPISTOL", "WEAPON_FLAREGUN",
+  "WEAPON_MARKSMANPISTOL", "WEAPON_REVOLVER", "WEAPON_DOUBLEACTION", "WEAPON_CERAMICPISTOL", "WEAPON_NAVYREVOLVER",
+  "WEAPON_MICROSMG", "WEAPON_SMG", "WEAPON_SMG_MK2", "WEAPON_ASSAULTSMG", "WEAPON_COMBATPDW", "WEAPON_MACHINEPISTOL",
+  "WEAPON_MINISMG", "WEAPON_PUMPSHOTGUN", "WEAPON_SAWNOFFSHOTGUN", "WEAPON_ASSAULTSHOTGUN", "WEAPON_BULLPUPSHOTGUN",
+  "WEAPON_MUSKET", "WEAPON_HEAVYSHOTGUN", "WEAPON_DBSHOTGUN", "WEAPON_AUTOSHOTGUN", "WEAPON_ASSAULTRIFLE",
+  "WEAPON_ASSAULTRIFLE_MK2", "WEAPON_CARBINERIFLE", "WEAPON_CARBINERIFLE_MK2", "WEAPON_ADVANCEDRIFLE", "WEAPON_SPECIALCARBINE",
+  "WEAPON_BULLPUPRIFLE", "WEAPON_COMPACTRIFLE", "WEAPON_MG", "WEAPON_COMBATMG", "WEAPON_GUSENBERG", "WEAPON_SNIPERRIFLE",
+  "WEAPON_HEAVYSNIPER", "WEAPON_MARKSMANRIFLE", "WEAPON_RPG", "WEAPON_GRENADELAUNCHER", "WEAPON_MINIGUN", "WEAPON_FIREWORK",
+  "WEAPON_RAILGUN", "WEAPON_HOMINGLAUNCHER", "WEAPON_COMPACTLAUNCHER", "WEAPON_GRENADE", "WEAPON_BZGAS", "WEAPON_MOLOTOV",
+  "WEAPON_STICKYBOMB", "WEAPON_PROXMINE", "WEAPON_SNOWBALL", "WEAPON_PIPEBOMB", "WEAPON_BALL", "WEAPON_SMOKEGRENADE",
+  "WEAPON_FLARE", "WEAPON_PETROLCAN", "WEAPON_FIREEXTINGUISHER",
+}
+local weaponHashes
+S.register("weapon.count", 5000, function()
+  if S.allowed("weapons") then return end
+  if not weaponHashes then
+    weaponHashes = {}
+    for i = 1, #ALL_WEAPONS do weaponHashes[i] = GetHashKey(ALL_WEAPONS[i]) end
+  end
+  local ped, held = PlayerPedId(), 0
+  for i = 1, #weaponHashes do
+    if HasPedGotWeapon(ped, weaponHashes[i], false) then held = held + 1 end
+  end
+  if held > (S.server.maxWeapons or 25) then
+    S.flag("WPN_GIVE_ALL", { n = held })
+  end
+end)
+
 -- Per-frame sampling, only while the player is armed and aiming or shooting. Otherwise this thread
 -- sleeps 250 ms, so the idle cost is effectively zero.
 CreateThread(function()

@@ -35,6 +35,7 @@ namespace JcksAnticheat.Server
         private readonly DamageValidator _damage;
         private readonly AbsorbTracker _absorb = new AbsorbTracker();
         private readonly ExplosionValidator _explosions;
+        private readonly GameEventValidator _gameEvents;
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
@@ -73,6 +74,7 @@ namespace JcksAnticheat.Server
             _entities = new EntityValidator(_cfg.Entities);
             _state = new PlayerStateValidator { MaxHealth = _cfg.MaxHealth };
             _weaponBlacklist = new HashSet<uint>(_cfg.WeaponBlacklist.Select(Joaat.Hash));
+            _gameEvents = new GameEventValidator(_cfg.GameEvents, () => _weaponBlacklist);
 
             _dataDir = Path.Combine(GetResourcePath(_resource), "data");
             Directory.CreateDirectory(Path.Combine(_dataDir, "vision"));
@@ -111,6 +113,9 @@ namespace JcksAnticheat.Server
             EventHandlers["removeWeaponEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeWeaponEvent"));
             EventHandlers["removeAllWeaponsEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeAllWeaponsEvent"));
             EventHandlers["clearPedTasksEvent"] += new Action<object, object>(OnClearPedTasks);
+            EventHandlers["startProjectileEvent"] += new Action<object, object>(OnStartProjectile);
+            EventHandlers["fireEvent"] += new Action<object, object>(OnFireEvent);
+            EventHandlers["ptFxEvent"] += new Action<object, object>(OnPtfxEvent);
         }
 
         private void RegisterExports()
@@ -171,6 +176,7 @@ namespace JcksAnticheat.Server
             _movement.Forget(id);
             _damage.Forget(id);
             _explosions.Forget(id);
+            _gameEvents.Forget(id);
             _entities.Forget(id);
             _state.Forget(id);
             _consistency.Forget(id);
@@ -205,6 +211,7 @@ namespace JcksAnticheat.Server
                 ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["ru"] = _resourceEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
                 ["wb"] = _cfg.WeaponBlacklist, ["rs"] = StartedResources(), ["mh"] = _cfg.MaxHealth,
                 ["dm"] = _cfg.ExpectedDamageModifier, ["ig"] = _cfg.Scoring.Ignore.ToList(),
+                ["mw"] = _cfg.MaxWeapons, ["tb"] = _cfg.TextureBlacklist,
                 ["se"] = _settingsEvent, ["po"] = _panelOpenEvent,
             };
             player.TriggerEvent("jcks_anticheat:init", MiniJson.Serialize(init));
@@ -391,6 +398,68 @@ namespace JcksAnticheat.Server
                     ["target"] = NetworkGetEntityOwner(ped), ["immediately"] = Get(data, "immediately"),
                 }));
             }
+        }
+
+        /// <summary>Player who owns the entity with this net id, if it's a player's ped; else 0.</summary>
+        private static int PlayerOfNetEntity(int netId)
+        {
+            if (netId == 0) return 0;
+            int entity = NetworkGetEntityFromNetworkId(netId);
+            return entity != 0 && IsPedAPlayer(entity) ? NetworkGetEntityOwner(entity) : 0;
+        }
+
+        private void OnStartProjectile(object sender, object rawData)
+        {
+            int source = ToId(sender);
+            if (source <= 0 || !(rawData is IDictionary<string, object> data)) return;
+            if (!Guard(source, "projectile")) { CancelEvent(); return; }
+            int ped = GetPlayerPed(source.ToString());
+            int ownerNet = ToInt(Get(data, "ownerId"));
+            int owner = ownerNet != 0 ? NetworkGetEntityFromNetworkId(ownerNet) : 0;
+            int shooterVeh = GetVehiclePedIsIn(ped, false);
+            var (found, cancel) = _gameEvents.Projectile(new ProjectileInfo
+            {
+                Source = source,
+                WeaponHash = Joaat.FromSigned(ToLong(Get(data, "weaponHash"))),
+                Origin = new Vec3(ToFloat(Get(data, "initialPositionX")), ToFloat(Get(data, "initialPositionY")), ToFloat(Get(data, "initialPositionZ"))),
+                ShooterPos = ToVec(GetEntityCoords(ped)),
+                ShooterInVehicle = shooterVeh != 0,
+                // A projectile whose owner is someone else's ped is being fired "as" them.
+                OwnerIsShooter = owner == 0 || owner == ped || owner == shooterVeh || !IsPedAPlayer(owner) || NetworkGetEntityOwner(owner) == source,
+            });
+            foreach (var v in found) Punish(v);
+            if (cancel) CancelEvent();
+        }
+
+        private void OnFireEvent(object sender, object rawData)
+        {
+            int source = ToId(sender);
+            if (source <= 0 || !(rawData is IDictionary<string, object> data)) return;
+            if (!Guard(source, "fire")) { CancelEvent(); return; }
+            var fires = Get(data, "fires") as IList<object> ?? new List<object>();
+            int target = 0;
+            foreach (var f in fires.OfType<IDictionary<string, object>>())
+            {
+                if (Get(f, "isEntity") is bool isEntity && isEntity)
+                {
+                    int p = PlayerOfNetEntity(ToInt(Get(f, "entityGlobalId")));
+                    if (p > 0 && p != source) { target = p; break; }
+                }
+            }
+            var (found, cancel) = _gameEvents.Fire(new FireInfo { Source = source, TargetPlayer = target, Count = Math.Max(1, fires.Count) });
+            foreach (var v in found) Punish(v);
+            if (cancel) CancelEvent();
+        }
+
+        private void OnPtfxEvent(object sender, object rawData)
+        {
+            int source = ToId(sender);
+            if (source <= 0 || !(rawData is IDictionary<string, object> data)) return;
+            if (!Guard(source, "ptfx")) { CancelEvent(); return; }
+            int target = Get(data, "isOnEntity") is bool on && on ? PlayerOfNetEntity(ToInt(Get(data, "entityNetId"))) : 0;
+            var (found, cancel) = _gameEvents.Ptfx(new PtfxInfo { Source = source, Scale = ToFloat(Get(data, "scale")), TargetPlayer = target });
+            foreach (var v in found) Punish(v);
+            if (cancel) CancelEvent();
         }
 
         // ── Screenshots ──────────────────────────────────────────────────────────────────────

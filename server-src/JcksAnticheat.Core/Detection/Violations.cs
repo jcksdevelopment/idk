@@ -39,7 +39,7 @@ namespace JcksAnticheat.Core.Detection
             ["PLY_GODMODE_FLAG"] = 40, ["PLY_GODMODE_PROOFS"] = 35, ["PLY_HEALTH_REGEN"] = 25,
             ["PLY_ARMOR_REGEN"] = 25, ["PLY_HEALTH_CAP"] = 30, ["PLY_DAMAGE_ABSORB"] = 30,
             ["PLY_NO_RAGDOLL"] = 15, ["PLY_SUPERJUMP"] = 30, ["PLY_SPEED_FOOT"] = 30,
-            ["PLY_STAMINA"] = 10, ["PLY_VISION"] = 15, ["PLY_INVISIBLE"] = 30, ["PLY_PED_MODEL"] = 20,
+            ["PLY_STAMINA"] = 10, ["PLY_VISION"] = 15, ["PLY_INVISIBLE"] = 30, ["PLY_PED_MODEL"] = 20, ["PLY_SPECTATE"] = 35, ["WPN_GIVE_ALL"] = 40,
 
             ["MOV_FREECAM"] = 25, ["MOV_NOCLIP_COLLISION"] = 40, ["MOV_NOCLIP_FLOAT"] = 35,
             ["MOV_NOCLIP_ZVEL"] = 35, ["MOV_TELEPORT"] = 40, ["MOV_SPEED_VEH"] = 30,
@@ -48,8 +48,10 @@ namespace JcksAnticheat.Core.Detection
             ["WPN_AIM_ANGLE"] = 30, ["WPN_TRAJECTORY"] = 20, ["WPN_AIM_SNAP"] = 20, ["WPN_HEADSHOT_RATIO"] = 30, ["WPN_TRIGGERBOT"] = 15,
             ["WPN_RAPID_FIRE"] = 30, ["WPN_INFINITE_AMMO"] = 20, ["WPN_EXPLOSIVE_AMMO"] = 50,
             ["WPN_EXPLOSION_BLACKLIST"] = 50,
+            ["WPN_PROJECTILE_ORIGIN"] = 45, ["WPN_PROJECTILE_SPAM"] = 40, ["WPN_FIRE_PLAYER"] = 45, ["WPN_FIRE_SPAM"] = 40,
+            ["NET_PTFX_SPAM"] = 35,
 
-            ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30,
+            ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30, ["VEH_REPAIR"] = 25, ["VEH_PLATE"] = 20, ["EXE_MENU_TEXTURE"] = 50,
 
             ["NET_RATE"] = 20, ["NET_FLOOD"] = 40, ["NET_HONEYPOT"] = 60, ["NET_CLEAR_TASKS"] = 40, ["HB_MISSING"] = 60, ["HB_INVALID"] = 60, ["HB_STATE_MISMATCH"] = 30,
             ["EXE_RESOURCE_COUNT"] = 40, ["EXE_RESOURCE_INJECT"] = 50, ["EXE_COMMAND_INJECT"] = 40,

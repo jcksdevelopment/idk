@@ -8,6 +8,26 @@ local FIELDS = {
   "fMass", "fBrakeForce", "fInitialDragCoeff", "fDriveInertia",
 }
 
+-- Instant repair and plate swaps (menu "fix vehicle" / "change plate"). Mechanic and garage
+-- scripts should grant exports.jcks_anticheat:GrantGrace("vehicle", ms) or the server-side export.
+local lastVeh, lastEngine, lastBody, lastPlate
+S.register("vehicle.repair", 500, function()
+  local ped = PlayerPedId()
+  local veh = GetVehiclePedIsIn(ped, false)
+  if veh == 0 or GetPedInVehicleSeat(veh, -1) ~= ped then lastVeh = nil return end
+  local engine, body, plate = GetVehicleEngineHealth(veh), GetVehicleBodyHealth(veh), GetVehicleNumberPlateText(veh)
+  if veh == lastVeh and not S.allowed("vehicle") then
+    -- A badly damaged vehicle snapping back to (near) full health in half a second.
+    if (lastEngine < 600 and engine >= 990) or (lastBody < 600 and body >= 990) then
+      S.flag("VEH_REPAIR", { e0 = math.floor(lastEngine), e1 = math.floor(engine), b0 = math.floor(lastBody), b1 = math.floor(body) })
+    end
+    if lastPlate and plate ~= lastPlate then
+      S.flag("VEH_PLATE", { from = lastPlate, to = plate })
+    end
+  end
+  lastVeh, lastEngine, lastBody, lastPlate = veh, engine, body, plate
+end)
+
 -- First handling values seen for each model this session. Handling is per-model in GTA, so a
 -- menu that edits one car's handling changes what every later car of that model reads too;
 -- comparing against the first observation catches edits made after we started watching.

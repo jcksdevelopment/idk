@@ -24,6 +24,8 @@ namespace JcksAnticheat.Core.Config
             ["eventRefillPerSecond"] = EventRefillPerSecond,
             ["floodDeniedPer10s"] = FloodDeniedPer10s,
             ["adminAce"] = AdminAce.ToList(),
+            ["maxWeapons"] = MaxWeapons,
+            ["textureBlacklist"] = TextureBlacklist.ToList(),
             ["scoring"] = new Dictionary<string, object?>
             {
                 ["screenshotAt"] = Scoring.ScreenshotAt,
@@ -57,6 +59,11 @@ namespace JcksAnticheat.Core.Config
             {
                 ["maxVehiclesPer10s"] = Entities.MaxVehiclesPer10s, ["maxEntitiesPer10s"] = Entities.MaxEntitiesPer10s,
                 ["allowedPedModels"] = Entities.AllowedPedModelNames.ToList(),
+            },
+            ["gameEvents"] = new Dictionary<string, object?>
+            {
+                ["projectileOriginMaxDistance"] = GameEvents.ProjectileOriginMaxDistance, ["maxProjectilesPer10s"] = GameEvents.MaxProjectilesPer10s,
+                ["maxFiresPer10s"] = GameEvents.MaxFiresPer10s, ["maxPtfxPer10s"] = GameEvents.MaxPtfxPer10s, ["maxPtfxScale"] = GameEvents.MaxPtfxScale,
             },
             ["weaponBlacklist"] = WeaponBlacklist.ToList(),
             ["vehicleBlacklist"] = VehicleBlacklist.ToList(),
@@ -122,11 +129,14 @@ namespace JcksAnticheat.Core.Config
             Require(Damage.HeadshotRatioMax > 0 && Damage.HeadshotRatioMax <= 1, "damage.headshotRatioMax must be 0–1");
             Require(Explosions.MaxPerSecond >= 1 && Explosions.MaxPer10Seconds >= Explosions.MaxPerSecond, "explosion limits invalid");
             Require(Entities.MaxVehiclesPer10s >= 1 && Entities.MaxEntitiesPer10s >= Entities.MaxVehiclesPer10s, "entity limits invalid");
+            Require(GameEvents.ProjectileOriginMaxDistance >= 2 && GameEvents.MaxProjectilesPer10s >= 1 && GameEvents.MaxFiresPer10s >= 1
+                    && GameEvents.MaxPtfxPer10s >= 1 && GameEvents.MaxPtfxScale > 0, "gameEvents limits invalid");
             Require(Vision.Provider == "anthropic" || Vision.Provider == "openai-compatible", "vision.provider must be anthropic or openai-compatible");
             Require(Vision.FlagConfidence >= 0 && Vision.FlagConfidence <= 1, "vision.flagConfidence must be 0–1");
             Require(Uri.TryCreate(Vision.Endpoint, UriKind.Absolute, out _), "vision.endpoint must be an absolute URL");
             Require(Uri.TryCreate(Dashboard.Url, UriKind.Absolute, out _), "dashboard.url must be an absolute URL");
             Require(!string.IsNullOrWhiteSpace(Dashboard.ServerId), "dashboard.serverId is required");
+            Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");
             return errors;
         }

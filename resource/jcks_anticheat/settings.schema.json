@@ -262,6 +262,15 @@
           "step": 0.01
         },
         {
+          "key": "maxWeapons",
+          "label": "Max weapons held at once",
+          "type": "number",
+          "help": "More than this looks like a 'give all weapons' option.",
+          "min": 5,
+          "max": 200,
+          "step": 1
+        },
+        {
           "key": "weaponBlacklist",
           "label": "Blacklisted weapons",
           "type": "list",
@@ -326,6 +335,59 @@
           "min": 1,
           "max": 200,
           "step": 1
+        },
+        {
+          "key": "gameEvents.projectileOriginMaxDistance",
+          "label": "Projectile origin max distance (m)",
+          "type": "number",
+          "help": "How far from the shooter a projectile may start (on foot).",
+          "min": 2,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "gameEvents.maxProjectilesPer10s",
+          "label": "Max projectiles per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "gameEvents.maxFiresPer10s",
+          "label": "Max fires per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "gameEvents.maxPtfxPer10s",
+          "label": "Max particle effects per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "key": "gameEvents.maxPtfxScale",
+          "label": "Max particle effect scale",
+          "type": "number",
+          "min": 0.1,
+          "max": 100,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "id": "injection",
+      "title": "Injection & menus",
+      "fields": [
+        {
+          "key": "textureBlacklist",
+          "label": "Blacklisted texture dictionaries",
+          "type": "list",
+          "help": "Texture dictionaries only cheat menus stream in. Add names you've confirmed on your server; empty by default."
         }
       ]
     },

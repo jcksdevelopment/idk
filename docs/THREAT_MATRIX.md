@@ -31,6 +31,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `PLY_STAMINA` | Infinite stamina | Sprinting for > 25 s with stamina still at 100 | C | `player.lua` | 10 |
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
 | `PLY_INVISIBLE` | Invisibility | `IsEntityVisible` false or alpha < 50 while not authorised | C+S | `player.lua`, server state tick | 30 |
+| `PLY_SPECTATE` | Spectate other players | `NetworkIsInSpectatorMode` true without an admin grant (`spectate`) | C | `player.lua` | 35 |
 | `PLY_PED_MODEL` | Ped model swap | Server sees a ped model outside the allow list | S | `EntityValidator` | 20 |
 
 ## Movement
@@ -49,6 +50,11 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | Code | Capability | Observable symptom | Layer | Implementation | Sev |
 |---|---|---|---|---|---|
 | `WPN_BLACKLIST` | Blacklisted weapon spawn | Ped holds a weapon on the blacklist (client check plus `giveWeaponEvent` and server `GetSelectedPedWeapon`) | C+S | `weapon.lua`, `AnticheatScript.cs` | 50 |
+| `WPN_GIVE_ALL` | "Give all weapons" | Holding more than `maxWeapons` (25) stock weapons at once | C | `weapon.lua` | 40 |
+| `WPN_PROJECTILE_ORIGIN` | Magic projectiles / rockets at players | `startProjectileEvent` starting > 12 m from the shooter (on foot), or fired "as" another player's ped. Cancelled. | S | `GameEventValidator` | 45 |
+| `WPN_PROJECTILE_SPAM` | Projectile spam | More than 20 projectiles in 10 s | S | `GameEventValidator` | 40 |
+| `WPN_FIRE_PLAYER` | Set players on fire | `fireEvent` with a fire attached to another player's ped. Cancelled. | S | `GameEventValidator` | 45 |
+| `WPN_FIRE_SPAM` | Fire spam | More than 10 fires in 10 s | S | `GameEventValidator` | 40 |
 | `WPN_GIVE_EVENT` | Give or strip weapons | `giveWeaponEvent`, `removeWeaponEvent` or `removeAllWeaponsEvent` from a client (always malicious under OneSync; cancelled) | S | `AnticheatScript.cs` | 50 |
 | `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ 1.0, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `DamageValidator` | 40 |
 | `WPN_RANGE` | Out-of-range hits | Hit distance > weapon effective range × 1.25 | S | `DamageValidator` | 25 |
@@ -70,6 +76,8 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `ENT_SPAWN_FLOOD` | Object/ped spam | > 15 entities in 10 s from one owner | S | `EntityValidator` | 45 |
 | `VEH_HANDLING` | Handling edit | Handling floats drift from the baseline captured on entering | C | `vehicle.lua` | 30 |
 | `VEH_POWER` | Power/torque boost | `GetVehicleCheatPowerIncrease` > 1.0 or top-speed modifier set | C | `vehicle.lua` | 30 |
+| `VEH_REPAIR` | Instant vehicle repair ("fix vehicle") | Engine or body health jumps from < 600 to full in 0.5 s without a `vehicle` grant | C | `vehicle.lua` | 25 |
+| `VEH_PLATE` | Plate changer | Plate text changes while driving the same vehicle without a `vehicle` grant | C | `vehicle.lua` | 20 |
 | `VEH_GODMODE` | Vehicle godmode | `GetEntityCanBeDamaged` false on own vehicle, or every damage proof set | C | `vehicle.lua` | 30 |
 
 ## Network & execution
@@ -79,6 +87,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `NET_RATE` | Event flood / spoofing | Per-player token bucket on net events is exhausted | S | `RateLimiter` | 20 |
 | `NET_CLEAR_TASKS` | Kick players out of vehicles / freeze them | `clearPedTasksEvent` aimed at another player's ped (cancelled) | S | `AnticheatScript.cs` | 40 |
 | `NET_FLOOD` | Event flood / spam triggers | 40+ rate-limited events within 10 s: the player is disconnected at once | S | `AnticheatScript.cs` (`Guard`) | 40 |
+| `NET_PTFX_SPAM` | Particle spam (crash/blind players) | `ptFxEvent` over 40 per 10 s, scale > 5, or attached to another player. Cancelled. | S | `GameEventValidator` | 35 |
 | `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `AnticheatScript.cs` (honeypot events) | 60 |
 | `HB_MISSING` | Scanner killed or never started | No valid heartbeat for > 20 s, or in the world for > 120 s without the `jcks_anticheat:hello` handshake | H | `HeartbeatManager` | 60 |
 | `HB_INVALID` | Heartbeat forgery/replay | MAC mismatch, sequence replay, or stale challenge | H | `HeartbeatManager` | 60 |
@@ -86,6 +95,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `EXE_RESOURCE_COUNT` | Executor `GetNumResources` spoof | Client resource count/list ≠ server's started list | C | `integrity.lua` | 40 |
 | `EXE_RESOURCE_INJECT` | Injected resource | Unknown resource starts on the client | C | `integrity.lua` | 50 |
 | `EXE_COMMAND_INJECT` | Injected command handlers | `GetRegisteredCommands` contains a name the server didn't register | C | `integrity.lua` | 40 |
+| `EXE_MENU_TEXTURE` | Menu textures streamed in | A texture dictionary from the operator's `textureBlacklist` is loaded | C | `integrity.lua` | 50 |
 | `EXE_LUA_INJECT` | Lua executor / Lua mod menu injected into a resource | The shield (installed into every resource) sees a guarded function (`TriggerServerEvent`, `CreateVehicle`, `GiveWeaponToPed`, `SetEntityCoords`, `AddExplosion`, `SetEntityInvincible`, `Citizen.InvokeNative`, ...) called with a stack frame from a chunk that isn't a resource file, or a new global function defined by such a chunk | C | `shield/shield.lua` | 60 |
 | `EXE_SHIELD_TAMPER` | Menu unhooking the shield | A shield wrapper in some resource was replaced (natives restored to bypass it) | C | `shield/shield.lua` | 60 |
 | `EXE_GLOBAL_TAMPER` | Native hooking from executor | Canary natives/globals in the scanner's environment were swapped | C | `integrity.lua` | 50 |
