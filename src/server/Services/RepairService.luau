@@ -41,10 +41,10 @@ local function itemArg(item: Types.ItemRecord): string
 	return "@item:" .. item.TemplateId
 end
 
-local function beginRepair(item: Types.ItemRecord, now: number)
+local function beginRepair(data: Types.PlayerData, item: Types.ItemRecord, now: number)
 	item.State = "Repairing"
 	item.RepairStartedAt = now
-	item.RepairEndsAt = now + Valuation.RepairSeconds(item.Rarity)
+	item.RepairEndsAt = now + Rules.RepairSeconds(data, item.Rarity)
 	item.ScrubSeconds = 0
 end
 
@@ -78,7 +78,7 @@ local function onStartRepair(player: Player, itemId: string)
 		return
 	end
 
-	beginRepair(item, os.time())
+	beginRepair(data, item, os.time())
 	ProgressService.Record(player, data, "RepairStarted", 1)
 	SyncService.MarkDirty(player)
 end
@@ -93,7 +93,9 @@ local function onScrub(player: Player, itemId: string)
 	if not item or item.State ~= "Repairing" or item.RepairEndsAt == nil then
 		return
 	end
-	local maxReduction = Valuation.RepairSeconds(item.Rarity) * Config.Scrub.MaxReductionRatio
+	-- Cap relative to this repair's original length (pets may have shortened it).
+	local original = (item.RepairEndsAt :: number) - (item.RepairStartedAt or 0) + item.ScrubSeconds
+	local maxReduction = math.min(original, Valuation.RepairSeconds(item.Rarity)) * Config.Scrub.MaxReductionRatio
 	local reduction = math.min(Config.Scrub.SecondsPerScrub, maxReduction - item.ScrubSeconds)
 	if reduction <= 0 then
 		return -- fully scrubbed; the rest of the timer must run
@@ -208,7 +210,7 @@ local function vipTick()
 				return a.AcquiredAt < b.AcquiredAt
 			end)
 			for index = 1, math.min(freeSlots, #dirtyItems) do
-				beginRepair(dirtyItems[index], now)
+				beginRepair(data, dirtyItems[index], now)
 				changed = true
 			end
 		end

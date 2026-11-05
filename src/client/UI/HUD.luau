@@ -252,6 +252,20 @@ function HUD.Build(gui: ScreenGui)
 		)
 		else nil
 
+	local petsButton = Create.Button({
+		Name = "PetsButton",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.985, 0.37),
+		Size = UDim2.fromScale(0.085, 0.15),
+		BackgroundColor3 = Theme.Colors.Pink,
+		Text = "🐾\n" .. Locale.T("Nav_Pets") .. " [F]",
+		MaxTextSize = 22,
+		Parent = root,
+	}, function()
+		UIController.Toggle("Pets")
+	end)
+	Create.Aspect(1).Parent = petsButton
+
 	local bonusChip = chip("Bonus", Theme.Colors.VIP, 4)
 	local bonusFrame = bonusChip.Parent :: Frame
 	bonusFrame.Size = UDim2.fromScale(0.22, 1)

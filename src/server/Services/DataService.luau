@@ -39,11 +39,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Items = require(Shared.Items)
+local Pets = require(Shared.Pets)
 local Signal = require(Shared.Signal)
 local Types = require(Shared.Types)
 local MockDataStore = require(script.Parent.MockDataStore)
 
-local SCHEMA_VERSION = 3
+local SCHEMA_VERSION = 4
 
 export type Profile = {
 	Player: Player,
@@ -130,6 +131,7 @@ local function newData(): Types.PlayerData
 		Achievements = {},
 		EquippedTitle = "",
 		LastSpinAt = 0,
+		Pets = {},
 		Stats = {
 			CratesOpened = 0,
 			ItemsSold = 0,
@@ -137,6 +139,7 @@ local function newData(): Types.PlayerData
 			RobuxPurchases = 0,
 			ShiniesFound = 0,
 			LegendariesFound = 0,
+			PetsHatched = 0,
 		},
 		Moderation = { TotalFlags = 0, LastFlagAt = 0, LastFlagReason = "" },
 	}
@@ -269,6 +272,25 @@ local function sanitize(raw: any): Types.PlayerData
 		data.EquippedTitle = raw.EquippedTitle
 	end
 
+	if type(raw.Pets) == "table" then
+		local equipped = 0
+		for uid, pet in raw.Pets do
+			if
+				type(uid) == "string"
+				and type(pet) == "table"
+				and pet.Id == uid
+				and type(pet.PetId) == "string"
+				and Pets.Get(pet.PetId) ~= nil
+			then
+				local wantsEquip = pet.Equipped == true and equipped < Config.Pets.MaxEquipped
+				if wantsEquip then
+					equipped += 1
+				end
+				data.Pets[uid] = { Id = uid, PetId = pet.PetId, Equipped = wantsEquip }
+			end
+		end
+	end
+
 	if type(raw.PurchaseHistory) == "table" then
 		for _, purchaseId in ipairs(raw.PurchaseHistory) do
 			if type(purchaseId) == "string" then
@@ -287,6 +309,7 @@ local function sanitize(raw: any): Types.PlayerData
 		data.Stats.RobuxPurchases = readNumber(raw.Stats.RobuxPurchases, 0, 0, math.huge)
 		data.Stats.ShiniesFound = readNumber(raw.Stats.ShiniesFound, 0, 0, math.huge)
 		data.Stats.LegendariesFound = readNumber(raw.Stats.LegendariesFound, 0, 0, math.huge)
+		data.Stats.PetsHatched = readNumber(raw.Stats.PetsHatched, 0, 0, math.huge)
 	end
 
 	if type(raw.Moderation) == "table" then

@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Events = require(Shared.Events)
 local Format = require(Shared.Format)
 local Items = require(Shared.Items)
 local Locale = require(Shared.Locale)
@@ -51,8 +52,10 @@ function BazaarPanel.Build(gui: ScreenGui)
 	}, { Create.List(Enum.FillDirection.Horizontal, 0.025) })
 
 	local crateKeys: { string } = {}
-	for key in Config.Crates do
-		table.insert(crateKeys, key)
+	for key, crate in Config.Crates :: any do
+		if not crate.Event or Events.IsActive(crate.Event) then
+			table.insert(crateKeys, key)
+		end
 	end
 	table.sort(crateKeys, function(a, b)
 		return (Config.Crates :: any)[a].Order < (Config.Crates :: any)[b].Order
@@ -68,7 +71,25 @@ function BazaarPanel.Build(gui: ScreenGui)
 			Size = UDim2.fromScale(cardWidth, 1),
 			BackgroundColor3 = Theme.Colors.PanelLight,
 			Parent = row,
-		}, { Create.Corner(UDim.new(0.06, 0)), Create.Stroke(Theme.Colors.Accent, 3) })
+		}, { Create.Corner(UDim.new(0.06, 0)), Create.Stroke(if crate.Event then Theme.Colors.XP else Theme.Colors.Accent, 3) })
+		if crate.Event then
+			local ribbon: Frame = Create.new("Frame", {
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.fromScale(1, 0),
+				Size = UDim2.fromScale(0.6, 0.08),
+				BackgroundColor3 = Theme.Colors.Danger,
+				ZIndex = 3,
+				Parent = card,
+			}, { Create.Corner(UDim.new(0.3, 0)) })
+			Create.Label({
+				Text = (Config.Events :: any)[crate.Event].Icon .. " " .. Locale.T("Event_Limited"),
+				Size = UDim2.fromScale(0.9, 0.8),
+				Position = UDim2.fromScale(0.05, 0.1),
+				ZIndex = 4,
+				MaxTextSize = 16,
+				Parent = ribbon,
+			})
+		end
 
 		Create.Label({
 			Text = crate.Icon,

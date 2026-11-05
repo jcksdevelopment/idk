@@ -16,7 +16,9 @@ local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
-local Config = require(ReplicatedStorage:WaitForChild("Shared").Config)
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+local Events = require(Shared.Events)
 local SyncService = require(script.Parent.SyncService)
 
 export type StationKey = "Bazaar" | "Workbench" | "SellCounter"
@@ -324,6 +326,109 @@ local function buildDecorations(parent: Instance)
 	end
 end
 
+-- ❄️ Winter Festival decorations: snowfall, a tree with a star, gifts.
+local function buildWinterDecor(parent: Instance): Folder
+	local folder = Instance.new("Folder")
+	folder.Name = "WinterDecor"
+
+	local sky = part({
+		Name = "SnowEmitter",
+		Size = Vector3.new(160, 1, 160),
+		Position = Vector3.new(0, 60, -10),
+		Transparency = 1,
+		CanCollide = false,
+		CanQuery = false,
+		CanTouch = false,
+		Parent = folder,
+	})
+	local snow = Instance.new("ParticleEmitter")
+	snow.Color = ColorSequence.new(Color3.new(1, 1, 1))
+	snow.Rate = 120
+	snow.Lifetime = NumberRange.new(9, 12)
+	snow.Speed = NumberRange.new(4, 7)
+	snow.EmissionDirection = Enum.NormalId.Bottom
+	snow.SpreadAngle = Vector2.new(15, 15)
+	snow.Size = NumberSequence.new(0.35)
+	snow.Transparency = NumberSequence.new(0.1, 0.4)
+	snow.RotSpeed = NumberRange.new(-40, 40)
+	snow.Parent = sky
+
+	local base = Vector3.new(-17, 0, 4)
+	part({
+		Name = "TreeTrunk",
+		Size = Vector3.new(1.6, 3, 1.6),
+		Position = base + Vector3.new(0, 2, 0),
+		Color = Color3.fromRGB(110, 70, 40),
+		Material = Enum.Material.Wood,
+		Parent = folder,
+	})
+	local tiers = { { 9, 4 }, { 7, 7 }, { 5, 9.6 }, { 3, 11.8 } }
+	for index, tier in tiers do
+		part({
+			Name = "TreeTier",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(3, tier[1], tier[1]),
+			CFrame = CFrame.new(base + Vector3.new(0, tier[2], 0)) * CFrame.Angles(0, 0, math.rad(90)),
+			Color = Color3.fromRGB(40, 140 + index * 10, 70),
+			Material = Enum.Material.Grass,
+			Parent = folder,
+		})
+		for bulb = 1, 6 do
+			local angle = (bulb / 6) * math.pi * 2 + index
+			local radius = tier[1] / 2
+			part({
+				Name = "Ornament",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(0.7, 0.7, 0.7),
+				Position = base + Vector3.new(math.cos(angle) * radius, tier[2] - 1, math.sin(angle) * radius),
+				Color = ({ Color3.fromRGB(255, 70, 70), Color3.fromRGB(255, 210, 60), Color3.fromRGB(80, 160, 255) })[bulb % 3 + 1],
+				Material = Enum.Material.Neon,
+				CanCollide = false,
+				Parent = folder,
+			})
+		end
+	end
+	local star = part({
+		Name = "Star",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(1.8, 1.8, 1.8),
+		Position = base + Vector3.new(0, 14, 0),
+		Color = Color3.fromRGB(255, 225, 80),
+		Material = Enum.Material.Neon,
+		CanCollide = false,
+		Parent = folder,
+	})
+	light(star, Color3.fromRGB(255, 220, 120), 30, 2)
+
+	local giftColors = { Color3.fromRGB(230, 60, 60), Color3.fromRGB(60, 120, 230), Color3.fromRGB(240, 200, 60) }
+	for i = 1, 6 do
+		local angle = i * 1.1
+		local size = 1.6 + (i % 3) * 0.5
+		part({
+			Name = "Gift",
+			Size = Vector3.new(size, size, size),
+			CFrame = CFrame.new(base + Vector3.new(math.cos(angle) * 5.5, 0.5 + size / 2, math.sin(angle) * 5.5))
+				* CFrame.Angles(0, angle, 0),
+			Color = giftColors[i % #giftColors + 1],
+			Material = Enum.Material.SmoothPlastic,
+			Parent = folder,
+		})
+	end
+
+	folder.Parent = parent
+	return folder
+end
+
+local function syncSeasonalDecor(parent: Instance)
+	local existing = parent:FindFirstChild("WinterDecor")
+	local active = Events.IsActive("Winter")
+	if active and not existing then
+		buildWinterDecor(parent)
+	elseif not active and existing then
+		existing:Destroy()
+	end
+end
+
 local function setupLighting()
 	local function ensure(className: string, name: string): Instance
 		local existing = Lighting:FindFirstChild(name)
@@ -415,6 +520,14 @@ function WorldService.Start()
 
 	folder.Parent = Workspace
 	setupLighting()
+
+	syncSeasonalDecor(folder)
+	task.spawn(function()
+		while folder.Parent do
+			task.wait(600)
+			syncSeasonalDecor(folder)
+		end
+	end)
 end
 
 return WorldService

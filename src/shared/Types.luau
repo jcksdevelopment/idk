@@ -36,7 +36,11 @@ export type PlayerStats = {
 	RobuxPurchases: number,
 	ShiniesFound: number,
 	LegendariesFound: number,
+	PetsHatched: number,
 }
+
+export type PetRecord = { Id: string, PetId: string, Equipped: boolean }
+export type PetView = PetRecord
 
 export type Moderation = {
 	TotalFlags: number,
@@ -70,6 +74,7 @@ export type PlayerData = {
 	Achievements: { [string]: boolean },
 	EquippedTitle: string, -- achievement id, "" = none
 	LastSpinAt: number,
+	Pets: { [string]: PetRecord }, -- keyed by server GUID
 	Stats: PlayerStats,
 	Moderation: Moderation,
 }
@@ -142,6 +147,9 @@ export type Snapshot = {
 	AchievementProgress: { [string]: number },
 	EquippedTitle: string,
 	NextSpinAt: number,
+	Pets: { PetView },
+	PetBonuses: { [string]: number }, -- Money / Repair / XP / Luck totals from equipped pets
+	ActiveEvents: { string },
 	ServerTime: number,
 }
 

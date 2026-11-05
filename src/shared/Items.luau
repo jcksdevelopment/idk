@@ -14,6 +14,7 @@ export type ItemTemplate = {
 	Rarity: Types.Rarity,
 	BaseValue: number,
 	Icon: string,
+	Event: string?, -- seasonal items only drop from their event box
 }
 
 local Items = {}
@@ -45,18 +46,36 @@ local catalog: { ItemTemplate } = {
 	{ Id = "JeweledMusicBox", Name = "Jeweled Music Box", Rarity = "Legendary", BaseValue = 720, Icon = "💎" },
 	{ Id = "DragonEgg", Name = "Dragon Egg Statue", Rarity = "Legendary", BaseValue = 1100, Icon = "🥚" },
 	{ Id = "PirateMap", Name = "Lost Pirate Map", Rarity = "Legendary", BaseValue = 880, Icon = "🗺️" },
+
+	-- ❄️ Winter Festival (only from the Winter Gift box while the event runs)
+	{ Id = "GingerCookie", Name = "Gingerbread Cookie", Rarity = "Trash", BaseValue = 30, Icon = "🍪", Event = "Winter" },
+	{ Id = "WoollyMitten", Name = "Woolly Mitten", Rarity = "Trash", BaseValue = 26, Icon = "🧤", Event = "Winter" },
+	{ Id = "SnowGlobe", Name = "Snow Globe", Rarity = "Rare", BaseValue = 160, Icon = "🔮", Event = "Winter" },
+	{ Id = "IceSkates", Name = "Ice Skates", Rarity = "Rare", BaseValue = 150, Icon = "⛸️", Event = "Winter" },
+	{ Id = "MagicSnowman", Name = "Magic Snowman", Rarity = "Legendary", BaseValue = 1200, Icon = "⛄", Event = "Winter" },
+	{ Id = "SantaSleigh", Name = "Santa's Sleigh", Rarity = "Legendary", BaseValue = 1400, Icon = "🛷", Event = "Winter" },
 }
 
 local byId: { [string]: ItemTemplate } = {}
 local byRarity: { [string]: { ItemTemplate } } = { Trash = {}, Rare = {}, Legendary = {} }
 local ordered: { ItemTemplate } = {}
+local eventPools: { [string]: { [string]: { ItemTemplate } } } = {}
+local eventOrdered: { [string]: { ItemTemplate } } = {}
 
 for _, template in catalog do
 	assert(byId[template.Id] == nil, "Duplicate item template id: " .. template.Id)
 	table.freeze(template)
 	byId[template.Id] = template
-	table.insert(byRarity[template.Rarity], template)
-	table.insert(ordered, template)
+	local event = template.Event
+	if event then
+		eventPools[event] = eventPools[event] or { Trash = {}, Rare = {}, Legendary = {} }
+		eventOrdered[event] = eventOrdered[event] or {}
+		table.insert(eventPools[event][template.Rarity], template)
+		table.insert(eventOrdered[event], template)
+	else
+		table.insert(byRarity[template.Rarity], template)
+		table.insert(ordered, template)
+	end
 end
 
 Items.Rarities = table.freeze({ "Trash", "Rare", "Legendary" }) :: { Types.Rarity }
@@ -75,8 +94,18 @@ function Items.GetByRarity(rarity: Types.Rarity): { ItemTemplate }
 	return byRarity[rarity]
 end
 
+-- Regular (non-event) items only: these make up the collection book goals.
 function Items.All(): { ItemTemplate }
 	return ordered
+end
+
+function Items.GetEventPool(event: string, rarity: Types.Rarity): { ItemTemplate }
+	local pools = eventPools[event]
+	return if pools then pools[rarity] else {}
+end
+
+function Items.EventItems(event: string): { ItemTemplate }
+	return eventOrdered[event] or {}
 end
 
 function Items.IsRarity(value: unknown): boolean

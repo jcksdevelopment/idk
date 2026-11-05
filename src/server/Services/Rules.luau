@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Pets = require(Shared.Pets)
 local Progression = require(Shared.Progression)
 local Types = require(Shared.Types)
 local FriendService = require(script.Parent.FriendService)
@@ -45,7 +46,31 @@ function Rules.MoneyMultiplier(player: Player, data: Types.PlayerData): number
 	local multiplier = if data.BoostEndsAt > os.time() then Config.Products.MoneyBoostMultiplier else 1
 	multiplier *= 1 + Rules.RebirthBonus(data)
 	multiplier *= 1 + FriendService.Bonus(player)
+	multiplier *= 1 + Rules.PetBonus(data, "Money")
 	return multiplier
+end
+
+-- Sum of one bonus kind over equipped pets (Money / Repair / XP / Luck).
+function Rules.PetBonus(data: Types.PlayerData, kind: string): number
+	local total = 0
+	for _, pet in data.Pets do
+		if pet.Equipped then
+			local def = Pets.Get(pet.PetId)
+			if def and def.Bonus == kind then
+				total += def.Amount
+			end
+		end
+	end
+	if kind == "Repair" then
+		return math.min(total, Config.Pets.MaxRepairReduction)
+	end
+	return total
+end
+
+-- Repair duration after pet bonuses.
+function Rules.RepairSeconds(data: Types.PlayerData, rarity: Types.Rarity): number
+	local base = Config.Repair.SecondsByRarity[rarity] or 30
+	return math.max(1, base * (1 - Rules.PetBonus(data, "Repair")))
 end
 
 function Rules.RebirthRequirement(data: Types.PlayerData): (number, number)

@@ -111,6 +111,14 @@ Config.Crates = {
 		UnlockLevel = 3,
 		Weights = { Trash = 40, Rare = 45, Legendary = 15 },
 	},
+	WinterGift = {
+		Icon = "🎁",
+		Price = 300,
+		Order = 0,
+		UnlockLevel = 1,
+		Event = "Winter", -- only sold while the event is active; drops only event items
+		Weights = { Trash = 50, Rare = 38, Legendary = 12 },
+	},
 	RoyalTreasure = {
 		Icon = "👑",
 		Price = 1500,
@@ -247,6 +255,7 @@ Config.Languages = { "en", "sk" }
 
 Config.Debug = {
 	StudioGrantAllPasses = false, -- Studio only
+	ForceEvent = "", -- Studio only: e.g. "Winter" to test the Winter Festival any day
 	VerboseLogging = false,
 }
 
@@ -280,6 +289,8 @@ Config.Achievements = {
 	{ Id = "Shiny10", Icon = "🌈", Stat = "ShiniesFound", Goal = 10, Reward = { Cash = 10000 } },
 	{ Id = "Collector", Icon = "📖", Stat = "Collection", Goal = 21, Reward = { Cash = 25000 } },
 	{ Id = "Seller1000", Icon = "👑", Stat = "ItemsSold", Goal = 1000, Reward = { Tokens = 5 } },
+	{ Id = "FirstPet", Icon = "🐾", Stat = "PetsHatched", Goal = 1, Reward = { Cash = 300 } },
+	{ Id = "PetMaster", Icon = "🐉", Stat = "PetsHatched", Goal = 25, Reward = { Tokens = 3 } },
 }
 
 -- Free Lucky Wheel. Never sold for Robux; one free spin per cooldown.
@@ -302,6 +313,38 @@ Config.Wheel = {
 Config.Friends = {
 	BonusPerFriend = 0.1,
 	MaxFriends = 3,
+}
+
+-- Seasonal events (UTC month/day, inclusive). Wrapping over New Year is fine.
+Config.Events = {
+	Winter = { Start = { 12, 1 }, End = { 1, 6 }, Icon = "❄️" },
+}
+
+-- Pet helpers: hatched from eggs with in-game cash (never Robux), they
+-- follow you and give small permanent bonuses while equipped.
+-- Bonus kinds: Money (+% sell money), Repair (-% repair time),
+--              XP (+% XP), Luck (+ shiny chance, absolute).
+Config.Pets = {
+	MaxEquipped = 3,
+	MaxOwned = 30,
+	MaxRepairReduction = 0.5,
+	Eggs = {
+		BasicEgg = { Icon = "🥚", Price = 500, UnlockLevel = 2, Order = 1, Weights = { Trash = 70, Rare = 25, Legendary = 5 } },
+		GoldenEgg = { Icon = "🌟", Price = 5000, UnlockLevel = 6, Order = 2, Weights = { Trash = 35, Rare = 47, Legendary = 18 } },
+	},
+	SellValue = { Trash = 50, Rare = 300, Legendary = 2000 },
+	List = {
+		{ Id = "Puppy", Icon = "🐶", Rarity = "Trash", Bonus = "Money", Amount = 0.05 },
+		{ Id = "Kitten", Icon = "🐱", Rarity = "Trash", Bonus = "Luck", Amount = 0.005 },
+		{ Id = "Bunny", Icon = "🐰", Rarity = "Trash", Bonus = "Repair", Amount = 0.05 },
+		{ Id = "Hamster", Icon = "🐹", Rarity = "Trash", Bonus = "XP", Amount = 0.05 },
+		{ Id = "Fox", Icon = "🦊", Rarity = "Rare", Bonus = "Money", Amount = 0.12 },
+		{ Id = "Owl", Icon = "🦉", Rarity = "Rare", Bonus = "Repair", Amount = 0.12 },
+		{ Id = "Panda", Icon = "🐼", Rarity = "Rare", Bonus = "XP", Amount = 0.15 },
+		{ Id = "Dragon", Icon = "🐉", Rarity = "Legendary", Bonus = "Money", Amount = 0.3 },
+		{ Id = "Unicorn", Icon = "🦄", Rarity = "Legendary", Bonus = "Luck", Amount = 0.02 },
+		{ Id = "Phoenix", Icon = "🦅", Rarity = "Legendary", Bonus = "Repair", Amount = 0.25 },
+	},
 }
 
 Config.Leaderboard = {

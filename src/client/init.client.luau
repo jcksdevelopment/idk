@@ -23,6 +23,7 @@ local RepairController = require(Controllers.RepairController)
 local SoundController = require(Controllers.SoundController)
 local GuideController = require(Controllers.GuideController)
 local OverheadController = require(Controllers.OverheadController)
+local PetController = require(Controllers.PetController)
 
 local Toast = require(UI.Toast)
 local Effects = require(UI.Effects)
@@ -35,6 +36,7 @@ local IndexPanel = require(UI.IndexPanel)
 local SettingsPanel = require(UI.SettingsPanel)
 local TrophyPanel = require(UI.TrophyPanel)
 local WheelPanel = require(UI.WheelPanel)
+local PetsPanel = require(UI.PetsPanel)
 
 local player = Players.LocalPlayer
 
@@ -51,6 +53,7 @@ local function buildUI(gui: ScreenGui)
 	IndexPanel.Build(gui)
 	TrophyPanel.Build(gui)
 	WheelPanel.Build(gui)
+	PetsPanel.Build(gui)
 	CashShopPanel.Build(gui)
 	SettingsPanel.Build(gui)
 end
@@ -73,4 +76,5 @@ InputController.Start()
 RepairController.Start()
 GuideController.Start()
 OverheadController.Start()
+PetController.Start()
 StateController.Start() -- last: snapshots arrive once every view is listening

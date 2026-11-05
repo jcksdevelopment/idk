@@ -12,6 +12,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Events = require(Shared.Events)
 local Items = require(Shared.Items)
 local Net = require(Shared.Net)
 local Progression = require(Shared.Progression)
@@ -61,6 +62,19 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 	local level, xpIn, xpNeeded = Progression.FromTotal(data.XP)
 	local today = ProgressViews.Today()
 	local rebirthLevel, rebirthCash = Rules.RebirthRequirement(data)
+	local pets: { Types.PetView } = {}
+	for _, pet in data.Pets do
+		table.insert(pets, { Id = pet.Id, PetId = pet.PetId, Equipped = pet.Equipped })
+	end
+	table.sort(pets, function(a, b)
+		if a.Equipped ~= b.Equipped then
+			return a.Equipped
+		end
+		if a.PetId ~= b.PetId then
+			return a.PetId < b.PetId
+		end
+		return a.Id < b.Id
+	end)
 
 	return {
 		Cash = data.Cash,
@@ -97,6 +111,14 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		AchievementProgress = ProgressViews.AchievementProgress(data),
 		EquippedTitle = data.EquippedTitle,
 		NextSpinAt = data.LastSpinAt + Config.Wheel.CooldownSeconds,
+		Pets = pets,
+		PetBonuses = {
+			Money = Rules.PetBonus(data, "Money"),
+			Repair = Rules.PetBonus(data, "Repair"),
+			XP = Rules.PetBonus(data, "XP"),
+			Luck = Rules.PetBonus(data, "Luck"),
+		},
+		ActiveEvents = Events.ActiveList(),
 		ServerTime = os.time(),
 	}
 end
@@ -129,6 +151,14 @@ local function updateLeaderstats(player: Player, data: Types.PlayerData)
 	player:SetAttribute("Level", Rules.Level(data))
 	player:SetAttribute("Rebirths", data.Rebirths)
 	player:SetAttribute("Title", data.EquippedTitle)
+	local equipped = {}
+	for _, pet in data.Pets do
+		if pet.Equipped then
+			table.insert(equipped, pet.PetId)
+		end
+	end
+	table.sort(equipped)
+	player:SetAttribute("Pets", table.concat(equipped, ","))
 end
 
 local function flush()

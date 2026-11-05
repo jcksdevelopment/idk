@@ -34,6 +34,9 @@ Net.ClientToServer = table.freeze({
 	"Rebirth", -- ()
 	"SpinWheel", -- ()
 	"SetTitle", -- (achievementId: string) "" = none
+	"BuyEgg", -- (eggKey: string)
+	"EquipPet", -- (petUid: string, equip: boolean)
+	"SellPet", -- (petUid: string)
 })
 
 -- Server -> Client

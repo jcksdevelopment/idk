@@ -46,6 +46,7 @@ function ProgressService.AddXP(player: Player, data: Types.PlayerData, amount: n
 		return
 	end
 	local before = Progression.LevelFromTotal(data.XP)
+	amount *= 1 + Rules.PetBonus(data, "XP")
 	data.XP = math.min(1e12, data.XP + math.floor(amount))
 	local after = Progression.LevelFromTotal(data.XP)
 	for level = before + 1, after do
@@ -187,6 +188,8 @@ end
 -- Collection book + shiny tracking for a freshly obtained item.
 function ProgressService.Discover(player: Player, data: Types.PlayerData, item: Types.ItemRecord)
 	local templateId = item.TemplateId
+	local itemTemplate = Items.Get(templateId)
+	local isEventItem = itemTemplate ~= nil and itemTemplate.Event ~= nil
 	if not data.Collection[templateId] then
 		data.Collection[templateId] = true
 		SyncService.Notify(player, "info", "N_NewDiscovery", { "@item:" .. templateId })
@@ -198,7 +201,7 @@ function ProgressService.Discover(player: Player, data: Types.PlayerData, item: 
 				break
 			end
 		end
-		if complete and not data.CollectionClaims[item.Rarity] then
+		if complete and not isEventItem and not data.CollectionClaims[item.Rarity] then
 			SyncService.Notify(player, "success", "N_CollectionReady", { "@rarity:" .. item.Rarity })
 		end
 	end

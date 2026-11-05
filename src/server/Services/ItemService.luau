@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Events = require(Shared.Events)
 local Items = require(Shared.Items)
 local Types = require(Shared.Types)
 
@@ -46,8 +47,11 @@ function ItemService.RollRarity(weights: { [string]: number }): Types.Rarity
 	return "Trash"
 end
 
-function ItemService.CreateItem(data: Types.PlayerData, rarity: Types.Rarity): Types.ItemRecord
-	local pool = Items.GetByRarity(rarity)
+function ItemService.CreateItem(data: Types.PlayerData, rarity: Types.Rarity, event: string?): Types.ItemRecord
+	local pool = if event then Items.GetEventPool(event, rarity) else Items.GetByRarity(rarity)
+	if #pool == 0 then
+		pool = Items.GetByRarity(rarity)
+	end
 	local template = pool[rng:NextInteger(1, #pool)]
 
 	local id = HttpService:GenerateGUID(false)
@@ -64,7 +68,7 @@ function ItemService.CreateItem(data: Types.PlayerData, rarity: Types.Rarity): T
 		Rarity = template.Rarity,
 		State = "Dirty",
 		Quality = quality,
-		Shiny = rng:NextNumber() < Config.Shiny.Chance,
+		Shiny = rng:NextNumber() < Config.Shiny.Chance + Rules.PetBonus(data, "Luck"),
 		AcquiredAt = os.time(),
 		RepairStartedAt = nil,
 		RepairEndsAt = nil,
@@ -94,6 +98,10 @@ local function onBuyCrate(player: Player, crateKey: string)
 	end
 
 	local data = profile.Data
+	if crate.Event and not Events.IsActive(crate.Event) then
+		SyncService.Notify(player, "error", "N_EventOver")
+		return
+	end
 	if Rules.Level(data) < crate.UnlockLevel then
 		SyncService.Notify(player, "error", "N_CrateLocked", { tostring(crate.UnlockLevel) })
 		return
@@ -109,7 +117,7 @@ local function onBuyCrate(player: Player, crateKey: string)
 
 	-- Atomic section (no yields): pay, roll, insert, progress.
 	data.Cash -= crate.Price
-	local item = ItemService.CreateItem(data, ItemService.RollRarity(crate.Weights))
+	local item = ItemService.CreateItem(data, ItemService.RollRarity(crate.Weights), crate.Event)
 	data.Inventory[item.Id] = item
 	data.Stats.CratesOpened += 1
 

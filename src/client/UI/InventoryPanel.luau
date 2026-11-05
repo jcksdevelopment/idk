@@ -186,7 +186,7 @@ local function makeCard(itemId: string, parent: Instance): Card
 	}
 end
 
-local function updateCard(card: Card, item: Types.ItemView, order: number, tokens: number)
+local function updateCard(card: Card, item: Types.ItemView, order: number, tokens: number, repairBonus: number)
 	local color = Items.RarityColors[item.Rarity] or Theme.Colors.Muted
 	card.Frame.LayoutOrder = order
 	card.Stroke.Color = if item.Shiny then Color3.new(1, 1, 1) else color
@@ -203,7 +203,8 @@ local function updateCard(card: Card, item: Types.ItemView, order: number, token
 		card.Status.Text = Locale.T("Inv_Dirty", { Format.Cash(item.CleanValue) })
 		card.Bar.Visible = false
 		card.Action.Visible = true
-		card.Action.Text = Locale.T("Inv_Repair", { Format.Duration(Valuation.RepairSeconds(item.Rarity)) })
+		local seconds = math.max(1, Valuation.RepairSeconds(item.Rarity) * (1 - repairBonus))
+		card.Action.Text = Locale.T("Inv_Repair", { Format.Duration(seconds) })
 		Create.SetButtonEnabled(card.Action, true, Theme.Colors.Info)
 		card.Instant.Visible = tokens > 0 or Config.Monetization.ShowUpsells
 		card.Sell.Visible = true
@@ -329,7 +330,7 @@ function InventoryPanel.Build(gui: ScreenGui)
 				card = makeCard(item.Id, scroller)
 				cards[item.Id] = card
 			end
-			updateCard(card, item, index, snapshot.InstantRepairTokens)
+			updateCard(card, item, index, snapshot.InstantRepairTokens, snapshot.PetBonuses.Repair or 0)
 		end
 		for id, card in cards do
 			if not seen[id] then
