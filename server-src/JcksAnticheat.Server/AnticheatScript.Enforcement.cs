@@ -25,6 +25,13 @@ namespace JcksAnticheat.Server
 
             _ledger.Record(v);
             bool bypass = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace) || IsPlayerAceAllowed(player.Handle, ace + "." + v.Code));
+            if (!_throttle.ShouldReport(v, DateTime.UtcNow, out var repeats))
+            {
+                if (!bypass) ApplyServerCountermeasure(v, player.Handle);
+                if (!bypass && !_cfg.DryRun) Enforce(v, player);
+                return;
+            }
+            if (repeats > 0) v.Evidence["repeats"] = repeats;
             Log($"{player.Name} {v}{(bypass ? " (bypass)" : "")}{(_cfg.DryRun ? " (dry run)" : "")}");
 
             _dashboard.Enqueue("detection", new Dictionary<string, object?>
@@ -40,7 +47,11 @@ namespace JcksAnticheat.Server
             if (alert != null) AlertStaff(alert);
             if (!bypass) ApplyServerCountermeasure(v, player.Handle);
             if (bypass || _cfg.DryRun) return;
+            Enforce(v, player);
+        }
 
+        private void Enforce(Violation v, Player player)
+        {
             switch (v.Action)
             {
                 case EnforcementAction.Screenshot:

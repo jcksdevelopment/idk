@@ -70,7 +70,7 @@ export function LiveTerminal({ initialStats }: { initialStats: Stats }) {
   const tiles: [string, number | string][] = [
     ["Online", stats.online],
     ["Detections · 24h", stats.detections24h],
-    ["Kicks + bans · 24h", stats.actions24h],
+    ["Kicked or banned · 24h", stats.actions24h],
     ["Active bans", stats.bans],
     ["Awaiting review", stats.pendingReview],
   ];

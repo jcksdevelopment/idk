@@ -43,3 +43,27 @@ public class StaffAlertTests
         Assert.Empty(r.Of(1));
     }
 }
+
+public class ReportThrottleTests
+{
+    [Fact]
+    public void RepeatsAreFoldedUntilTheActionEscalates()
+    {
+        var t = new ReportThrottle();
+        var now = DateTime.UtcNow;
+        Violation V(EnforcementAction a)
+        {
+            var v = new Violation(5, "WPN_PROJECTILE_ORIGIN", ViolationSource.Server);
+            typeof(Violation).GetProperty("Action")!.SetValue(v, a);
+            return v;
+        }
+        Assert.True(t.ShouldReport(V(EnforcementAction.Log), now, out _));
+        Assert.False(t.ShouldReport(V(EnforcementAction.Log), now.AddMilliseconds(100), out _));
+        Assert.False(t.ShouldReport(V(EnforcementAction.Log), now.AddMilliseconds(200), out _));
+        Assert.True(t.ShouldReport(V(EnforcementAction.Kick), now.AddMilliseconds(300), out var folded));
+        Assert.Equal(2, folded);
+        Assert.False(t.ShouldReport(V(EnforcementAction.Kick), now.AddSeconds(1), out _));
+        Assert.True(t.ShouldReport(V(EnforcementAction.Kick), now.AddSeconds(5), out folded));
+        Assert.Equal(1, folded);
+    }
+}

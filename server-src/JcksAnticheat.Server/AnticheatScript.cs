@@ -40,6 +40,7 @@ namespace JcksAnticheat.Server
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
         private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
         private readonly MassKillTracker _massKills;
+        private readonly JcksAnticheat.Core.Logging.ReportThrottle _throttle = new JcksAnticheat.Core.Logging.ReportThrottle();
         private ConfigHistory _history = null!;
         private readonly JcksAnticheat.Core.Logging.RecentViolations _recent = new JcksAnticheat.Core.Logging.RecentViolations();
         private readonly JcksAnticheat.Core.Logging.StaffAlerts _staffAlerts;
@@ -240,6 +241,7 @@ namespace JcksAnticheat.Server
             _flags.Forget(id);
             _massKills.Forget(id);
             _recent.Forget(id);
+            _throttle.Forget(id);
             _staffAlerts.Forget(id);
             _consistency.Forget(id);
             ForgetAntiDump(id);

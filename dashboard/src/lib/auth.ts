@@ -6,7 +6,6 @@ import type { Session } from "./types";
 
 
 export const SESSION_COOKIE = "jac_session";
-export const STATE_COOKIE = "jac_oauth_state";
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
 function secret(): string {
@@ -18,7 +17,7 @@ function secret(): string {
   return "jac-dev-session-secret-change-me-please";
 }
 
-export const MOCK_DISCORD_USERS = [
+export const STAFF_PROFILES = [
   { id: "184405311681986560", username: "Mara", role: "Head Admin", avatar: "M" },
   { id: "300293746132516865", username: "Theo", role: "Moderator", avatar: "T" },
   { id: "412378945612332032", username: "Kai", role: "Support", avatar: "K" },
@@ -48,9 +47,8 @@ export function verifySession(token: string | undefined): Session | null {
   }
 }
 
-export function exchangeCode(code: string): Omit<Session, "exp"> | null {
-  const id = code.startsWith("mock_") ? code.slice(5) : "";
-  const user = MOCK_DISCORD_USERS.find((u) => u.id === id);
+export function demoProfile(id: string): Omit<Session, "exp"> | null {
+  const user = STAFF_PROFILES.find((u) => u.id === id);
   return user ? { id: user.id, username: user.username, role: user.role, avatar: user.avatar } : null;
 }
 

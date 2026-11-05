@@ -482,11 +482,15 @@ cp .env.example .env.local
 npm run build && npm start
 ```
 
-Sign in with **Continue with Discord**. The login is a mock OAuth2 authorization-code flow (state
-cookie, consent screen, code exchange, HMAC-signed session cookie) that never contacts Discord. To
-use real Discord, replace `exchangeCode` in `src/lib/auth.ts` with a token exchange and a
-`/users/@me` plus guild-role lookup.
+The login is a demo: pick one of three staff profiles (Head Admin, Moderator, Support) and press
+**Continue**. There is no password and nothing external is contacted; the session is an HMAC-signed
+cookie. Before exposing the dashboard, replace `demoProfile` in `src/lib/auth.ts` and the
+`/api/auth/demo` route with real Discord OAuth2 (token exchange, `/users/@me`, guild-role lookup).
 
+- **Overview**: players online, detections and players kicked or banned in 24 h, a per-hour chart split
+  into server and client evidence, the most frequent codes, enforcement state (dry run, countermeasures,
+  thresholds), what needs attention (vision reviews, backdoor findings, learning suggestions), highest
+  scores online, latest detections and bans.
 - **Live**: terminal-style stream of detections, bans, vision verdicts and staff actions over
   Server-Sent Events, with pause, filter and level controls.
 - **Players**: search by name, ID or identifier, with pagination, live scores, heartbeat health,

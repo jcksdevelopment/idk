@@ -297,6 +297,7 @@ class Store {
     const from = now - hours * 3_600_000;
     const bucketMs = (hours * 3_600_000) / 24;
     const buckets = new Array<number>(24).fill(0);
+    const serverBuckets = new Array<number>(24).fill(0);
     const byCode = new Map<string, { count: number; players: Set<string>; client: number; server: number; kicks: number; bans: number; bypass: number; lastAt: string }>();
     const players = new Set<string>();
     let total = 0;
@@ -306,7 +307,9 @@ class Store {
       total++;
       const who = `${d.serverId}:${d.player}`;
       players.add(who);
-      buckets[Math.min(23, Math.max(0, Math.floor((t - from) / bucketMs)))]++;
+      const b = Math.min(23, Math.max(0, Math.floor((t - from) / bucketMs)));
+      buckets[b]++;
+      if (d.source !== "client" && d.source !== "heartbeat") serverBuckets[b]++;
       let c = byCode.get(d.code);
       if (!c) byCode.set(d.code, (c = { count: 0, players: new Set(), client: 0, server: 0, kicks: 0, bans: 0, bypass: 0, lastAt: d.at }));
       c.count++;
@@ -321,7 +324,7 @@ class Store {
     const codes = [...byCode.entries()]
       .map(([code, c]) => ({ code, count: c.count, players: c.players.size, client: c.client, server: c.server, kicks: c.kicks, bans: c.bans, bypass: c.bypass, lastAt: c.lastAt }))
       .sort((a, b) => b.count - a.count);
-    return { hours, total, players: players.size, buckets, codes };
+    return { hours, total, players: players.size, buckets, serverBuckets, codes };
   }
 
   detections(opts: { player?: string; limit?: number }): Detection[] {
@@ -352,7 +355,7 @@ class Store {
       online: players.filter((p) => p.online).length,
       tracked: players.length,
       detections24h: recent.length,
-      actions24h: recent.filter((d) => d.action === "kick" || d.action === "ban").length,
+      actions24h: new Set(recent.filter((d) => d.action === "kick" || d.action === "ban").map((d) => `${d.serverId}:${d.player}`)).size,
       bans: Object.keys(this.state.bans).length,
       pendingReview: this.state.vision.filter((v) => v.review === "pending").length,
     };

@@ -34,6 +34,7 @@ export interface DetectionStats {
   total: number;
   players: number;
   buckets: number[];
+  serverBuckets: number[];
   codes: CodeStat[];
 }
 
