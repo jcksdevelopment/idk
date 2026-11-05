@@ -328,6 +328,10 @@ Config.Pets = {
 	MaxEquipped = 3,
 	MaxOwned = 30,
 	MaxRepairReduction = 0.5,
+	-- Caps on the team bonus so fused legendaries can't break the economy.
+	MaxMoneyBonus = 1.5, -- at most +150% money from pets
+	MaxXPBonus = 1.0, -- at most +100% XP
+	MaxLuckBonus = 0.07, -- at most +7% shiny chance (base 3% -> 10%)
 	-- Fusion: 3 identical pets (same kind + stars) -> 1 pet with one more star.
 	MaxStars = 2,
 	StarMultipliers = { [0] = 1, [1] = 2, [2] = 4 }, -- bonus multiplier per star level

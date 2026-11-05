@@ -61,10 +61,13 @@ function Rules.PetBonus(data: Types.PlayerData, kind: string): number
 			end
 		end
 	end
-	if kind == "Repair" then
-		return math.min(total, Config.Pets.MaxRepairReduction)
-	end
-	return total
+	local caps: { [string]: number } = {
+		Repair = Config.Pets.MaxRepairReduction,
+		Money = Config.Pets.MaxMoneyBonus,
+		XP = Config.Pets.MaxXPBonus,
+		Luck = Config.Pets.MaxLuckBonus,
+	}
+	return math.min(total, caps[kind] or total)
 end
 
 -- Repair duration after pet bonuses.
