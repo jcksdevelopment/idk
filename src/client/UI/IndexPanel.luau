@@ -75,10 +75,10 @@ function IndexPanel.Build(gui: ScreenGui)
 
 		local headerRow: Frame = Create.new("Frame", {
 			LayoutOrder = 1,
-			Size = UDim2.fromScale(1, 0),
+			Size = UDim2.new(1, 0, 0, 46),
 			BackgroundColor3 = Theme.Colors.PanelLight,
 			Parent = section,
-		}, { Create.Corner(UDim.new(0.3, 0)), Create.Stroke(color, 2), Create.Aspect(12) })
+		}, { Create.Corner(UDim.new(0.3, 0)), Create.Stroke(color, 2) })
 		local title = Create.Label({
 			Text = "",
 			Font = Theme.Fonts.Display,
@@ -172,10 +172,10 @@ function IndexPanel.Build(gui: ScreenGui)
 			})
 			local headerRow: Frame = Create.new("Frame", {
 				LayoutOrder = 1,
-				Size = UDim2.fromScale(1, 0),
+				Size = UDim2.new(1, 0, 0, 46),
 				BackgroundColor3 = Theme.Colors.PanelLight,
 				Parent = section,
-			}, { Create.Corner(UDim.new(0.3, 0)), Create.Stroke(Theme.Colors.Info, 2), Create.Aspect(12) })
+			}, { Create.Corner(UDim.new(0.3, 0)), Create.Stroke(Theme.Colors.Info, 2) })
 			local title = Create.Label({
 				Text = "",
 				Font = Theme.Fonts.Display,
@@ -238,8 +238,11 @@ function IndexPanel.Build(gui: ScreenGui)
 
 	local function render(snapshot: Types.Snapshot)
 		local shinies = 0
-		for _ in snapshot.ShinyCollection do
-			shinies += 1
+		for templateId in snapshot.ShinyCollection do
+			local template = Items.Get(templateId)
+			if template and not template.Event then
+				shinies += 1
+			end
 		end
 		shinyLabel.Text = Locale.T("Index_Shinies", { tostring(shinies), tostring(#Items.All()) })
 

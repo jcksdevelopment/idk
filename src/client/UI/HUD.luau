@@ -136,7 +136,7 @@ function HUD.Build(gui: ScreenGui)
 		local frame: Frame = Create.new("Frame", {
 			Name = name,
 			LayoutOrder = order,
-			Size = UDim2.fromScale(0.26, 1),
+			Size = UDim2.fromScale(0.22, 1),
 			BackgroundColor3 = Theme.Colors.PanelDark,
 			Parent = chips,
 		}, { Create.Corner(UDim.new(0.5, 0)), Create.Stroke(color, 2) })
@@ -147,7 +147,7 @@ function HUD.Build(gui: ScreenGui)
 	local tokenChip = chip("Tokens", Theme.Colors.Accent, 2)
 	local boostChip = chip("Boost", Theme.Colors.Success, 3)
 	local boostFrame = boostChip.Parent :: Frame
-	boostFrame.Size = UDim2.fromScale(0.4, 1)
+	boostFrame.Size = UDim2.fromScale(0.32, 1)
 
 	------------------------------------------------------------------
 	-- Tutorial banner
@@ -268,7 +268,7 @@ function HUD.Build(gui: ScreenGui)
 
 	local bonusChip = chip("Bonus", Theme.Colors.VIP, 4)
 	local bonusFrame = bonusChip.Parent :: Frame
-	bonusFrame.Size = UDim2.fromScale(0.22, 1)
+	bonusFrame.Size = UDim2.fromScale(0.18, 1)
 
 	------------------------------------------------------------------
 	-- Workbench strip (tap a slot to scrub!)
@@ -413,7 +413,7 @@ function HUD.Build(gui: ScreenGui)
 		local permanent = (1 + snapshot.RebirthBonus) * (1 + snapshot.FriendsBonus)
 		bonusFrame.Visible = permanent > 1.001
 		if bonusFrame.Visible then
-			bonusChip.Text = Locale.T("HUD_Bonus", { string.format("%.2g", permanent) })
+			bonusChip.Text = Locale.T("HUD_Bonus", { (string.gsub(string.format("%.2f", permanent), "%.?0+$", "")) })
 				.. (if snapshot.FriendsBonus > 0 then " 👫" else "")
 		end
 

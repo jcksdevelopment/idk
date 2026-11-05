@@ -262,7 +262,13 @@ function PetsPanel.Build(gui: ScreenGui)
 				return
 			end
 			confirmSell[uid] = os.clock() + 3
+			local previous = sell.Text
 			sell.Text = Locale.T("Rebirth_Confirm")
+			task.delay(3.1, function()
+				if sell.Parent and (confirmSell[uid] or 0) <= os.clock() then
+					sell.Text = previous
+				end
+			end)
 		end)
 		return { Frame = frame, Stroke = stroke, Icon = icon, Name = name, Bonus = bonus, Equip = equip, Sell = sell }
 	end

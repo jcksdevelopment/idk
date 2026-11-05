@@ -101,6 +101,7 @@ export type PassFlags = {
 }
 
 export type QuestView = {
+	Index: number, -- position in the server's quest list (used for claims)
 	Id: string,
 	Goal: number,
 	Progress: number,

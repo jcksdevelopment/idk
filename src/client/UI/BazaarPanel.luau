@@ -10,7 +10,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
-local Events = require(Shared.Events)
 local Format = require(Shared.Format)
 local Items = require(Shared.Items)
 local Locale = require(Shared.Locale)
@@ -28,7 +27,7 @@ local Toast = require(script.Parent.Toast)
 
 local BazaarPanel = {}
 
-type CrateButton = { Button: TextButton, Price: number, UnlockLevel: number, Lock: TextLabel }
+type CrateButton = { Card: Frame, Event: string?, Button: TextButton, Price: number, UnlockLevel: number, Lock: TextLabel }
 
 function BazaarPanel.Build(gui: ScreenGui)
 	local panel, _header, close = Create.Panel("Bazaar", Locale.T("Title_Bazaar"), Theme.Colors.Accent, 1.7, gui)
@@ -52,24 +51,24 @@ function BazaarPanel.Build(gui: ScreenGui)
 	}, { Create.List(Enum.FillDirection.Horizontal, 0.025) })
 
 	local crateKeys: { string } = {}
-	for key, crate in Config.Crates :: any do
-		if not crate.Event or Events.IsActive(crate.Event) then
-			table.insert(crateKeys, key)
-		end
+	-- Event boxes are always built; refresh() shows them only while the SERVER
+	-- reports the event as active (snapshot.ActiveEvents), not the device clock.
+	for key in Config.Crates do
+		table.insert(crateKeys, key)
 	end
 	table.sort(crateKeys, function(a, b)
 		return (Config.Crates :: any)[a].Order < (Config.Crates :: any)[b].Order
 	end)
 
 	local buttons: { CrateButton } = {}
-	local cardWidth = 1 / math.max(#crateKeys, 1) - 0.025
 
 	for index, key in crateKeys do
 		local crate = (Config.Crates :: any)[key]
 		local card: Frame = Create.new("Frame", {
 			LayoutOrder = index,
-			Size = UDim2.fromScale(cardWidth, 1),
+			Size = UDim2.fromScale(0.3, 1),
 			BackgroundColor3 = Theme.Colors.PanelLight,
+			Visible = not crate.Event,
 			Parent = row,
 		}, { Create.Corner(UDim.new(0.06, 0)), Create.Stroke(if crate.Event then Theme.Colors.XP else Theme.Colors.Accent, 3) })
 		if crate.Event then
@@ -171,7 +170,14 @@ function BazaarPanel.Build(gui: ScreenGui)
 			Parent = card,
 		})
 		Create.Corner(UDim.new(0.06, 0)).Parent = lock
-		table.insert(buttons, { Button = button, Price = crate.Price, UnlockLevel = crate.UnlockLevel, Lock = lock })
+		table.insert(buttons, {
+			Card = card,
+			Event = crate.Event,
+			Button = button,
+			Price = crate.Price,
+			UnlockLevel = crate.UnlockLevel,
+			Lock = lock,
+		})
 	end
 
 	local function refresh()
@@ -179,7 +185,17 @@ function BazaarPanel.Build(gui: ScreenGui)
 		local cash = if snapshot then Format.Cash(snapshot.Cash) else "$0"
 		hint.Text = Locale.T(if Proximity.IsNear("Bazaar") then "Bazaar_HintNear" else "Bazaar_HintFar", { cash })
 		if snapshot then
+			local visibleCount = 0
 			for _, entry in buttons do
+				local event = entry.Event
+				entry.Card.Visible = event == nil or table.find(snapshot.ActiveEvents, event) ~= nil
+				if entry.Card.Visible then
+					visibleCount += 1
+				end
+			end
+			local width = 1 / math.max(visibleCount, 1) - 0.025
+			for _, entry in buttons do
+				entry.Card.Size = UDim2.fromScale(width, 1)
 				entry.Lock.Visible = snapshot.Level < entry.UnlockLevel
 				Create.SetButtonEnabled(entry.Button, snapshot.Cash >= entry.Price, Theme.Colors.Success)
 				entry.Button.Active = true -- still clickable so the player gets feedback
@@ -197,7 +213,8 @@ function BazaarPanel.Build(gui: ScreenGui)
 		Frame = panel,
 		OnOpen = function()
 			task.spawn(function()
-				while panel.Visible and panel.Parent do
+				local token = UIController.OpenCount
+				while panel.Visible and panel.Parent and UIController.OpenCount == token do
 					refresh()
 					task.wait(0.5)
 				end

@@ -25,6 +25,7 @@ local UIController = {}
 
 UIController.Gui = nil :: ScreenGui?
 UIController.OpenName = nil :: string?
+UIController.OpenCount = 0 -- bumps on every open/close; panel refresh loops use it to stop
 UIController.PanelChanged = Signal.new() :: Signal.Signal<string?>
 
 local panels: { [string]: Panel } = {}
@@ -66,6 +67,7 @@ function UIController.Close()
 	end
 	local panel = panels[name]
 	UIController.OpenName = nil
+	UIController.OpenCount += 1
 	if panel then
 		panel.Frame.Visible = false
 		if panel.OnClose then
@@ -82,6 +84,7 @@ function UIController.Open(name: string)
 	end
 	UIController.Close()
 	UIController.OpenName = name
+	UIController.OpenCount += 1
 	panel.Frame.Visible = true
 
 	local scale = panel.Frame:FindFirstChild("OpenScale")

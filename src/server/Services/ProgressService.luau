@@ -86,9 +86,12 @@ checkAchievements = function(player: Player, data: Types.PlayerData)
 		return -- a reward is being granted inside a check; the outer loop continues
 	end
 	checkingAchievements[player] = true
-	for _, def in Config.Achievements do
-		if not data.Achievements[def.Id] then
-			if ProgressViews.StatValue(data, def.Stat) >= ProgressViews.AchievementGoal(def) then
+	local unlockedAny = true
+	while unlockedAny do
+		unlockedAny = false
+		for _, def in Config.Achievements do
+			if not data.Achievements[def.Id] and ProgressViews.StatValue(data, def.Stat) >= ProgressViews.AchievementGoal(def) then
+				unlockedAny = true
 				data.Achievements[def.Id] = true
 				ProgressService.GrantReward(player, data, def.Reward)
 				SyncService.Notify(player, "levelup", "N_Achievement", { "@ach:" .. def.Id, Locale.EncodeReward(def.Reward) })
@@ -111,7 +114,13 @@ ProgressService.CheckAchievements = checkAchievements
 -- Rolls today's quests if the day changed. Deterministic per player + day.
 function ProgressService.EnsureQuests(player: Player, data: Types.PlayerData): boolean
 	local today = ProgressViews.Today()
-	if data.Quests.Day == today then
+	local allValid = true
+	for _, entry in data.Quests.Entries do
+		if not ProgressViews.QuestDef(entry.Id) then
+			allValid = false
+		end
+	end
+	if data.Quests.Day == today and allValid then
 		return false
 	end
 	local pool = table.clone(Config.Quests.Pool)

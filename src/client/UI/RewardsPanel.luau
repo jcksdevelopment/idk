@@ -191,7 +191,11 @@ function RewardsPanel.Build(gui: ScreenGui)
 			BackgroundColor3 = Theme.Colors.Success,
 			Parent = row,
 		}, function()
-			StateController.Fire("ClaimQuest", index)
+			local snapshot = StateController.Current
+			local quest = snapshot and snapshot.Quests[index]
+			if quest then
+				StateController.Fire("ClaimQuest", quest.Index)
+			end
 		end)
 		table.insert(rows, { Frame = row, Title = title, Reward = reward, Fill = fill, Count = count, Claim = claim })
 	end
@@ -213,7 +217,8 @@ function RewardsPanel.Build(gui: ScreenGui)
 
 	local function render(snapshot: Types.Snapshot)
 		for day, card in dayCards do
-			card.Check.Visible = day < snapshot.Daily.NextDay
+			local weekDone = not snapshot.Daily.CanClaim and snapshot.Daily.NextDay == 1
+			card.Check.Visible = weekDone or day < snapshot.Daily.NextDay
 			local isToday = day == snapshot.Daily.NextDay and snapshot.Daily.CanClaim
 			card.Stroke.Color = if isToday then Theme.Colors.Accent else Theme.Colors.PanelLight
 			card.Stroke.Thickness = if isToday then 5 else 3
@@ -248,7 +253,8 @@ function RewardsPanel.Build(gui: ScreenGui)
 		Frame = panel,
 		OnOpen = function()
 			task.spawn(function()
-				while panel.Visible and panel.Parent do
+				local token = UIController.OpenCount
+				while panel.Visible and panel.Parent and UIController.OpenCount == token do
 					local snapshot = StateController.Current
 					if snapshot then
 						renderTimers(snapshot)

@@ -215,7 +215,8 @@ function WheelPanel.Build(gui: ScreenGui)
 		Frame = panel,
 		OnOpen = function()
 			task.spawn(function()
-				while panel.Visible and panel.Parent do
+				local token = UIController.OpenCount
+				while panel.Visible and panel.Parent and UIController.OpenCount == token do
 					refresh()
 					task.wait(1)
 				end

@@ -30,10 +30,11 @@ end
 
 function ProgressViews.Quests(data: Types.PlayerData): { Types.QuestView }
 	local views: { Types.QuestView } = {}
-	for _, entry in data.Quests.Entries do
+	for index, entry in data.Quests.Entries do
 		local def = questDefs[entry.Id]
 		if def then
 			table.insert(views, {
+				Index = index,
 				Id = entry.Id,
 				Goal = def.Goal,
 				Progress = math.min(entry.Progress, def.Goal),
@@ -72,8 +73,11 @@ function ProgressViews.StatValue(data: Types.PlayerData, stat: string): number
 		return data.Rebirths
 	elseif stat == "Collection" then
 		local count = 0
-		for _ in data.Collection do
-			count += 1
+		for templateId in data.Collection do
+			local template = Items.Get(templateId)
+			if template and not template.Event then
+				count += 1
+			end
 		end
 		return count
 	end
