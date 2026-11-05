@@ -332,6 +332,10 @@ jac scan quarantine <id>      move the file to <resource>/.jac-quarantine/
 jac scan ignore <id>          mark as reviewed (saved in backdoorScanner.ignoreIds)
 ```
 
+The dashboard's **Backdoors** page shows the last scan. Head Admins can rescan, remove a line,
+quarantine a file or ignore a finding from there, with a confirmation step; the game server does
+the work.
+
 `backdoorScanner.autoAction` (`none` / `remove` / `quarantine`) applies an action automatically
 from `autoActionMinSeverity`. The default is `none`. Against `cfx-server-data`, `qb-core`,
 `es_extended`, `ox_lib`, `ox_inventory` and `oxmysql` (662 files) it reports only the stock

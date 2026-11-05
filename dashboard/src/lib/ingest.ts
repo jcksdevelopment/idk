@@ -128,6 +128,19 @@ export function applyEvent(serverId: string, ev: Obj) {
     }
     case "backdoor_scan": {
       const list = Array.isArray(data) ? data.map(obj) : [];
+      store.setBackdoorScan(
+        serverId,
+        list.slice(0, 500).map((f) => ({
+          id: str(f.id).slice(0, 16),
+          resource: str(f.resource),
+          file: str(f.file),
+          line: num(f.line),
+          rule: str(f.rule),
+          severity: (["low", "medium", "high"].includes(str(f.severity)) ? str(f.severity) : "medium") as "low" | "medium" | "high",
+          description: str(f.description),
+          snippet: str(f.snippet),
+        })),
+      );
       if (list.length === 0) {
         store.pushLog({ level: "info", kind: "backdoor", text: "backdoor scan: no findings" });
         break;

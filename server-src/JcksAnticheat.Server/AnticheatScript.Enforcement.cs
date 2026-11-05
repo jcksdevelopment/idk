@@ -121,6 +121,11 @@ namespace JcksAnticheat.Server
                     var p = Players[cmd.Player];
                     if (p != null) DropPlayer(p.Handle, "[JCKS Anticheat] Kicked by staff: " + (cmd.Reason ?? "no reason given"));
                     break;
+                case "backdoor":
+                    var bdArgs = new List<object> { "scan" };
+                    if (cmd.Reason != "scan") { bdArgs.Add(cmd.Reason ?? ""); bdArgs.Add(cmd.BanId ?? ""); }
+                    Log("dashboard backdoor " + cmd.Reason + ": " + BackdoorCommand(bdArgs));
+                    break;
                 case "config":
                     Log("dashboard settings: " + SaveFromJson(cmd.Config, (cmd.Actor ?? "dashboard") + " (web)"));
                     break;

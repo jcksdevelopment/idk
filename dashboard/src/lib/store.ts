@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import type { Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
+import type { BackdoorFinding, BackdoorScan, Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
 import { seedDemo, startDemoFeed } from "./demo";
 
 
@@ -21,11 +21,12 @@ interface State {
   vision: VisionCapture[];
   commands: Command[];
   settings: Record<string, ServerSettings>;
+  backdoors: Record<string, BackdoorScan>;
 }
 
 class Store {
   readonly bus = new EventEmitter();
-  private state: State = { players: {}, detections: [], bans: {}, vision: [], commands: [], settings: {} };
+  private state: State = { players: {}, detections: [], bans: {}, vision: [], commands: [], settings: {}, backdoors: {} };
   private log: LogLine[] = [];
   private saveTimer: NodeJS.Timeout | null = null;
   readonly demo: boolean;
@@ -42,6 +43,7 @@ class Store {
     }
     this.demo = process.env.JCKS_AC_DEMO !== "0";
     this.state.settings ??= {};
+    this.state.backdoors ??= {};
     if (this.demo && !this.state.settings.main) this.seedSettingsFromResource();
     if (this.demo && Object.keys(this.state.players).length === 0) {
       seedDemo(this);
@@ -209,6 +211,15 @@ class Store {
   markSettingsPending(serverId: string) {
     const s = this.state.settings[serverId];
     if (s) s.pending = true;
+  }
+
+  setBackdoorScan(serverId: string, findings: BackdoorFinding[]) {
+    this.state.backdoors[serverId] = { serverId, at: new Date().toISOString(), findings };
+    this.scheduleSave();
+  }
+
+  backdoorScan(serverId: string): BackdoorScan | null {
+    return this.state.backdoors[serverId] ?? null;
   }
 
   settings(serverId: string): ServerSettings | null {

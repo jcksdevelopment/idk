@@ -38,6 +38,9 @@ export const LogOutIcon = (p: P) => (
 export const SettingsIcon = (p: P) => (
   <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>
 );
+export const BugIcon = (p: P) => (
+  <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><rect x="7" y="7" width="10" height="13" rx="5" /><path d="M12 7V4M9 4l1.5 3M15 4l-1.5 3M3 12h4M17 12h4M4 18l3-2M20 18l-3-2" /></svg>
+);
 export const XIcon = (p: P) => (
   <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M6 6l12 12M18 6 6 18" /></svg>
 );

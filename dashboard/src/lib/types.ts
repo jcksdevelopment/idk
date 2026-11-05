@@ -68,7 +68,24 @@ export interface VisionCapture {
   reviewedBy?: string;
 }
 
-export type CommandType = "ban" | "unban" | "kick" | "screenshot" | "config" | "reload";
+export type CommandType = "ban" | "unban" | "kick" | "screenshot" | "config" | "reload" | "backdoor";
+
+export interface BackdoorFinding {
+  id: string;
+  resource: string;
+  file: string;
+  line: number;
+  rule: string;
+  severity: "low" | "medium" | "high";
+  description: string;
+  snippet: string;
+}
+
+export interface BackdoorScan {
+  serverId: string;
+  at: string;
+  findings: BackdoorFinding[];
+}
 
 export interface SettingsField {
   key: string;

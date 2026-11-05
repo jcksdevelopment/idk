@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BanIcon, EyeIcon, LogOutIcon, SettingsIcon, ShieldIcon, TerminalIcon, UsersIcon } from "./icons";
+import { BanIcon, BugIcon, EyeIcon, LogOutIcon, SettingsIcon, ShieldIcon, TerminalIcon, UsersIcon } from "./icons";
 import { cx } from "./ui";
 import type { Session } from "@/lib/types";
 
@@ -11,6 +11,7 @@ const NAV = [
   { href: "/players", label: "Players", icon: UsersIcon },
   { href: "/bans", label: "Bans", icon: BanIcon },
   { href: "/vision", label: "Vision Vault", icon: EyeIcon },
+  { href: "/backdoors", label: "Backdoors", icon: BugIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
