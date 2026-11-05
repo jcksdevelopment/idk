@@ -32,8 +32,9 @@ function BadgeAwardService.Award(player: Player, key: string)
 		if okHas and has then
 			return
 		end
-		local ok, err = pcall(BadgeService.AwardBadge, BadgeService, player.UserId, badgeId)
-		if not ok then
+		local ok, result = pcall(BadgeService.AwardBadge, BadgeService, player.UserId, badgeId)
+		if not ok or result ~= true then
+			local err = result
 			set[key] = nil -- allow a retry later
 			warn("[Badges] Could not award", key, badgeId, err)
 		end

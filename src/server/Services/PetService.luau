@@ -132,7 +132,8 @@ local function onSellPet(player: Player, uid: string)
 	if not pet or not def then
 		return
 	end
-	local value = (Config.Pets.SellValue :: any)[def.Rarity] or 10
+	-- A starred pet was fused from 3^Stars base pets, so it is worth that many.
+	local value = ((Config.Pets.SellValue :: any)[def.Rarity] or 10) * 3 ^ (pet.Stars or 0)
 	-- Atomic: remove, pay.
 	data.Pets[uid] = nil
 	Rules.AddCash(data, value, false)

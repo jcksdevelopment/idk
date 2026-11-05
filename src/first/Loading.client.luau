@@ -79,6 +79,12 @@ end)
 -- Localize + logo image once shared modules replicate.
 local tips = { "", "", "", "" }
 task.spawn(function()
+	-- ReplicatedFirst runs before ReplicatedStorage finishes replicating. Requiring
+	-- a module whose siblings are still missing would error, and Roblox caches that
+	-- failure for the whole client (the main UI would then fail too). Wait first.
+	if not game:IsLoaded() then
+		game.Loaded:Wait()
+	end
 	local shared = ReplicatedStorage:WaitForChild("Shared", 15)
 	if not shared then
 		return

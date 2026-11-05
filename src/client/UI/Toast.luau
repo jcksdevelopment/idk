@@ -283,7 +283,7 @@ function Toast.Build(gui: ScreenGui)
 	})
 
 	UIController.Track(Net.Get("Notify").OnClientEvent:Connect(function(kind: unknown, key: unknown, args: unknown)
-		if type(kind) ~= "string" or type(key) ~= "string" or kind == "wheel" then
+		if type(kind) ~= "string" or type(key) ~= "string" or kind == "wheel" or kind == "burst" then
 			return -- "wheel" results are animated by WheelPanel
 		end
 		local argList: { any } = if type(args) == "table" then args :: any else {}
@@ -303,7 +303,7 @@ function Toast.Build(gui: ScreenGui)
 				Toast.Reveal(
 					def.Rarity,
 					"",
-					stars >= 2,
+					false, -- pets have no shiny state; stars are shown in the name
 					def.Icon .. starsText,
 					Locale.T("Pet_" .. def.Id) .. " " .. starsText,
 					Icons.Lookup("Pets", def.Id)

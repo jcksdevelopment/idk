@@ -358,7 +358,8 @@ function PetsPanel.Build(gui: ScreenGui)
 				card.Equip.Text = Locale.T(if pet.Equipped then "Pets_Unequip" else "Pets_Equip")
 				card.Equip.BackgroundColor3 = if pet.Equipped then Theme.Colors.PanelDark else Theme.Colors.Info
 				if (confirmSell[pet.Id] or 0) <= os.clock() then
-					card.Sell.Text = Locale.T("Pets_Sell", { Format.Cash((Config.Pets.SellValue :: any)[def.Rarity] or 0) })
+					local sellValue = ((Config.Pets.SellValue :: any)[def.Rarity] or 0) * 3 ^ stars
+					card.Sell.Text = Locale.T("Pets_Sell", { Format.Cash(sellValue) })
 				end
 			end
 		end

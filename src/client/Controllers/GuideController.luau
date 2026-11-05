@@ -16,6 +16,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Locale = require(Shared.Locale)
+local Net = require(Shared.Net)
 
 local StateController = require(script.Parent.StateController)
 
@@ -109,7 +110,45 @@ local function update()
 	currentArrow.Enabled = true
 end
 
+-- Stall particle bursts announced by the server (WorldService.Burst).
+local function burst(stationKey: string, color: Color3, count: number)
+	local counter = getCounter(stationKey)
+	if not counter then
+		return
+	end
+	local emitter = counter:FindFirstChild("LocalBurst")
+	if not emitter then
+		local newEmitter = Instance.new("ParticleEmitter")
+		newEmitter.Name = "LocalBurst"
+		newEmitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		newEmitter.Rate = 0
+		newEmitter.Lifetime = NumberRange.new(0.8, 1.4)
+		newEmitter.Speed = NumberRange.new(8, 14)
+		newEmitter.SpreadAngle = Vector2.new(60, 60)
+		newEmitter.EmissionDirection = Enum.NormalId.Top
+		newEmitter.Acceleration = Vector3.new(0, -20, 0)
+		newEmitter.Size = NumberSequence.new(0.6, 0)
+		newEmitter.LightEmission = 0.8
+		newEmitter.Parent = counter
+		emitter = newEmitter
+	end
+	local particles = emitter :: ParticleEmitter
+	particles.Color = ColorSequence.new(color)
+	particles:Emit(count)
+end
+
 function GuideController.Start()
+	Net.Get("Notify").OnClientEvent:Connect(function(kind: unknown, key: unknown, args: unknown)
+		if kind ~= "burst" or type(key) ~= "string" or type(args) ~= "table" then
+			return
+		end
+		local list = args :: { any }
+		local r, g, b, n = tonumber(list[1]), tonumber(list[2]), tonumber(list[3]), tonumber(list[4])
+		if r and g and b and n then
+			burst(key, Color3.fromRGB(r, g, b), math.clamp(n, 1, 60))
+		end
+	end)
+
 	local newBeam = Instance.new("Beam")
 	newBeam.Name = "TutorialBeam"
 	newBeam.Color = ColorSequence.new(Color3.fromRGB(255, 230, 80), Color3.fromRGB(255, 140, 40))

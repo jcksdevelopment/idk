@@ -7,6 +7,7 @@
 	developer Premium Payouts.
 ]]
 
+local GroupService = game:GetService("GroupService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -43,15 +44,37 @@ function SocialService.Bonus(player: Player): number
 	return bonus
 end
 
-local function checkGroup(player: Player)
+-- Player:IsInGroup is cached for the session, so re-checks use
+-- GroupService:GetGroupsAsync, which reflects joining the group mid-session.
+local function fetchInGroup(player: Player, fresh: boolean): boolean?
+	if not fresh then
+		local ok, result = pcall(player.IsInGroup, player, Config.Social.GroupId)
+		return if ok then result == true else nil
+	end
+	local ok, groups = pcall(GroupService.GetGroupsAsync, GroupService, player.UserId)
+	if not ok or type(groups) ~= "table" then
+		return nil
+	end
+	for _, group in groups do
+		if group.Id == Config.Social.GroupId then
+			return true
+		end
+	end
+	return false
+end
+
+local function checkGroup(player: Player, fresh: boolean?)
 	if not SocialService.GroupEnabled() then
 		return
 	end
 	for attempt = 1, 3 do
-		local ok, result = pcall(player.IsInGroup, player, Config.Social.GroupId)
-		if ok then
-			inGroup[player] = result == true
-			SocialService.Changed:Fire(player)
+		local result = fetchInGroup(player, fresh == true)
+		if result ~= nil then
+			local changed = inGroup[player] ~= result
+			inGroup[player] = result
+			if changed or not fresh then
+				SocialService.Changed:Fire(player)
+			end
 			return
 		end
 		task.wait(attempt * 2)
@@ -76,7 +99,7 @@ function SocialService.Start()
 			task.wait(180)
 			for _, player in Players:GetPlayers() do
 				if not inGroup[player] then
-					task.spawn(checkGroup, player)
+					task.spawn(checkGroup, player, true)
 				end
 			end
 		end

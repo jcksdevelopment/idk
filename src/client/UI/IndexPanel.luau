@@ -252,7 +252,7 @@ function IndexPanel.Build(gui: ScreenGui)
 		local shinies = 0
 		for templateId in snapshot.ShinyCollection do
 			local template = Items.Get(templateId)
-			if template and not template.Event then
+			if template and not template.Event and not template.Set then
 				shinies += 1
 			end
 		end

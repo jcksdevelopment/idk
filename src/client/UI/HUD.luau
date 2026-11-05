@@ -253,6 +253,18 @@ function HUD.Build(gui: ScreenGui)
 	navButton(7, "🛒", "Nav_Shop", "P", Theme.Colors.Robux, "CashShop")
 	navButton(8, "⚙️", "Nav_Settings", "", Theme.Colors.PanelLight, "Settings")
 	local upgradesBadge = Create.Badge(upgradesButton)
+	local seenUpgradeCost = -1
+	UIController.Track(UIController.PanelChanged:Connect(function(name: string?)
+		local snapshot = StateController.Current
+		if name == "Upgrades" and snapshot then
+			local cheapest = math.huge
+			for _, key in Config.Upgrades.Order do
+				cheapest = math.min(cheapest, Upgrades.Cost(key, snapshot.Upgrades[key] or 0) or math.huge)
+			end
+			seenUpgradeCost = cheapest
+			upgradesBadge.Visible = false
+		end
+	end))
 	local questsBadge = Create.Badge(questsButton)
 	local indexBadge = Create.Badge(indexButton)
 	local trophiesBadge = Create.Badge(trophiesButton)
@@ -460,7 +472,8 @@ function HUD.Build(gui: ScreenGui)
 		for _, key in Config.Upgrades.Order do
 			cheapest = math.min(cheapest, Upgrades.Cost(key, snapshot.Upgrades[key] or 0) or math.huge)
 		end
-		upgradesBadge.Visible = snapshot.Cash >= cheapest
+		-- Only nudge for a level that became affordable since the panel was last opened.
+		upgradesBadge.Visible = snapshot.Cash >= cheapest and cheapest ~= seenUpgradeCost
 		indexBadge.Visible = hasClaimableCollection(snapshot)
 		trophiesBadge.Visible = snapshot.Rebirths < Config.Rebirth.MaxRebirths
 			and snapshot.Level >= snapshot.RebirthLevel
