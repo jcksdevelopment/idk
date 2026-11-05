@@ -1,6 +1,6 @@
 import "server-only";
 import { EventEmitter } from "node:events";
-import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { Ban, Command, Detection, LogLevel, LogLine, Page, Player, VisionCapture } from "./types";
@@ -17,6 +17,8 @@ const STATE_FILE = join(DATA_DIR, "state.json");
 const VISION_DIR = join(DATA_DIR, "vision");
 const MAX_DETECTIONS = 5000;
 const MAX_LOG = 1000;
+/** Captures kept on disk. Beyond this, dismissed/clean ones go first; confirmed evidence goes last. */
+const MAX_VISION = Number(process.env.SENTINEL_MAX_CAPTURES ?? 1000);
 
 interface State {
   players: Record<string, Player>;
@@ -136,6 +138,7 @@ class Store {
   addVision(capture: VisionCapture, image?: Buffer) {
     if (image) writeFileSync(join(VISION_DIR, `${capture.id}${capture.imageType === "image/svg+xml" ? ".svg" : ".jpg"}`), image);
     this.state.vision.unshift(capture);
+    this.enforceVisionRetention();
     const v = capture.verdict;
     this.pushLog({
       at: capture.at,
@@ -146,6 +149,27 @@ class Store {
       text: `VISION ${capture.name} (#${capture.player}) ${v.verdict} ${(v.confidence * 100).toFixed(0)}% ${v.error ?? v.summary}`,
     });
     this.scheduleSave();
+  }
+
+  private enforceVisionRetention() {
+    const excess = this.state.vision.length - MAX_VISION;
+    if (excess <= 0) return;
+    // Removal order: dismissed, then clean/error verdicts, then pending, then confirmed; oldest first within each.
+    const rank = (c: VisionCapture) =>
+      c.review === "dismissed" ? 0 : c.verdict.verdict === "clean" || c.verdict.verdict === "error" ? 1 : c.review === "pending" ? 2 : 3;
+    const victims = [...this.state.vision]
+      .sort((a, b) => rank(a) - rank(b) || a.at.localeCompare(b.at))
+      .slice(0, excess);
+    const drop = new Set(victims.map((v) => v.id));
+    this.state.vision = this.state.vision.filter((v) => !drop.has(v.id));
+    for (const v of victims) {
+      const file = join(VISION_DIR, `${v.id}${v.imageType === "image/svg+xml" ? ".svg" : ".jpg"}`);
+      try {
+        if (existsSync(file)) unlinkSync(file);
+      } catch (err) {
+        console.error("[sentinel] could not delete capture", v.id, err);
+      }
+    }
   }
 
   reviewVision(id: string, review: "confirmed" | "dismissed", actor: string) {

@@ -51,7 +51,8 @@
     "apiKeyEnv": "SENTINEL_VISION_API_KEY",
     "effort": "medium",
     "flagConfidence": 0.8,
-    "cooldownSeconds": 120
+    "cooldownSeconds": 120,
+    "maxStoredCaptures": 500
   },
 
   "dashboard": {

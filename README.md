@@ -217,6 +217,9 @@ game server is connected it also simulates the server's response to staff action
 `SENTINEL_DEMO=0` in production.
 
 The store is a single process, persisted to `dashboard/.data/` (state JSON plus capture images).
+It keeps at most `SENTINEL_MAX_CAPTURES` (1000) captures, deleting dismissed and clean ones before
+pending ones and confirmed evidence last. The game server keeps the newest `vision.maxStoredCaptures`
+(500) files in `resource/sentinel/data/vision/`.
 Run one dashboard instance per deployment.
 
 ## Development and tests
@@ -225,7 +228,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-44 tests cover:
+45 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -251,7 +254,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 44 tests pass.
+- Both C# projects build with no warnings and the 45 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

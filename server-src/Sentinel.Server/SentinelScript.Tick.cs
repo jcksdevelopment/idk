@@ -46,6 +46,13 @@ namespace Sentinel.Server
 
             if (!_removing.IsEmpty) ProcessScheduledDrops(now);
             if (_tickCount % 10 == 0) _screenshots.Sweep(now);
+            if (_tickCount % 600 == 0)
+            {
+                // File I/O off the main thread; nothing here touches natives.
+                var dir = System.IO.Path.Combine(_dataDir, "vision");
+                int keep = _cfg.Vision.MaxStoredCaptures;
+                _ = Task.Run(() => CaptureRetention.Enforce(dir, keep));
+            }
             DrainVisionResults();
 
             if (_dashboard.Enabled)

@@ -20,6 +20,8 @@ namespace Sentinel.Core.Config
         public double FlagConfidence { get; set; } = 0.8;
         public int MaxImageBytes { get; set; } = 3 * 1024 * 1024;
         public int CooldownSeconds { get; set; } = 120;
+        /// <summary>Captures kept in resource/sentinel/data/vision; older files are deleted.</summary>
+        public int MaxStoredCaptures { get; set; } = 500;
     }
 
     public sealed class DashboardConfig
@@ -162,6 +164,7 @@ namespace Sentinel.Core.Config
                 cfg.Vision.Effort = v.Str("effort") ?? cfg.Vision.Effort;
                 cfg.Vision.FlagConfidence = v.Num("flagConfidence") ?? cfg.Vision.FlagConfidence;
                 cfg.Vision.CooldownSeconds = (int)(v.Num("cooldownSeconds") ?? cfg.Vision.CooldownSeconds);
+                cfg.Vision.MaxStoredCaptures = (int)(v.Num("maxStoredCaptures") ?? cfg.Vision.MaxStoredCaptures);
             }
 
             if (root.Obj("dashboard") is { } db)

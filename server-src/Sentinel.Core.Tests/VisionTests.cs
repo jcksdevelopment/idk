@@ -106,4 +106,23 @@ public class VisionTests
         Assert.Equal(5000, done!.Jpeg.Length);
         Assert.False(asm.IsPending(1));
     }
+
+    [Fact]
+    public void RetentionKeepsNewestFiles()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "sentinel-ret-" + Guid.NewGuid());
+        Directory.CreateDirectory(dir);
+        try
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                var f = Path.Combine(dir, $"{i}.jpg");
+                File.WriteAllBytes(f, new byte[] { 1 });
+                File.SetLastWriteTimeUtc(f, DateTime.UtcNow.AddMinutes(i));
+            }
+            Assert.Equal(3, CaptureRetention.Enforce(dir, 2));
+            Assert.Equal(new[] { "3.jpg", "4.jpg" }, Directory.GetFiles(dir).Select(Path.GetFileName).OrderBy(x => x));
+        }
+        finally { Directory.Delete(dir, true); }
+    }
 }
