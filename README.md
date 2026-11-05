@@ -119,7 +119,7 @@ on the server-side checks, the heartbeat and AI vision.
 | `PlayerStateValidator` | Health and armour jumps without a server-granted heal, max-health tampering |
 | `PlayerFlagsValidator` | Values the server reads straight from the player's OneSync state: super-jump flag (`IsPlayerUsingSuperJump`), weapon and melee damage modifiers, weapon defense modifiers, max health, and collision turned off on foot for `server.collisionStreakSeconds`. The client can't hide these from the server; when one fires, the server also tells the client to undo it. |
 | `AttachmentWatch` | Props, cages or vehicles created by one player and attached to other players' peds (`ENT_ATTACH_PLAYER`, above `entities.maxAttachedToOthers`); they are deleted. Peds attached to peds (carry/escort) are not counted. |
-| Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` against other players |
+| Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` and `givePedScriptedTaskEvent` against other players (cancelled) |
 | Honeypots | Decoy net events no real resource fires (`honeypotEvents` in config) |
 | Protected events | `protectedEvents` (event = max per minute) rate-limits sensitive server events of other resources (payouts, transfers, item grants) per player; over the limit they're reported (`NET_EVENT_SPAM`) and cancelled. Editable live in the panel and dashboard. |
 | Names & chat | Connections whose name contains HTML/script (chat/NUI injection) or an operator-blocked word are refused; chat messages sent under another player's name are cancelled (`NET_CHAT_SPOOF`). |

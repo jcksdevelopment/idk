@@ -122,6 +122,7 @@ namespace JcksAnticheat.Server
             EventHandlers["removeWeaponEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeWeaponEvent"));
             EventHandlers["removeAllWeaponsEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeAllWeaponsEvent"));
             EventHandlers["clearPedTasksEvent"] += new Action<object, object>(OnClearPedTasks);
+            EventHandlers["givePedScriptedTaskEvent"] += new Action<object, object>(OnGivePedTask);
             EventHandlers["startProjectileEvent"] += new Action<object, object>(OnStartProjectile);
             EventHandlers["fireEvent"] += new Action<object, object>(OnFireEvent);
             EventHandlers["ptFxEvent"] += new Action<object, object>(OnPtfxEvent);
@@ -499,6 +500,20 @@ namespace JcksAnticheat.Server
                     ["target"] = NetworkGetEntityOwner(ped), ["immediately"] = Get(data, "immediately"),
                 }));
             }
+        }
+
+        private void OnGivePedTask(object sender, object rawData)
+        {
+            int source = ToId(sender);
+            if (source <= 0 || !(rawData is IDictionary<string, object> data)) return;
+            int pedNetId = ToInt(Get(data, "entityNetId"));
+            int ped = pedNetId != 0 ? NetworkGetEntityFromNetworkId(pedNetId) : 0;
+            if (ped == 0 || !IsPedAPlayer(ped) || NetworkGetEntityOwner(ped) == source) return;
+            CancelEvent();
+            Punish(new Violation(source, "NET_GIVE_TASK", ViolationSource.Server, new Dictionary<string, object?>
+            {
+                ["target"] = NetworkGetEntityOwner(ped), ["task"] = Get(data, "taskId"),
+            }));
         }
 
         private static int OwnerPlayerOf(int netId)

@@ -96,6 +96,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 |---|---|---|---|---|---|
 | `NET_RATE` | Event flood / spoofing | Per-player token bucket on net events is exhausted | S | `RateLimiter` | 20 |
 | `NET_CLEAR_TASKS` | Kick players out of vehicles / freeze them | `clearPedTasksEvent` aimed at another player's ped (cancelled) | S | `AnticheatScript.cs` | 40 |
+| `NET_GIVE_TASK` | Force animations or tasks on other players | `givePedScriptedTaskEvent` aimed at another player's ped (cancelled). NPC peds are not counted | S | `AnticheatScript.cs` | 40 |
 | `NET_FLOOD` | Event flood / spam triggers | 40+ rate-limited events within 10 s: the player is disconnected at once | S | `AnticheatScript.cs` (`Guard`) | 40 |
 | `NET_PTFX_SPAM` | Particle spam (crash/blind players) | `ptFxEvent` over 40 per 10 s, scale > 5, or attached to another player. Cancelled. | S | `GameEventValidator` | 35 |
 | `NET_EVENT_SPAM` | Spamming money/item server events (executor loops) | A server event listed in `protectedEvents` triggered more times per minute than its limit. Cancelled. | S | `AnticheatScript.cs` | 30 |
