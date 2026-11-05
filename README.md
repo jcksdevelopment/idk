@@ -458,6 +458,9 @@ use real Discord, replace `exchangeCode` in `src/lib/auth.ts` with a token excha
 - **Players**: search by name, ID or identifier, with pagination, live scores, heartbeat health,
   and per-player detection history. Capture, kick and ban actions.
 - **Bans**: search, pagination, expiry state, and unban.
+- **Stats**: hits per detection code over 1 h / 24 h / 7 d / 30 d, how many different players
+  triggered each, client vs. server evidence, kicks and bans, with a hint on codes that look like
+  false positives (many players, client-only).
 - **Vision Vault**: captures awaiting review, the model's verdict and findings, and dismiss,
   confirm, or confirm-and-ban.
 

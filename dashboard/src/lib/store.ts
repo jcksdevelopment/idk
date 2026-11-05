@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import type { BackdoorFinding, BackdoorScan, IntegrationSuggestions, Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
+import type { BackdoorFinding, BackdoorScan, DetectionStats, IntegrationSuggestions, Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
 import { seedDemo, startDemoFeed } from "./demo";
 
 
@@ -283,6 +283,38 @@ class Store {
 
   ban(id: string) {
     return this.state.bans[id] ?? null;
+  }
+
+  detectionStats(hours: number, serverId?: string): DetectionStats {
+    const now = Date.now();
+    const from = now - hours * 3_600_000;
+    const bucketMs = (hours * 3_600_000) / 24;
+    const buckets = new Array<number>(24).fill(0);
+    const byCode = new Map<string, { count: number; players: Set<string>; client: number; server: number; kicks: number; bans: number; bypass: number; lastAt: string }>();
+    const players = new Set<string>();
+    let total = 0;
+    for (const d of this.state.detections) {
+      const t = Date.parse(d.at);
+      if (!(t >= from) || (serverId && d.serverId !== serverId)) continue;
+      total++;
+      const who = `${d.serverId}:${d.player}`;
+      players.add(who);
+      buckets[Math.min(23, Math.max(0, Math.floor((t - from) / bucketMs)))]++;
+      let c = byCode.get(d.code);
+      if (!c) byCode.set(d.code, (c = { count: 0, players: new Set(), client: 0, server: 0, kicks: 0, bans: 0, bypass: 0, lastAt: d.at }));
+      c.count++;
+      c.players.add(who);
+      if (d.source === "client" || d.source === "heartbeat") c.client++;
+      else c.server++;
+      if (d.action === "kick") c.kicks++;
+      if (d.action === "ban") c.bans++;
+      if (d.bypass) c.bypass++;
+      if (d.at > c.lastAt) c.lastAt = d.at;
+    }
+    const codes = [...byCode.entries()]
+      .map(([code, c]) => ({ code, count: c.count, players: c.players.size, client: c.client, server: c.server, kicks: c.kicks, bans: c.bans, bypass: c.bypass, lastAt: c.lastAt }))
+      .sort((a, b) => b.count - a.count);
+    return { hours, total, players: players.size, buckets, codes };
   }
 
   detections(opts: { player?: string; limit?: number }): Detection[] {

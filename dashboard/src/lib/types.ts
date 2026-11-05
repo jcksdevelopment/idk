@@ -17,6 +17,26 @@ export interface Detection {
   dryRun: boolean;
 }
 
+export interface CodeStat {
+  code: string;
+  count: number;
+  players: number;
+  client: number;
+  server: number;
+  kicks: number;
+  bans: number;
+  bypass: number;
+  lastAt: string;
+}
+
+export interface DetectionStats {
+  hours: number;
+  total: number;
+  players: number;
+  buckets: number[];
+  codes: CodeStat[];
+}
+
 export interface Player {
   key: string;
   id: number;

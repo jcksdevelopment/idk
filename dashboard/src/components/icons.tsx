@@ -44,3 +44,6 @@ export const BugIcon = (p: P) => (
 export const XIcon = (p: P) => (
   <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M6 6l12 12M18 6 6 18" /></svg>
 );
+export const ChartIcon = (p: P) => (
+  <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8" /></svg>
+);
