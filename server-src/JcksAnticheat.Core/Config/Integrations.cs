@@ -10,6 +10,8 @@ namespace JcksAnticheat.Core.Config
     {
         public bool UsePresets { get; set; } = true;
         public bool Learning { get; set; }
+        /// <summary>Client side: any resource file doing a behaviour pauses the matching detections briefly.</summary>
+        public bool ClientTrustAllResources { get; set; } = true;
         public int GraceMs { get; set; } = 5000;
         public Dictionary<string, List<string>> Resources { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
     }

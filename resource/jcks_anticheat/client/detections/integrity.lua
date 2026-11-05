@@ -100,6 +100,8 @@ AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
     local ok = allowed and (allowed[behaviour] or allowed["*"])
     if ok then
       S.grant(behaviour, S.server.integrationGraceMs or 5000)
+    elseif S.server.integrationTrustAll then
+      S.grant(behaviour, 3000)
     end
     S.queueUse(resource, behaviour, ok and true or false)
     return

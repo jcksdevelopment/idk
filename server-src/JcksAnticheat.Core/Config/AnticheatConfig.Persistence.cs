@@ -91,6 +91,7 @@ namespace JcksAnticheat.Core.Config
             ["integrations"] = new Dictionary<string, object?>
             {
                 ["usePresets"] = Integrations.UsePresets, ["learning"] = Integrations.Learning, ["graceMs"] = Integrations.GraceMs,
+                ["clientTrustAllResources"] = Integrations.ClientTrustAllResources,
                 ["resources"] = Integrations.Resources.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase)
                     .ToDictionary(k => k.Key, k => (object?)k.Value.Cast<object?>().ToList()),
             },

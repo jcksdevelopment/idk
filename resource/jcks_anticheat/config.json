@@ -75,6 +75,7 @@
   "integrations": {
     "usePresets": true,
     "learning": false,
+    "clientTrustAllResources": true,
     "graceMs": 5000,
     "resources": {}
   },

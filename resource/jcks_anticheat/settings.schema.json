@@ -130,6 +130,12 @@
           "help": "Rules for popular resources (txAdmin, vMenu, qb-*, esx_*, ox_inventory, appearance, garages, mechanics, phones...) from integrations.presets.json, applied to resources you run. Your own rules override them."
         },
         {
+          "key": "integrations.clientTrustAllResources",
+          "label": "Trust every resource file on the client",
+          "type": "bool",
+          "help": "When any resource's own script (not injected code) heals, revives, teleports, etc. the player, the matching client detections and countermeasures pause for 3 s. Prevents killing players revived by a custom death script you haven't listed. Server-side grace still requires Trusted resources. Code injected by executors is never trusted."
+        },
+        {
           "key": "integrations.learning",
           "label": "Learning mode",
           "type": "bool",

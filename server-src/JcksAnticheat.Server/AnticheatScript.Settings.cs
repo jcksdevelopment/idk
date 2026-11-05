@@ -199,7 +199,7 @@ namespace JcksAnticheat.Server
             ["ig"] = _cfg.Scoring.Ignore.ToList(), ["iv"] = _cfg.HeartbeatIntervalMs,
             ["mw"] = _cfg.MaxWeapons, ["tb"] = _cfg.TextureBlacklist,
             ["cm"] = _cfg.Countermeasures.Enabled, ["cs"] = _cfg.Countermeasures.Skip,
-            ["it"] = _integrations.ToClient(), ["ig2"] = _cfg.Integrations.GraceMs, ["il"] = _cfg.Integrations.Learning,
+            ["it"] = _integrations.ToClient(), ["ig2"] = _cfg.Integrations.GraceMs, ["il"] = _cfg.Integrations.Learning, ["ita"] = _cfg.Integrations.ClientTrustAllResources,
         };
 
         private void PushSettingsToDashboard()
