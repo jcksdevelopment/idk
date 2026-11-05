@@ -244,3 +244,37 @@ public class ShieldTests
     public void InstallerSkipsServerOnlyResources()
         => Assert.False(ShieldInstaller.Install("fx_version 'cerulean'\nserver_scripts { 'a.lua' }\n").changed);
 }
+
+public class CountermeasureTests
+{
+    [Fact]
+    public void ClientCountermeasuresFollowSettings()
+    {
+        var lua = new[] { "lua5.4", "lua" }.SelectMany(n => (Environment.GetEnvironmentVariable("PATH") ?? "").Split(':').Select(p => Path.Combine(p, n))).FirstOrDefault(File.Exists);
+        if (lua == null) { if (Environment.GetEnvironmentVariable("JCKS_AC_SKIP_LUA") == "1") return; Assert.Fail("lua5.4 not found"); }
+        var root = Environment.GetEnvironmentVariable("JCKS_AC_RESOURCE_ROOT");
+        if (string.IsNullOrEmpty(root))
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "resource", "jcks_anticheat"))) dir = dir.Parent;
+            root = Path.Combine(dir!.FullName, "resource", "jcks_anticheat");
+        }
+        var psi = new System.Diagnostics.ProcessStartInfo(lua!) { RedirectStandardOutput = true, RedirectStandardError = true };
+        psi.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "lua", "countermeasures_test.lua"));
+        psi.ArgumentList.Add(root);
+        using var p = System.Diagnostics.Process.Start(psi)!;
+        var output = p.StandardOutput.ReadToEnd() + p.StandardError.ReadToEnd();
+        p.WaitForExit();
+        Assert.True(p.ExitCode == 0 && output.Contains("COUNTERMEASURES OK"), output);
+    }
+
+    [Fact]
+    public void LastGoodPositionSkipsViolatingSamples()
+    {
+        var mv = new JcksAnticheat.Core.Validation.MovementValidator(new JcksAnticheat.Core.Validation.MovementLimits());
+        var t0 = DateTime.UtcNow;
+        mv.Evaluate(1, new JcksAnticheat.Core.Validation.MovementSample(new JcksAnticheat.Core.Validation.Vec3(10, 10, 10), default, JcksAnticheat.Core.Validation.MovementMode.OnFoot, t0));
+        mv.Evaluate(1, new JcksAnticheat.Core.Validation.MovementSample(new JcksAnticheat.Core.Validation.Vec3(5000, 0, 0), default, JcksAnticheat.Core.Validation.MovementMode.OnFoot, t0.AddSeconds(1)));
+        Assert.Equal(10f, mv.LastGood(1)!.Value.X);
+    }
+}

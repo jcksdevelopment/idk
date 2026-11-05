@@ -74,6 +74,10 @@ do
     end
 
     local height = GetEntityHeightAboveGround(subject)
+    if height < 3.0 and math.abs(vel.z) < 2.0 and not GetEntityCollisionDisabled(subject) then
+      local c = GetEntityCoords(subject)
+      S.lastGround = { x = c.x, y = c.y, z = c.z }
+    end
     if height > 5.0 and math.abs(vel.z) < 0.5 and not IsPedFalling(ped) then
       floatSince = floatSince or GetGameTimer()
       if GetGameTimer() - floatSince > 3000 then

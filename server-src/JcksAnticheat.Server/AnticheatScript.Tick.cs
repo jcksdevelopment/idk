@@ -35,7 +35,15 @@ namespace JcksAnticheat.Server
                 foreach (var p in players) CheckPlayerState(p, now);
                 // Teleports are judged together: many landing on one spot is a "bring all".
                 if (_tickTeleports.Count > 0)
-                    foreach (var v in MassTeleportDetector.Process(_tickTeleports, _tickPositions)) Punish(v);
+                {
+                    var outcome = MassTeleportDetector.Process(_tickTeleports, _tickPositions);
+                    foreach (var v in outcome) Punish(v);
+                    // Bring-all victims did nothing wrong but were moved: put them back where they were.
+                    if (CountermeasureOn("MOV_BRING_ALL"))
+                        foreach (var t in _tickTeleports)
+                            if (!outcome.Contains(t.violation) && Players[t.player] is { } victim)
+                                PutBack(t.player, GetPlayerPed(victim.Handle));
+                }
 
                 foreach (var (player, silent) in _heartbeats.FindMissing(now))
                     Punish(new Violation(player, "HB_MISSING", ViolationSource.Heartbeat, new Dictionary<string, object?>

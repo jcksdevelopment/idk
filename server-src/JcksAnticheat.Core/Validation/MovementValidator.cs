@@ -42,6 +42,10 @@ namespace JcksAnticheat.Core.Validation
     {
         private readonly ConcurrentDictionary<int, MovementSample> _last = new ConcurrentDictionary<int, MovementSample>();
         private readonly ConcurrentDictionary<int, DateTime> _grace = new ConcurrentDictionary<int, DateTime>();
+        private readonly ConcurrentDictionary<int, Vec3> _lastGood = new ConcurrentDictionary<int, Vec3>();
+
+        /// <summary>Last position that passed every check: where a countermeasure puts the player back.</summary>
+        public Vec3? LastGood(int player) => _lastGood.TryGetValue(player, out var p) ? p : (Vec3?)null;
         private readonly MovementLimits _limits;
 
         public MovementValidator(MovementLimits limits) { _limits = limits; }
@@ -57,6 +61,7 @@ namespace JcksAnticheat.Core.Validation
         {
             _last.TryRemove(player, out _);
             _grace.TryRemove(player, out _);
+            _lastGood.TryRemove(player, out _);
         }
 
         public float MaxSpeed(MovementMode mode)
@@ -123,6 +128,7 @@ namespace JcksAnticheat.Core.Validation
             }
 
             _last[player] = sample;
+            if (found.Count == 0 && sample.Mode != MovementMode.Dead) _lastGood[player] = sample.Position;
             return found;
         }
     }

@@ -131,3 +131,17 @@ do
     end
   end)
 end
+
+CreateThread(function()
+  while not S.ready do Wait(500) end
+  local wasDead = false
+  while true do
+    Wait(400)
+    local ped = PlayerPedId()
+    local dead = IsEntityDead(ped) or IsPedDeadOrDying(ped, true)
+    if wasDead and not dead and not S.allowed("heal") and not S.allowed("revive") then
+      S.flag("PLY_SELF_REVIVE", {})
+    end
+    wasDead = dead
+  end
+end)

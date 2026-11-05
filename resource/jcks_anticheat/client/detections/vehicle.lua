@@ -80,6 +80,9 @@ S.register("vehicle.state", 1500, function()
       local tolerance = math.max(0.01, math.abs(b) * 0.02)
       if math.abs(v - b) > tolerance then
         S.flag("VEH_HANDLING", { f = FIELDS[i], b = b, v = v })
+        if S.counterEnabled("VEH_HANDLING") then
+          for j = 1, #FIELDS do SetVehicleHandlingFloat(veh, "CHandlingData", FIELDS[j], base[j]) end
+        end
         break
       end
     end

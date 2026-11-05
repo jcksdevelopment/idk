@@ -13,6 +13,7 @@ client_scripts {
   "client/heartbeat.lua",
   "client/screenshot.lua",
   "client/panel.lua",
+  "client/countermeasures.lua",
   "client/detections/*.lua",
 }
 

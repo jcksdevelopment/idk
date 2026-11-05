@@ -35,6 +35,14 @@ namespace JcksAnticheat.Core.Config
         public string ServerId { get; set; } = "main";
     }
 
+    public sealed class CountermeasuresConfig
+    {
+        /// <summary>Undo a detected cheat's effect even when the punishment is only a log/warning.</summary>
+        public bool Enabled { get; set; } = true;
+        /// <summary>Codes whose effect is left alone.</summary>
+        public List<string> Skip { get; set; } = new List<string>();
+    }
+
     public sealed class BackdoorConfig
     {
         public bool Enabled { get; set; } = true;
@@ -60,6 +68,7 @@ namespace JcksAnticheat.Core.Config
         public VisionConfig Vision { get; set; } = new VisionConfig();
         public DashboardConfig Dashboard { get; set; } = new DashboardConfig();
         public BackdoorConfig Backdoor { get; set; } = new BackdoorConfig();
+        public CountermeasuresConfig Countermeasures { get; set; } = new CountermeasuresConfig();
         public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
 
@@ -217,6 +226,12 @@ namespace JcksAnticheat.Core.Config
                 cfg.Vision.FlagConfidence = v.Num("flagConfidence") ?? cfg.Vision.FlagConfidence;
                 cfg.Vision.CooldownSeconds = (int)(v.Num("cooldownSeconds") ?? cfg.Vision.CooldownSeconds);
                 cfg.Vision.MaxStoredCaptures = (int)(v.Num("maxStoredCaptures") ?? cfg.Vision.MaxStoredCaptures);
+            }
+
+            if (root.Obj("countermeasures") is { } cmo)
+            {
+                cfg.Countermeasures.Enabled = cmo.Bool("enabled") ?? cfg.Countermeasures.Enabled;
+                cfg.Countermeasures.Skip = Strings(cmo, "skip") ?? cfg.Countermeasures.Skip;
             }
 
             if (root.Obj("integrations") is { } igr)

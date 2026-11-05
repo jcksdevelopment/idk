@@ -42,6 +42,18 @@
       "title": "Scoring & punishment",
       "fields": [
         {
+          "key": "countermeasures.enabled",
+          "label": "Undo cheat effects (countermeasures)",
+          "type": "bool",
+          "help": "Even when a detection only logs or warns, its effect is reverted: spawned entities deleted/blocked, godmode/invisibility/noclip/spectate switched off, health/armour/vehicle repair/plate/handling restored, teleports put back, unauthorised revives killed, extra weapons removed, explosions/projectiles/fires/particles cancelled. Health, armour and revive reverts need the shield installed (it tells legitimate heals apart)."
+        },
+        {
+          "key": "countermeasures.skip",
+          "label": "Codes to leave alone",
+          "type": "codes",
+          "help": "Detections whose effect is not reverted (still detected and scored)."
+        },
+        {
           "key": "scoring.screenshotAt",
           "label": "Screenshot at score",
           "type": "number",

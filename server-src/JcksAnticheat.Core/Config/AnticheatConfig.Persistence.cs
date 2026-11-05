@@ -80,6 +80,10 @@ namespace JcksAnticheat.Core.Config
                 ["flagConfidence"] = Vision.FlagConfidence, ["cooldownSeconds"] = Vision.CooldownSeconds,
                 ["maxStoredCaptures"] = Vision.MaxStoredCaptures,
             },
+            ["countermeasures"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = Countermeasures.Enabled, ["skip"] = Countermeasures.Skip.ToList(),
+            },
             ["integrations"] = new Dictionary<string, object?>
             {
                 ["usePresets"] = Integrations.UsePresets, ["learning"] = Integrations.Learning, ["graceMs"] = Integrations.GraceMs,

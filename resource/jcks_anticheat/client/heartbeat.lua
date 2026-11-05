@@ -85,6 +85,10 @@ local function applySettings(data)
   end
   S.server.integrationGraceMs = data.ig2 or 5000
   S.server.integrationLearning = data.il and true or false
+  S.server.countermeasures = data.cm and true or false
+  S.server.cmSkip = {}
+  for _, code in ipairs(data.cs or {}) do S.server.cmSkip[code] = true end
+  if data.bp ~= nil then S.server.bypass = data.bp and true or false end
   S.server.textureBlacklist = data.tb or {}
 end
 

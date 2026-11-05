@@ -40,7 +40,7 @@ if [ "${NO_OBFUSCATE:-0}" != "1" ]; then
   if [ "${SKIP_TESTS:-0}" != "1" ]; then
     echo "==> Heartbeat interop tests against the obfuscated build"
     JCKS_AC_RESOURCE_ROOT="$PWD/dist/jcks_anticheat" dotnet test server-src/JcksAnticheat.Core.Tests --nologo -v quiet \
-      --filter "FullyQualifiedName~HeartbeatInteropTests|FullyQualifiedName~ShieldTests"
+      --filter "FullyQualifiedName~HeartbeatInteropTests|FullyQualifiedName~ShieldTests|FullyQualifiedName~CountermeasureTests"
   fi
 fi
 

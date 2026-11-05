@@ -37,6 +37,7 @@ namespace JcksAnticheat.Server
             });
 
             _discord.Detection(player.Name, v.Player, v, _cfg.DryRun);
+            if (!bypass) ApplyServerCountermeasure(v, player.Handle);
             if (bypass || _cfg.DryRun) return;
 
             switch (v.Action)

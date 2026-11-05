@@ -241,6 +241,26 @@ severity overrides, `ignore` codes (switched off entirely; the client stops send
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
 
+### Countermeasures: the cheat never works, whatever the punishment
+
+Punishment (log, screenshot, kick, ban) is decided by the score. Separately, every detection
+undoes its effect at once, even in dry run and even when the code is set to log only:
+
+| Effect | Undone by |
+|---|---|
+| Spawned vehicles/objects/peds, explosions, projectiles, fires, particles, weapon give/remove, invalid damage, spoofed chat, protected-event spam | the event is cancelled on the server |
+| Teleport, speedhack, noclip rising | server puts the player (or their vehicle) back at the last valid position |
+| "Bring all players" | every victim is put back where they were |
+| Hijacked vehicle | the player is pulled out of the driver seat |
+| Godmode, proofs, invisibility, tiny ped, spectate, no-ragdoll, night/thermal vision | switched off |
+| Health or armour regen, unauthorised revive | health/armour restored, the revived player dies again (needs the shield, so trusted heals aren't undone) |
+| Damage modifier, infinite ammo, "give all weapons" | modifiers reset, infinite ammo off, weapons removed |
+| Vehicle godmode, power boost, handling edit, instant repair, plate change | reset to the values before the change |
+| Freecam, noclip collision/floating | camera returned, collision on, player put back on the ground |
+
+Turn it off with `countermeasures.enabled`, or per code with `countermeasures.skip`. Players with
+the bypass ACE are left alone.
+
 ### Resource integrations
 
 Every server runs different scripts that legitimately heal, teleport or spawn things. Instead of
@@ -362,7 +382,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-89 tests cover:
+91 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -388,7 +408,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 89 tests pass.
+- Both C# projects build with no warnings and the 91 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

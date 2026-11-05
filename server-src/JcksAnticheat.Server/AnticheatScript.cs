@@ -257,6 +257,7 @@ namespace JcksAnticheat.Server
                 ["se"] = _settingsEvent, ["po"] = _panelOpenEvent,
             };
             foreach (var kv in ClientSettings()) init[kv.Key] = kv.Value;
+            init["bp"] = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace));
             player.TriggerEvent("jcks_anticheat:init", MiniJson.Serialize(init));
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));
         }

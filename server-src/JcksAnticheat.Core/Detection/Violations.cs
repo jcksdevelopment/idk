@@ -39,7 +39,7 @@ namespace JcksAnticheat.Core.Detection
             ["PLY_GODMODE_FLAG"] = 40, ["PLY_GODMODE_PROOFS"] = 35, ["PLY_HEALTH_REGEN"] = 25,
             ["PLY_ARMOR_REGEN"] = 25, ["PLY_HEALTH_CAP"] = 30, ["PLY_DAMAGE_ABSORB"] = 30,
             ["PLY_NO_RAGDOLL"] = 15, ["PLY_SUPERJUMP"] = 30, ["PLY_SPEED_FOOT"] = 30,
-            ["PLY_STAMINA"] = 10, ["PLY_VISION"] = 15, ["PLY_INVISIBLE"] = 30, ["PLY_PED_MODEL"] = 20, ["PLY_SPECTATE"] = 35, ["PLY_TINY_PED"] = 30, ["WPN_GIVE_ALL"] = 40,
+            ["PLY_STAMINA"] = 10, ["PLY_VISION"] = 15, ["PLY_INVISIBLE"] = 30, ["PLY_PED_MODEL"] = 20, ["PLY_SPECTATE"] = 35, ["PLY_TINY_PED"] = 30, ["PLY_SELF_REVIVE"] = 35, ["WPN_GIVE_ALL"] = 40,
 
             ["MOV_FREECAM"] = 25, ["MOV_NOCLIP_COLLISION"] = 40, ["MOV_NOCLIP_FLOAT"] = 35,
             ["MOV_NOCLIP_ZVEL"] = 35, ["MOV_TELEPORT"] = 40, ["MOV_BRING_ALL"] = 50, ["MOV_SPEED_VEH"] = 30,

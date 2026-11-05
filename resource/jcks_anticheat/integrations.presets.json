@@ -225,6 +225,15 @@
     ],
     "npwd": [
       "camera"
+    ],
+    "spawnmanager": [
+      "heal",
+      "teleport",
+      "invisible"
+    ],
+    "basic-gamemode": [
+      "heal",
+      "teleport"
     ]
   }
 }

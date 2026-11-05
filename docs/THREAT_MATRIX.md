@@ -32,6 +32,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
 | `PLY_INVISIBLE` | Invisibility | `IsEntityVisible` false or alpha < 50 while not authorised | C+S | `player.lua`, server state tick | 30 |
 | `PLY_TINY_PED` | Tiny ped | Ped config flag 223 (shrink) set without a `tiny` grant | C | `player.lua` | 30 |
+| `PLY_SELF_REVIVE` | Self-revive | Player goes from dead to alive without a `heal`/`revive` grace (trusted ambulance/spawn resources grant it through the shield) | C | `player.lua` | 35 |
 | `PLY_SPECTATE` | Spectate other players | `NetworkIsInSpectatorMode` true without an admin grant (`spectate`) | C | `player.lua` | 35 |
 | `PLY_PED_MODEL` | Ped model swap | Server sees a ped model outside the allow list | S | `EntityValidator` | 20 |
 
