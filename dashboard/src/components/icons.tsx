@@ -35,6 +35,9 @@ export const ChevronRight = (p: P) => (
 export const LogOutIcon = (p: P) => (
   <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4H9M15 16l4-4-4-4M19 12H9" /></svg>
 );
+export const SettingsIcon = (p: P) => (
+  <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>
+);
 export const XIcon = (p: P) => (
   <svg viewBox="0 0 24 24" {...base} aria-hidden {...p}><path d="M6 6l12 12M18 6 6 18" /></svg>
 );

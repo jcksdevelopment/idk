@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import type { Ban, Command, Detection, LogLevel, LogLine, Page, Player, VisionCapture } from "./types";
+import type { Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
 import { seedDemo, startDemoFeed } from "./demo";
 
 /**
@@ -26,11 +26,12 @@ interface State {
   bans: Record<string, Ban>;
   vision: VisionCapture[];
   commands: Command[];
+  settings: Record<string, ServerSettings>;
 }
 
 class Store {
   readonly bus = new EventEmitter();
-  private state: State = { players: {}, detections: [], bans: {}, vision: [], commands: [] };
+  private state: State = { players: {}, detections: [], bans: {}, vision: [], commands: [], settings: {} };
   private log: LogLine[] = [];
   private saveTimer: NodeJS.Timeout | null = null;
   readonly demo: boolean;
@@ -46,6 +47,8 @@ class Store {
       }
     }
     this.demo = process.env.JCKS_AC_DEMO !== "0";
+    this.state.settings ??= {};
+    if (this.demo && !this.state.settings.main) this.seedSettingsFromResource();
     if (this.demo && Object.keys(this.state.players).length === 0) {
       seedDemo(this);
     }
@@ -205,6 +208,35 @@ class Store {
     this.log.push(l);
     if (this.log.length > MAX_LOG) this.log.splice(0, this.log.length - MAX_LOG);
     this.bus.emit("log", l);
+  }
+
+  // ── Live settings ───────────────────────────────────────────────────────────────
+
+  setSettings(serverId: string, config: Record<string, unknown>, schema: SettingsSchema | null) {
+    const prev = this.state.settings[serverId];
+    this.state.settings[serverId] = { serverId, config, schema: schema ?? prev?.schema ?? null, updatedAt: new Date().toISOString(), pending: false };
+    this.scheduleSave();
+  }
+
+  markSettingsPending(serverId: string) {
+    const s = this.state.settings[serverId];
+    if (s) s.pending = true;
+  }
+
+  settings(serverId: string): ServerSettings | null {
+    return this.state.settings[serverId] ?? null;
+  }
+
+  /** Demo mode: start from the resource's shipped config.json + schema when the repo layout is present. */
+  private seedSettingsFromResource() {
+    const dir = join(process.cwd(), "..", "resource", "jcks_anticheat");
+    try {
+      const config = JSON.parse(readFileSync(join(dir, "config.json"), "utf8"));
+      const schema = JSON.parse(readFileSync(join(dir, "settings.schema.json"), "utf8"));
+      this.state.settings.main = { serverId: "main", config, schema, updatedAt: new Date().toISOString() };
+    } catch {
+      // Not running from the repository; settings appear once a game server pushes them.
+    }
   }
 
   // ── Reads ───────────────────────────────────────────────────────────────────────

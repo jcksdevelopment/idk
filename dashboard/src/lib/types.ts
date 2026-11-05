@@ -69,7 +69,32 @@ export interface VisionCapture {
   reviewedBy?: string;
 }
 
-export type CommandType = "ban" | "unban" | "kick" | "screenshot";
+export type CommandType = "ban" | "unban" | "kick" | "screenshot" | "config" | "reload";
+
+export interface SettingsField {
+  key: string;
+  label: string;
+  type: "bool" | "number" | "string" | "select" | "list" | "codes" | "numbers";
+  help?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+}
+
+export interface SettingsSchema {
+  version: number;
+  sections: { id: string; title: string; fields: SettingsField[] }[];
+}
+
+export interface ServerSettings {
+  serverId: string;
+  config: Record<string, unknown>;
+  schema: SettingsSchema | null;
+  updatedAt: string;
+  /** True while a change from the dashboard is queued and the game server hasn't confirmed it. */
+  pending?: boolean;
+}
 
 export interface Command {
   id: string;
@@ -82,6 +107,8 @@ export interface Command {
   /** For bans: lets the game server ban a player who has already disconnected. */
   identifiers?: string[];
   name?: string;
+  /** For "config": full settings JSON. */
+  config?: string;
   actor: string;
   createdAt: string;
   deliveredAt?: string;

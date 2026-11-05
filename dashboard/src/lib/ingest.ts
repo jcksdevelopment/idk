@@ -1,6 +1,6 @@
 import "server-only";
 import { store } from "./store";
-import type { Action, Ban, Source, VisionVerdict } from "./types";
+import type { Action, Ban, SettingsSchema, Source, VisionVerdict } from "./types";
 
 type Obj = Record<string, unknown>;
 const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);
@@ -115,6 +115,16 @@ export function applyEvent(serverId: string, ev: Obj) {
         },
         image ? Buffer.from(image, "base64") : undefined,
       );
+      break;
+    }
+    case "settings": {
+      const s = obj(data);
+      store.setSettings(serverId, obj(s.config), s.schema && typeof s.schema === "object" ? (s.schema as SettingsSchema) : null);
+      break;
+    }
+    case "settings_changed": {
+      const s = obj(data);
+      store.pushLog({ level: "warn", kind: "settings", text: `settings ${s.saved ? "saved" : "reloaded"} by ${str(s.actor)}` });
       break;
     }
     case "connection_rejected": {

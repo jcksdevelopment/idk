@@ -80,6 +80,9 @@ export async function sessionFromRequest(): Promise<Session | null> {
   return getSession();
 }
 
+/** Only Head Admins change anticheat settings. */
+export const canEditSettings = (role: string) => role === "Head Admin";
+
 export function actorName(s: Session) {
   return `${s.username} (Discord)`;
 }
