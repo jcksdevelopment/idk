@@ -30,9 +30,9 @@ local Types = require(Shared.Types)
 
 local DataService = require(script.Parent.DataService)
 local GamePassService = require(script.Parent.GamePassService)
-local ItemService = require(script.Parent.ItemService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local RepairService = require(script.Parent.RepairService)
+local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
 
 local MonetizationService = {}
@@ -47,15 +47,13 @@ local grantsByKey: { [string]: Grant } = {
 	end,
 
 	MoneyBoost2x = function(player, data)
-		local now = os.time()
-		local base = math.max(now, data.BoostEndsAt)
-		data.BoostEndsAt = math.min(base + Config.Products.MoneyBoostDurationSeconds, now + Config.Products.MoneyBoostMaxStackSeconds)
-		SyncService.Notify(player, "success", string.format("💰 2x Money active for %s!", Format.Duration(data.BoostEndsAt - now)))
+		Rules.ExtendBoost(data, Config.Products.MoneyBoostDurationSeconds)
+		SyncService.Notify(player, "success", "N_BoostActive", { Format.Duration(data.BoostEndsAt - os.time()) })
 	end,
 
 	CashPackSmall = function(player, data)
-		ItemService.AddCash(data, Config.Products.CashPackSmallAmount, false)
-		SyncService.Notify(player, "success", "💵 " .. Format.Cash(Config.Products.CashPackSmallAmount) .. " added!")
+		Rules.AddCash(data, Config.Products.CashPackSmallAmount, false)
+		SyncService.Notify(player, "success", "N_CashAdded", { Format.Cash(Config.Products.CashPackSmallAmount) })
 	end,
 }
 
@@ -106,7 +104,7 @@ end
 local function onPromptProduct(player: Player, productKey: string)
 	local productId = (Config.DevProducts :: any)[productKey]
 	if type(productId) ~= "number" or productId == 0 then
-		SyncService.Notify(player, "error", "This item is not on sale yet.")
+		SyncService.Notify(player, "error", "N_NotOnSale")
 		return
 	end
 	if productKey == "InstantRepair" then
@@ -118,11 +116,11 @@ end
 
 local function onPromptGamePass(player: Player, passKey: string)
 	if GamePassService.Has(player, passKey :: any) then
-		SyncService.Notify(player, "info", "You already own this pass!")
+		SyncService.Notify(player, "info", "N_AlreadyOwned")
 		return
 	end
 	if not GamePassService.Prompt(player, passKey) then
-		SyncService.Notify(player, "error", "This pass is not on sale yet.")
+		SyncService.Notify(player, "error", "N_NotOnSale")
 	end
 end
 

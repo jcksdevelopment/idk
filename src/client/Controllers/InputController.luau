@@ -14,9 +14,13 @@ local InputController = {}
 local BINDINGS: { [Enum.KeyCode]: string } = {
 	[Enum.KeyCode.I] = "Inventory",
 	[Enum.KeyCode.B] = "Bazaar",
+	[Enum.KeyCode.Q] = "Rewards",
+	[Enum.KeyCode.C] = "Index",
 	[Enum.KeyCode.P] = "CashShop",
 	[Enum.KeyCode.ButtonY] = "Inventory",
 	[Enum.KeyCode.ButtonX] = "Bazaar",
+	[Enum.KeyCode.ButtonL1] = "Rewards",
+	[Enum.KeyCode.ButtonR1] = "Index",
 }
 
 function InputController.Start()

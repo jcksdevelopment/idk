@@ -35,8 +35,15 @@ function Signal.new<T...>(): Signal<T...>
 	end
 
 	function self.Fire(_: any, ...: T...)
-		for _, handler in handlers do
-			task.spawn(handler, ...)
+		-- Snapshot first: handlers may connect/disconnect while we fire.
+		local list = {}
+		for connection, handler in handlers do
+			table.insert(list, { connection, handler })
+		end
+		for _, pair in list do
+			if pair[1].Connected then
+				task.spawn(pair[2], ...)
+			end
 		end
 	end
 

@@ -3,6 +3,7 @@
 	SyncService
 	Replicates a read-only snapshot of a player's state to THAT player only.
 	Mutations call MarkDirty(); snapshots are coalesced and sent once per frame.
+	Notifications carry a locale key + args; the client translates them.
 	Also maintains server-owned leaderstats for the player list.
 ]]
 
@@ -13,11 +14,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Items)
 local Net = require(Shared.Net)
+local Progression = require(Shared.Progression)
 local Types = require(Shared.Types)
 local Valuation = require(Shared.Valuation)
 
 local DataService = require(script.Parent.DataService)
 local GamePassService = require(script.Parent.GamePassService)
+local ProgressViews = require(script.Parent.ProgressViews)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
 
@@ -34,12 +37,13 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		table.insert(views, {
 			Id = item.Id,
 			TemplateId = item.TemplateId,
-			Name = if template then template.Name else item.TemplateId,
 			Icon = if template then template.Icon else "?",
 			Rarity = item.Rarity,
 			State = item.State,
+			Shiny = item.Shiny,
 			RepairStartedAt = item.RepairStartedAt,
 			RepairEndsAt = item.RepairEndsAt,
+			ScrubSeconds = item.ScrubSeconds,
 			SellValue = Valuation.SellValue(item, multiplier),
 			CleanValue = math.floor(Valuation.CleanValue(item) * multiplier),
 			AcquiredAt = item.AcquiredAt,
@@ -52,11 +56,17 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		return a.AcquiredAt > b.AcquiredAt
 	end)
 
+	local level, xpIn, xpNeeded = Progression.FromTotal(data.XP)
+	local today = ProgressViews.Today()
+
 	return {
 		Cash = data.Cash,
 		LifetimeEarned = data.LifetimeEarned,
+		Level = level,
+		XPInLevel = xpIn,
+		XPNeeded = xpNeeded,
 		Items = views,
-		Capacity = Rules.Capacity(player),
+		Capacity = Rules.Capacity(player, data),
 		RepairSlots = Rules.RepairSlots(player),
 		ActiveRepairs = Rules.ActiveRepairs(data),
 		InstantRepairTokens = data.InstantRepairTokens,
@@ -67,8 +77,27 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 			ExtraCapacity = GamePassService.Has(player, "ExtraCapacity"),
 		},
 		PendingInstantRepair = pendingInstantRepair[player],
+		Quests = ProgressViews.Quests(data),
+		QuestsResetAt = (today + 1) * 86400,
+		Daily = ProgressViews.Daily(data),
+		Collection = data.Collection,
+		ShinyCollection = data.ShinyCollection,
+		CollectionClaims = data.CollectionClaims,
+		TutorialStep = data.TutorialStep,
+		Settings = data.Settings,
 		ServerTime = os.time(),
 	}
+end
+
+local function ensureValue(folder: Instance, name: string): IntValue
+	local existing = folder:FindFirstChild(name)
+	if existing and existing:IsA("IntValue") then
+		return existing
+	end
+	local value = Instance.new("IntValue")
+	value.Name = name
+	value.Parent = folder
+	return value
 end
 
 local function updateLeaderstats(player: Player, data: Types.PlayerData)
@@ -76,23 +105,13 @@ local function updateLeaderstats(player: Player, data: Types.PlayerData)
 	if not leaderstats then
 		local folder = Instance.new("Folder")
 		folder.Name = "leaderstats"
-		local cash = Instance.new("IntValue")
-		cash.Name = "Cash"
-		cash.Parent = folder
-		local flips = Instance.new("IntValue")
-		flips.Name = "Flips"
-		flips.Parent = folder
 		folder.Parent = player
 		leaderstats = folder
 	end
-	local cashValue = (leaderstats :: Instance):FindFirstChild("Cash") :: IntValue?
-	local flipsValue = (leaderstats :: Instance):FindFirstChild("Flips") :: IntValue?
-	if cashValue then
-		cashValue.Value = math.floor(math.min(data.Cash, 2 ^ 53))
-	end
-	if flipsValue then
-		flipsValue.Value = data.Stats.ItemsSold
-	end
+	local folder = leaderstats :: Instance
+	ensureValue(folder, "Level").Value = Rules.Level(data)
+	ensureValue(folder, "Cash").Value = math.floor(math.min(data.Cash, 2 ^ 53))
+	ensureValue(folder, "Flips").Value = data.Stats.ItemsSold
 end
 
 local function flush()
@@ -114,15 +133,15 @@ function SyncService.MarkDirty(player: Player)
 	dirty[player] = true
 end
 
-function SyncService.Notify(player: Player, kind: Types.NotifyKind, text: string)
-	Net.Get("Notify"):FireClient(player, kind, text)
+-- kind + locale key + string args (see Shared/Locale for special "@" args).
+function SyncService.Notify(player: Player, kind: Types.NotifyKind, key: string, args: { string }?)
+	Net.Get("Notify"):FireClient(player, kind, key, args or {})
 end
 
 function SyncService.OpenPanel(player: Player, panel: string)
 	Net.Get("OpenPanel"):FireClient(player, panel)
 end
 
--- RepairService records which item a pending Instant Repair purchase targets.
 function SyncService.SetPendingInstantRepair(player: Player, itemId: string?)
 	pendingInstantRepair[player] = itemId
 	dirty[player] = true

@@ -29,6 +29,7 @@ export type RemoteSpec = {
 	RatePerSecond: number,
 	Burst: number,
 	Args: { Validator },
+	Silent: boolean?, -- true: rate-limit drops are expected (tap games) and never flagged
 }
 
 type Bucket = { Tokens: number, Last: number, Drops: number }
@@ -45,6 +46,22 @@ RemoteGuard.Validators = {}
 
 function RemoteGuard.Validators.ItemId(value: unknown): boolean
 	return type(value) == "string" and #value == 36 and string.match(value, GUID_PATTERN) ~= nil
+end
+
+function RemoteGuard.Validators.IntRange(min: number, max: number): Validator
+	return function(value: unknown): boolean
+		return type(value) == "number" and value == math.floor(value) and value >= min and value <= max
+	end
+end
+
+function RemoteGuard.Validators.OneOf(options: { string }): Validator
+	return function(value: unknown): boolean
+		return type(value) == "string" and table.find(options, value) ~= nil
+	end
+end
+
+function RemoteGuard.Validators.BooleanOrShortString(value: unknown): boolean
+	return type(value) == "boolean" or (type(value) == "string" and #value <= 16)
 end
 
 function RemoteGuard.Validators.KeyOf(map: { [string]: any }): Validator
@@ -96,7 +113,7 @@ function RemoteGuard.Bind(name: string, spec: RemoteSpec, handler: (Player, ...a
 		local ok, bucket = take(player, name, spec.RatePerSecond, spec.Burst)
 		if not ok then
 			-- Humans hit this occasionally; macros hit it constantly.
-			if bucket.Drops % 20 == 0 then
+			if not spec.Silent and bucket.Drops % 20 == 0 then
 				FlagService.Flag(player, "RateLimit:" .. name, 5)
 			end
 			return

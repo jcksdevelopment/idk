@@ -10,6 +10,9 @@
 	                player is flagged.
 	Instant Repair: consumes a token (bought via Developer Product). The
 	                purchase itself is granted in MonetizationService.
+	Scrub         : kid-friendly tap mini-game. Each tap removes a little time,
+	                capped at MaxReductionRatio of the repair and rate limited,
+	                so auto-clickers gain nothing beyond a fast human.
 	VIP Auto-Cleaner: background loop that finishes due repairs and starts new
 	                ones in free slots, without proximity requirements.
 ]]
@@ -20,13 +23,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
-local Items = require(Shared.Items)
 local Types = require(Shared.Types)
 local Valuation = require(Shared.Valuation)
 
 local DataService = require(script.Parent.DataService)
 local FlagService = require(script.Parent.FlagService)
 local GamePassService = require(script.Parent.GamePassService)
+local ProgressService = require(script.Parent.ProgressService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
@@ -34,22 +37,25 @@ local WorldService = require(script.Parent.WorldService)
 
 local RepairService = {}
 
-local function itemName(item: Types.ItemRecord): string
-	local template = Items.Get(item.TemplateId)
-	return if template then template.Name else item.TemplateId
+local function itemArg(item: Types.ItemRecord): string
+	return "@item:" .. item.TemplateId
 end
 
 local function beginRepair(item: Types.ItemRecord, now: number)
 	item.State = "Repairing"
 	item.RepairStartedAt = now
 	item.RepairEndsAt = now + Valuation.RepairSeconds(item.Rarity)
+	item.ScrubSeconds = 0
 end
 
-local function finishRepair(data: Types.PlayerData, item: Types.ItemRecord)
+local function finishRepair(player: Player, data: Types.PlayerData, item: Types.ItemRecord)
 	item.State = "Clean"
 	item.RepairStartedAt = nil
 	item.RepairEndsAt = nil
+	item.ScrubSeconds = 0
 	data.Stats.ItemsRepaired += 1
+	ProgressService.AddXP(player, data, Config.Progression.XP.Repaired[item.Rarity] or 1)
+	ProgressService.Record(player, data, "ItemRepaired", 1)
 end
 
 local function onStartRepair(player: Player, itemId: string)
@@ -64,18 +70,37 @@ local function onStartRepair(player: Player, itemId: string)
 	end
 	if not WorldService.IsNear(player, "Workbench") then
 		FlagService.Flag(player, "StartRepairOutOfRange", 2)
-		SyncService.Notify(player, "error", "Bring it to the Repair Workbench first.")
+		SyncService.Notify(player, "error", "N_NeedWorkbench")
 		return
 	end
 	if Rules.ActiveRepairs(data) >= Rules.RepairSlots(player) then
-		local hint = if GamePassService.Has(player, "VIPAutoCleaner")
-			then "All workbench slots are busy."
-			else "Workbench busy! VIP Auto-Cleaner adds 2 more slots."
-		SyncService.Notify(player, "error", hint)
+		SyncService.Notify(player, "error", "N_BenchBusy")
 		return
 	end
 
 	beginRepair(item, os.time())
+	ProgressService.Record(player, data, "RepairStarted", 1)
+	SyncService.MarkDirty(player)
+end
+
+local function onScrub(player: Player, itemId: string)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	local item = data.Inventory[itemId]
+	if not item or item.State ~= "Repairing" or item.RepairEndsAt == nil then
+		return
+	end
+	local maxReduction = Valuation.RepairSeconds(item.Rarity) * Config.Scrub.MaxReductionRatio
+	local reduction = math.min(Config.Scrub.SecondsPerScrub, maxReduction - item.ScrubSeconds)
+	if reduction <= 0 then
+		return -- fully scrubbed; the rest of the timer must run
+	end
+	item.ScrubSeconds += reduction
+	item.RepairEndsAt = (item.RepairEndsAt :: number) - reduction
+	ProgressService.Record(player, data, "Scrub", 1)
 	SyncService.MarkDirty(player)
 end
 
@@ -90,19 +115,21 @@ local function onCompleteRepair(player: Player, itemId: string)
 		return
 	end
 
-	local now = os.time()
+	-- Same UTC clock as os.time(), with millisecond precision (scrubbing
+	-- makes end times fractional).
+	local now = DateTime.now().UnixTimestampMillis / 1000
 	local endsAt = item.RepairEndsAt :: number
 	if now < endsAt then
 		-- Silently drop. Only flag when it is clearly not clock jitter.
 		if endsAt - now > Config.Repair.EarlyToleranceSeconds then
-			FlagService.Flag(player, string.format("RepairCompletedEarly(%ds)", endsAt - now), 8)
+			FlagService.Flag(player, string.format("RepairCompletedEarly(%.1fs)", endsAt - now), 8)
 		end
 		return
 	end
 
-	finishRepair(data, item)
+	finishRepair(player, data, item)
 	SyncService.MarkDirty(player)
-	SyncService.Notify(player, "success", itemName(item) .. " is sparkling clean!")
+	SyncService.Notify(player, "success", "N_Repaired", { itemArg(item) })
 end
 
 local function onRequestInstantRepair(player: Player, itemId: string)
@@ -118,15 +145,15 @@ local function onRequestInstantRepair(player: Player, itemId: string)
 
 	if data.InstantRepairTokens > 0 then
 		data.InstantRepairTokens -= 1
-		finishRepair(data, item)
+		finishRepair(player, data, item)
 		SyncService.MarkDirty(player)
-		SyncService.Notify(player, "success", "⚡ " .. itemName(item) .. " repaired instantly!")
+		SyncService.Notify(player, "success", "N_InstantRepaired", { itemArg(item) })
 		return
 	end
 
 	local productId = Config.DevProducts.InstantRepair
 	if productId == 0 then
-		SyncService.Notify(player, "error", "Instant Repair is not configured yet.")
+		SyncService.Notify(player, "error", "N_InstantNotConfigured")
 		return
 	end
 	-- Remember the target; ProcessReceipt applies the token to it once paid.
@@ -144,12 +171,12 @@ function RepairService.GrantInstantRepair(player: Player, data: Types.PlayerData
 		local item = data.Inventory[target]
 		if item and item.State ~= "Clean" then
 			data.InstantRepairTokens -= 1
-			finishRepair(data, item)
-			SyncService.Notify(player, "success", "⚡ " .. itemName(item) .. " repaired instantly!")
+			finishRepair(player, data, item)
+			SyncService.Notify(player, "success", "N_InstantRepaired", { itemArg(item) })
 			return
 		end
 	end
-	SyncService.Notify(player, "success", "⚡ Instant Repair token added! Use it on any item.")
+	SyncService.Notify(player, "success", "N_TokenAdded")
 end
 
 local function vipTick()
@@ -168,7 +195,7 @@ local function vipTick()
 		local dirtyItems: { Types.ItemRecord } = {}
 		for _, item in data.Inventory do
 			if item.State == "Repairing" and item.RepairEndsAt ~= nil and now >= (item.RepairEndsAt :: number) then
-				finishRepair(data, item)
+				finishRepair(player, data, item)
 				changed = true
 			elseif item.State == "Dirty" then
 				table.insert(dirtyItems, item)
@@ -197,6 +224,12 @@ function RepairService.Start()
 
 	RemoteGuard.Bind("StartRepair", { RatePerSecond = 4, Burst = 8, Args = { ItemId } }, onStartRepair)
 	RemoteGuard.Bind("CompleteRepair", { RatePerSecond = 6, Burst = 12, Args = { ItemId } }, onCompleteRepair)
+	RemoteGuard.Bind("Scrub", {
+		RatePerSecond = Config.Scrub.RatePerSecond,
+		Burst = Config.Scrub.RatePerSecond,
+		Args = { ItemId },
+		Silent = true,
+	}, onScrub)
 	RemoteGuard.Bind("RequestInstantRepair", { RatePerSecond = 1, Burst = 3, Args = { ItemId } }, onRequestInstantRepair)
 
 	MarketplaceService.PromptProductPurchaseFinished:Connect(function(userId: number, productId: number, purchased: boolean)

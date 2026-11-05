@@ -1,26 +1,31 @@
 --!strict
 --[[
 	InventoryPanel
-	Grid of item cards. Cards are reconciled by item id (created / updated /
-	removed) instead of being rebuilt, so hover state and scroll survive syncs.
-	Every button only sends an item id; prices shown are the server's numbers.
+	Grid of item cards, reconciled by item id (created / updated / removed)
+	so scroll position survives syncs. Every button only sends an item id;
+	prices shown are the server's numbers.
+	Repairing items get a big "🧽 Scrub!" button (tap mini-game).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local Format = require(Shared.Format)
 local Items = require(Shared.Items)
+local Locale = require(Shared.Locale)
 local Types = require(Shared.Types)
 local Valuation = require(Shared.Valuation)
 
 local Controllers = script.Parent.Parent.Controllers
 local Proximity = require(Controllers.Proximity)
+local SoundController = require(Controllers.SoundController)
 local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Effects = require(script.Parent.Effects)
 local Theme = require(script.Parent.Theme)
 local Toast = require(script.Parent.Toast)
 
@@ -29,6 +34,7 @@ local InventoryPanel = {}
 type Card = {
 	Frame: Frame,
 	Stroke: UIStroke,
+	Gradient: UIGradient,
 	Icon: TextLabel,
 	Name: TextLabel,
 	Rarity: TextLabel,
@@ -40,12 +46,6 @@ type Card = {
 	Sell: TextButton,
 }
 
-local cards: { [string]: Card } = {}
-
-local function fire(remote: string, itemId: string)
-	StateController.Fire(remote, itemId)
-end
-
 local function onAction(itemId: string)
 	local item = StateController.FindItem(itemId)
 	if not item then
@@ -53,18 +53,19 @@ local function onAction(itemId: string)
 	end
 	if item.State == "Dirty" then
 		if not Proximity.IsNear("Workbench") then
-			Toast.Show("error", "Walk to the 🔧 Repair Workbench to start repairs.")
+			Toast.Show("error", Locale.T("N_NeedWorkbench"))
 			return
 		end
 		local snapshot = StateController.Current
 		if snapshot and snapshot.ActiveRepairs >= snapshot.RepairSlots then
-			Toast.Show(
-				"error",
-				if snapshot.Passes.VIPAutoCleaner then "All workbench slots are busy." else "Workbench busy! VIP Auto-Cleaner adds 2 slots."
-			)
+			Toast.Show("error", Locale.T("N_BenchBusy"))
 			return
 		end
-		fire("StartRepair", itemId)
+		StateController.Fire("StartRepair", itemId)
+	elseif item.State == "Repairing" then
+		StateController.Fire("Scrub", itemId)
+		SoundController.Play("Scrub")
+		Effects.Bubbles(5)
 	end
 end
 
@@ -74,10 +75,10 @@ local function onSell(itemId: string)
 		return
 	end
 	if not Proximity.IsNear("SellCounter") then
-		Toast.Show("error", "Walk to the 💰 Sell Counter to sell.")
+		Toast.Show("error", Locale.T("N_NeedCounter"))
 		return
 	end
-	fire("SellItem", itemId)
+	StateController.Fire("SellItem", itemId)
 end
 
 local function onInstant(itemId: string)
@@ -85,7 +86,7 @@ local function onInstant(itemId: string)
 	if not item or item.State == "Clean" then
 		return
 	end
-	fire("RequestInstantRepair", itemId)
+	StateController.Fire("RequestInstantRepair", itemId)
 end
 
 local function makeCard(itemId: string, parent: Instance): Card
@@ -96,6 +97,7 @@ local function makeCard(itemId: string, parent: Instance): Card
 	}, { Create.Corner(UDim.new(0.08, 0)) })
 	local stroke = Create.Stroke(Theme.Colors.Muted, 3)
 	stroke.Parent = frame
+	local gradient: UIGradient = Create.new("UIGradient", { Color = Theme.Rainbow, Enabled = false, Parent = stroke })
 
 	local icon =
 		Create.Label({ Text = "", Size = UDim2.fromScale(1, 0.25), Position = UDim2.fromScale(0, 0.03), MaxTextSize = 64, Parent = frame })
@@ -151,7 +153,7 @@ local function makeCard(itemId: string, parent: Instance): Card
 		Text = "⚡",
 		Size = UDim2.fromScale(0.22, 0.15),
 		Position = UDim2.fromScale(0.73, 0.63),
-		BackgroundColor3 = Theme.Colors.Robux,
+		BackgroundColor3 = Theme.Colors.Accent,
 		MaxTextSize = 24,
 		Parent = frame,
 	}, function()
@@ -171,6 +173,7 @@ local function makeCard(itemId: string, parent: Instance): Card
 	return {
 		Frame = frame,
 		Stroke = stroke,
+		Gradient = gradient,
 		Icon = icon,
 		Name = name,
 		Rarity = rarity,
@@ -186,57 +189,63 @@ end
 local function updateCard(card: Card, item: Types.ItemView, order: number, tokens: number)
 	local color = Items.RarityColors[item.Rarity] or Theme.Colors.Muted
 	card.Frame.LayoutOrder = order
-	card.Stroke.Color = color
+	card.Stroke.Color = if item.Shiny then Color3.new(1, 1, 1) else color
+	card.Stroke.Thickness = if item.Shiny then 4 else 3
+	card.Gradient.Enabled = item.Shiny
 	card.Icon.Text = item.Icon
-	card.Name.Text = item.Name
-	card.Rarity.Text = string.upper(item.Rarity)
+	card.Name.Text = Locale.ItemName(item.TemplateId)
+	card.Rarity.Text = (if item.Shiny then Locale.T("Shiny") .. " · " else "") .. string.upper(Locale.RarityName(item.Rarity))
 	card.Rarity.TextColor3 = color
-	card.Instant.Text = if tokens > 0 then "⚡" .. tokens else "⚡R$"
+	-- Tokens are free to use; Robux is only shown when upsells are enabled.
+	card.Instant.Text = if tokens > 0 then "⚡" .. tokens elseif Config.Monetization.ShowUpsells then "⚡R$" else "⚡"
 
 	if item.State == "Dirty" then
-		card.Status.Text = "Dirty · worth " .. Format.Cash(item.CleanValue) .. " clean"
+		card.Status.Text = Locale.T("Inv_Dirty", { Format.Cash(item.CleanValue) })
 		card.Bar.Visible = false
 		card.Action.Visible = true
-		card.Action.Text = "🔧 Repair " .. Format.Duration(Valuation.RepairSeconds(item.Rarity))
+		card.Action.Text = Locale.T("Inv_Repair", { Format.Duration(Valuation.RepairSeconds(item.Rarity)) })
 		Create.SetButtonEnabled(card.Action, true, Theme.Colors.Info)
-		card.Instant.Visible = true
+		card.Instant.Visible = tokens > 0 or Config.Monetization.ShowUpsells
 		card.Sell.Visible = true
-		card.Sell.Text = "Sell as-is " .. Format.Cash(item.SellValue)
+		card.Sell.Text = Locale.T("Inv_SellAsIs", { Format.Cash(item.SellValue) })
 		Create.SetButtonEnabled(card.Sell, true, Theme.Colors.PanelDark)
 	elseif item.State == "Repairing" then
-		card.Status.Text = "Repairing…"
+		card.Status.Text = Locale.T("Inv_Repairing", { "" })
 		card.Bar.Visible = true
 		card.Action.Visible = true
-		Create.SetButtonEnabled(card.Action, false, Theme.Colors.Info)
-		card.Instant.Visible = true
+		card.Action.Text = Locale.T("Inv_Scrub")
+		Create.SetButtonEnabled(card.Action, true, Theme.Colors.Pink)
+		card.Instant.Visible = tokens > 0 or Config.Monetization.ShowUpsells
 		card.Sell.Visible = true
-		card.Sell.Text = "On workbench"
+		card.Sell.Text = Locale.T("Inv_OnBench")
 		Create.SetButtonEnabled(card.Sell, false, Theme.Colors.Success)
 	else
-		card.Status.Text = "✨ Clean - ready to flip!"
+		card.Status.Text = Locale.T("Inv_Clean")
 		card.Bar.Visible = false
 		card.Action.Visible = false
 		card.Instant.Visible = false
 		card.Sell.Visible = true
-		card.Sell.Text = "💰 Sell " .. Format.Cash(item.SellValue)
+		card.Sell.Text = Locale.T("Inv_Sell", { Format.Cash(item.SellValue) })
 		Create.SetButtonEnabled(card.Sell, true, Theme.Colors.Success)
 	end
 end
 
 function InventoryPanel.Build(gui: ScreenGui)
-	local panel, header, close = Create.Panel("Inventory", "🎒 Inventory", Theme.Colors.Info, 1.55, gui)
+	local cards: { [string]: Card } = {}
+
+	local panel, header, close = Create.Panel("Inventory", Locale.T("Title_Inventory", { "0", "0" }), Theme.Colors.Info, 1.55, gui)
 	close.Activated:Connect(UIController.Close)
 
 	Create.Button({
-		Text = "💰 Sell All Clean",
+		Text = Locale.T("Inv_SellAll"),
 		AnchorPoint = Vector2.new(1, 0.5),
 		Position = UDim2.fromScale(0.9, 0.5),
-		Size = UDim2.fromScale(0.24, 0.7),
+		Size = UDim2.fromScale(0.26, 0.7),
 		BackgroundColor3 = Theme.Colors.Success,
 		Parent = header,
 	}, function()
 		if not Proximity.IsNear("SellCounter") then
-			Toast.Show("error", "Walk to the 💰 Sell Counter to sell.")
+			Toast.Show("error", Locale.T("N_NeedCounter"))
 			return
 		end
 		StateController.Fire("SellAllClean")
@@ -253,12 +262,13 @@ function InventoryPanel.Build(gui: ScreenGui)
 		Parent = panel,
 	})
 	local upgrade = Create.Button({
-		Text = "🎒 +20 Slots",
+		Text = Locale.T("Inv_Upgrade"),
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.fromScale(0.97, 0.14),
 		Size = UDim2.fromScale(0.2, 0.06),
 		BackgroundColor3 = Theme.Colors.Robux,
 		MaxTextSize = 20,
+		Visible = false,
 		Parent = panel,
 	}, function()
 		UIController.Open("CashShop")
@@ -270,7 +280,7 @@ function InventoryPanel.Build(gui: ScreenGui)
 		Size = UDim2.fromScale(0.94, 0.75),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
-		ScrollBarThickness = 6,
+		ScrollBarThickness = 8,
 		ScrollBarImageColor3 = Theme.Colors.Muted,
 		CanvasSize = UDim2.fromScale(0, 0),
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
@@ -282,39 +292,33 @@ function InventoryPanel.Build(gui: ScreenGui)
 		HorizontalAlignment = Enum.HorizontalAlignment.Left,
 		Parent = scroller,
 	})
-	-- Cells are derived from the scroller's width (4 per row), so the grid
-	-- scales with screen size while keeping cards proportional.
 	local function resizeGrid()
 		local width = scroller.AbsoluteSize.X - scroller.ScrollBarThickness
 		local cell = math.floor(width * 0.235)
 		grid.CellSize = UDim2.fromOffset(cell, math.floor(cell * 1.4))
 		grid.CellPadding = UDim2.fromOffset(math.floor(width * 0.015), math.floor(width * 0.015))
 	end
-	scroller:GetPropertyChangedSignal("AbsoluteSize"):Connect(resizeGrid)
+	UIController.Track(scroller:GetPropertyChangedSignal("AbsoluteSize"):Connect(resizeGrid))
 	resizeGrid()
 
 	local empty = Create.Label({
-		Text = "Your stall is empty!\nBuy mystery junk at the 📦 Junk Bazaar.",
+		Text = Locale.T("Inv_Empty"),
 		Font = Theme.Fonts.Regular,
 		TextColor3 = Theme.Colors.Muted,
 		Size = UDim2.fromScale(0.8, 0.2),
 		Position = UDim2.fromScale(0.1, 0.45),
 		Visible = false,
-		MaxTextSize = 28,
+		MaxTextSize = 30,
 		Parent = panel,
 	})
 
 	local function render(snapshot: Types.Snapshot)
 		local titleLabel = header:FindFirstChild("Title") :: TextLabel?
 		if titleLabel then
-			titleLabel.Text = string.format("🎒 Inventory %d/%d", #snapshot.Items, snapshot.Capacity)
+			titleLabel.Text = Locale.T("Title_Inventory", { tostring(#snapshot.Items), tostring(snapshot.Capacity) })
 		end
-		hint.Text = string.format(
-			"Repair at the 🔧 Workbench · Sell at the 💰 Counter · ⚡ tokens: %d%s",
-			snapshot.InstantRepairTokens,
-			if snapshot.MoneyMultiplier > 1 then " · 💰 2x ACTIVE" else ""
-		)
-		upgrade.Visible = not snapshot.Passes.ExtraCapacity
+		hint.Text = Locale.T("Inv_Hint", { tostring(snapshot.InstantRepairTokens) })
+		upgrade.Visible = Config.Monetization.ShowUpsells and not snapshot.Passes.ExtraCapacity
 		empty.Visible = #snapshot.Items == 0
 
 		local seen: { [string]: boolean } = {}
@@ -335,17 +339,18 @@ function InventoryPanel.Build(gui: ScreenGui)
 		end
 	end
 
-	StateController.Changed:Connect(render)
+	UIController.Track(StateController.Changed:Connect(render))
 	if StateController.Current then
 		render(StateController.Current)
 	end
 
-	-- Live repair countdowns while the panel is open.
 	local accumulator = 0
-	RunService.RenderStepped:Connect(function(dt: number)
+	local rotation = 0
+	UIController.Track(RunService.RenderStepped:Connect(function(dt: number)
 		if not panel.Visible then
 			return
 		end
+		rotation = (rotation + dt * 90) % 360
 		accumulator += dt
 		if accumulator < 0.1 then
 			return
@@ -358,16 +363,20 @@ function InventoryPanel.Build(gui: ScreenGui)
 		local now = StateController.ServerNow()
 		for _, item in snapshot.Items do
 			local card = cards[item.Id]
-			if card and item.State == "Repairing" and item.RepairStartedAt and item.RepairEndsAt then
-				local total = math.max(item.RepairEndsAt - item.RepairStartedAt, 1)
-				local alpha = math.clamp((now - item.RepairStartedAt) / total, 0, 1)
-				card.Fill.Size = UDim2.fromScale(alpha, 1)
-				local left = item.RepairEndsAt - now
-				card.Status.Text = if left > 0 then "Repairing… " .. Format.Duration(left) else "Finishing up…"
-				card.Action.Text = if left > 0 then "⏳ " .. Format.Duration(left) else "✔ Done"
+			if card then
+				if item.Shiny then
+					card.Gradient.Rotation = rotation
+				end
+				if item.State == "Repairing" and item.RepairStartedAt and item.RepairEndsAt then
+					local total = math.max(item.RepairEndsAt - item.RepairStartedAt, 1)
+					local alpha = math.clamp((now - item.RepairStartedAt) / total, 0, 1)
+					card.Fill.Size = UDim2.fromScale(alpha, 1)
+					local left = item.RepairEndsAt - now
+					card.Status.Text = if left > 0 then Locale.T("Inv_Repairing", { Format.Duration(left) }) else Locale.T("Inv_Finishing")
+				end
 			end
 		end
-	end)
+	end))
 
 	UIController.Register({ Name = "Inventory", Frame = panel })
 end

@@ -43,7 +43,7 @@ local Signal = require(Shared.Signal)
 local Types = require(Shared.Types)
 local MockDataStore = require(script.Parent.MockDataStore)
 
-local SCHEMA_VERSION = 1
+local SCHEMA_VERSION = 2
 
 export type Profile = {
 	Player: Player,
@@ -114,11 +114,19 @@ local function newData(): Types.PlayerData
 		SchemaVersion = SCHEMA_VERSION,
 		Cash = Config.Economy.StartingCash,
 		LifetimeEarned = 0,
+		XP = 0,
 		Inventory = {},
 		InstantRepairTokens = 0,
 		BoostEndsAt = 0,
 		PurchaseHistory = {},
-		Stats = { CratesOpened = 0, ItemsSold = 0, ItemsRepaired = 0, RobuxPurchases = 0 },
+		Collection = {},
+		ShinyCollection = {},
+		CollectionClaims = {},
+		Quests = { Day = -1, Entries = {} },
+		Daily = { Streak = 0, LastClaimDay = -10 },
+		TutorialStep = 1,
+		Settings = { Sound = true, Music = true, Language = "auto" },
+		Stats = { CratesOpened = 0, ItemsSold = 0, ItemsRepaired = 0, RobuxPurchases = 0, ShiniesFound = 0 },
 		Moderation = { TotalFlags = 0, LastFlagAt = 0, LastFlagReason = "" },
 	}
 end
@@ -140,9 +148,11 @@ local function sanitizeItem(id: any, raw: any): Types.ItemRecord?
 		Rarity = template.Rarity, -- always re-derived from the catalog
 		State = state,
 		Quality = readNumber(raw.Quality, 1, Config.QualityRange.Min, Config.QualityRange.Max),
+		Shiny = raw.Shiny == true,
 		AcquiredAt = readNumber(raw.AcquiredAt, os.time(), 0, math.huge),
 		RepairStartedAt = nil,
 		RepairEndsAt = nil,
+		ScrubSeconds = readNumber(raw.ScrubSeconds, 0, 0, 1e6),
 	}
 	if state == "Repairing" then
 		if isFiniteNumber(raw.RepairEndsAt) and isFiniteNumber(raw.RepairStartedAt) then
@@ -177,6 +187,64 @@ local function sanitize(raw: any): Types.PlayerData
 		end
 	end
 
+	data.XP = readNumber(raw.XP, 0, 0, 1e12)
+
+	local function readFlags(source: any, target: { [string]: boolean }, isValidKey: (string) -> boolean)
+		if type(source) ~= "table" then
+			return
+		end
+		for key, value in source do
+			if type(key) == "string" and value == true and isValidKey(key) then
+				target[key] = true
+			end
+		end
+	end
+	local function isTemplate(key: string): boolean
+		return Items.Get(key) ~= nil
+	end
+	readFlags(raw.Collection, data.Collection, isTemplate)
+	readFlags(raw.ShinyCollection, data.ShinyCollection, isTemplate)
+	readFlags(raw.CollectionClaims, data.CollectionClaims, Items.IsRarity)
+
+	-- Older saves (schema 1): every item already owned counts as discovered.
+	for _, item in data.Inventory do
+		data.Collection[item.TemplateId] = true
+		if item.Shiny then
+			data.ShinyCollection[item.TemplateId] = true
+		end
+	end
+
+	if type(raw.Quests) == "table" and type(raw.Quests.Entries) == "table" then
+		data.Quests.Day = readNumber(raw.Quests.Day, -1, -1, math.huge)
+		for _, entry in ipairs(raw.Quests.Entries) do
+			if type(entry) == "table" and type(entry.Id) == "string" then
+				table.insert(data.Quests.Entries, {
+					Id = string.sub(entry.Id, 1, 40),
+					Progress = readNumber(entry.Progress, 0, 0, 1e12),
+					Claimed = entry.Claimed == true,
+				})
+			end
+		end
+	end
+
+	if type(raw.Daily) == "table" then
+		data.Daily.Streak = math.floor(readNumber(raw.Daily.Streak, 0, 0, #Config.DailyRewards))
+		data.Daily.LastClaimDay = math.floor(readNumber(raw.Daily.LastClaimDay, -10, -10, math.huge))
+	end
+
+	-- Existing players from schema 1 skip the tutorial.
+	local defaultStep = if type(raw.SchemaVersion) ~= "number" or raw.SchemaVersion < 2 then Config.Tutorial.DoneStep else 1
+	data.TutorialStep = math.floor(readNumber(raw.TutorialStep, defaultStep, 1, Config.Tutorial.DoneStep))
+
+	if type(raw.Settings) == "table" then
+		data.Settings.Sound = raw.Settings.Sound ~= false
+		data.Settings.Music = raw.Settings.Music ~= false
+		local language = raw.Settings.Language
+		if language == "auto" or table.find(Config.Languages, language) then
+			data.Settings.Language = language
+		end
+	end
+
 	if type(raw.PurchaseHistory) == "table" then
 		for _, purchaseId in ipairs(raw.PurchaseHistory) do
 			if type(purchaseId) == "string" then
@@ -193,6 +261,7 @@ local function sanitize(raw: any): Types.PlayerData
 		data.Stats.ItemsSold = readNumber(raw.Stats.ItemsSold, 0, 0, math.huge)
 		data.Stats.ItemsRepaired = readNumber(raw.Stats.ItemsRepaired, 0, 0, math.huge)
 		data.Stats.RobuxPurchases = readNumber(raw.Stats.RobuxPurchases, 0, 0, math.huge)
+		data.Stats.ShiniesFound = readNumber(raw.Stats.ShiniesFound, 0, 0, math.huge)
 	end
 
 	if type(raw.Moderation) == "table" then
@@ -222,11 +291,14 @@ local function validateForSave(data: Types.PlayerData): (boolean, string?)
 	if not isFiniteNumber(data.BoostEndsAt) then
 		return false, "invalid boost"
 	end
+	if not isFiniteNumber(data.XP) or data.XP < 0 then
+		return false, "invalid xp"
+	end
 	for id, item in data.Inventory do
 		if type(id) ~= "string" or item.Id ~= id or Items.Get(item.TemplateId) == nil then
 			return false, "invalid item " .. tostring(id)
 		end
-		if not VALID_STATES[item.State] or not isFiniteNumber(item.Quality) then
+		if not VALID_STATES[item.State] or not isFiniteNumber(item.Quality) or not isFiniteNumber(item.ScrubSeconds) then
 			return false, "invalid item fields " .. id
 		end
 	end

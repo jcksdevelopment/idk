@@ -1,7 +1,9 @@
 --!strict
 --[[
 	UIController
-	Owns the root ScreenGui and the modal panel stack (one panel at a time).
+	Owns the root ScreenGui, the modal panel stack (one panel at a time) and
+	the UI lifecycle. Every UI connection is registered with Track() so the
+	whole interface can be rebuilt cleanly (e.g. when the language changes).
 ]]
 
 local Players = game:GetService("Players")
@@ -26,6 +28,15 @@ UIController.OpenName = nil :: string?
 UIController.PanelChanged = Signal.new() :: Signal.Signal<string?>
 
 local panels: { [string]: Panel } = {}
+local tracked: { any } = {}
+local builder: ((ScreenGui) -> ())? = nil
+
+-- Register a connection (RBXScriptConnection or Signal connection) that
+-- belongs to the current UI build.
+function UIController.Track(connection: any): any
+	table.insert(tracked, connection)
+	return connection
+end
 
 function UIController.CreateGui(): ScreenGui
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -66,10 +77,7 @@ end
 
 function UIController.Open(name: string)
 	local panel = panels[name]
-	if not panel then
-		return
-	end
-	if UIController.OpenName == name then
+	if not panel or UIController.OpenName == name then
 		return
 	end
 	UIController.Close()
@@ -78,8 +86,8 @@ function UIController.Open(name: string)
 
 	local scale = panel.Frame:FindFirstChild("OpenScale")
 	if scale and scale:IsA("UIScale") then
-		scale.Scale = 0.85
-		TweenService:Create(scale, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+		scale.Scale = 0.8
+		TweenService:Create(scale, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	end
 	if panel.OnOpen then
 		panel.OnOpen()
@@ -92,6 +100,31 @@ function UIController.Toggle(name: string)
 		UIController.Close()
 	else
 		UIController.Open(name)
+	end
+end
+
+-- Builds (or rebuilds) the entire interface with the stored builder.
+function UIController.Build(build: (ScreenGui) -> ())
+	builder = build
+	UIController.Rebuild()
+end
+
+function UIController.Rebuild()
+	local reopen = UIController.OpenName
+	UIController.OpenName = nil
+	for _, connection in tracked do
+		connection:Disconnect()
+	end
+	table.clear(tracked)
+	table.clear(panels)
+
+	local build = builder
+	if not build then
+		return
+	end
+	build(UIController.CreateGui())
+	if reopen then
+		UIController.Open(reopen)
 	end
 end
 

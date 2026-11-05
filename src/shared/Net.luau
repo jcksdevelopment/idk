@@ -25,12 +25,18 @@ Net.ClientToServer = table.freeze({
 	"PromptProduct", -- (productKey: string)
 	"PromptGamePass", -- (passKey: string)
 	"RequestSync", -- ()
+	"Scrub", -- (itemId: string)
+	"ClaimDaily", -- ()
+	"ClaimQuest", -- (index: number)
+	"ClaimCollection", -- (rarity: string)
+	"SetSetting", -- (key: string, value: boolean | string)
+	"SkipTutorial", -- ()
 })
 
 -- Server -> Client
 Net.ServerToClient = table.freeze({
 	"StateSync", -- (snapshot: Snapshot)
-	"Notify", -- (kind: NotifyKind, text: string)
+	"Notify", -- (kind: NotifyKind, localeKey: string, args: { string })
 	"OpenPanel", -- (panel: string)
 })
 

@@ -1,0 +1,446 @@
+--!strict
+--[[
+	Locale
+	All player-facing text in English and Slovak. The server never sends
+	display text, only keys plus arguments; the client translates them.
+
+	Special arguments (resolved on the client):
+	  "@item:<TemplateId>"   -> localized item name
+	  "@rarity:<Rarity>"     -> localized rarity name
+	  "@reward:<encoded>"    -> "$100 · ⚡x1 · 2x 10m" (see EncodeReward)
+]]
+
+local Items = require(script.Parent.Items)
+local Types = require(script.Parent.Types)
+
+local Locale = {}
+
+local en: { [string]: string } = {
+	-- Panels / nav
+	Title_Inventory = "🎒 Bag {1}/{2}",
+	Title_Bazaar = "📦 Junk Bazaar",
+	Title_Shop = "🛒 Shop",
+	Title_Rewards = "📜 Quests & Gifts",
+	Title_Index = "📖 Collection Book",
+	Title_Settings = "⚙️ Settings",
+	Nav_Bag = "Bag",
+	Nav_Crates = "Boxes",
+	Nav_Quests = "Quests",
+	Nav_Index = "Book",
+	Nav_Shop = "Shop",
+	Nav_Settings = "Settings",
+
+	-- HUD
+	HUD_Level = "Lv {1}",
+	HUD_Workbench = "🔧 Workbench {1}/{2}",
+	HUD_EmptySlot = "Empty slot",
+	HUD_Boost = "💰 2x MONEY {1}",
+	HUD_GetBoost = "💰 2x Money",
+	HUD_Done = "Done!",
+	HUD_Slots = "+2 slots",
+
+	-- Rarities
+	Rarity_Trash = "Common",
+	Rarity_Rare = "Rare",
+	Rarity_Legendary = "Legendary",
+	Shiny = "✨ SHINY",
+
+	-- Inventory
+	Inv_Hint = "🔧 Repair at the Workbench · 💰 Sell at the Counter · ⚡ x{1}",
+	Inv_Empty = "Your bag is empty!\nBuy a mystery box at the 📦 Bazaar.",
+	Inv_SellAll = "💰 Sell all clean",
+	Inv_Dirty = "Dirty · {1} when clean",
+	Inv_Repairing = "Repairing… {1}",
+	Inv_Finishing = "Almost done…",
+	Inv_Clean = "✨ Clean - ready to sell!",
+	Inv_Repair = "🔧 Repair {1}",
+	Inv_Scrub = "🧽 Scrub!",
+	Inv_SellAsIs = "Sell dirty {1}",
+	Inv_Sell = "💰 Sell {1}",
+	Inv_OnBench = "On the workbench",
+	Inv_Upgrade = "🎒 +20 slots",
+
+	-- Bazaar
+	Bazaar_HintNear = "Cash: {1} · Open a box, fix what you find, sell it!",
+	Bazaar_HintFar = "Cash: {1} · Walk to the orange 📦 Bazaar stall to buy.",
+	Bazaar_Buy = "Buy {1}",
+	Bazaar_Locked = "🔒 Level {1}",
+	Crate_JunkBox = "Mystery Junk Box",
+	Crate_AntiqueChest = "Estate Sale Chest",
+	Crate_RoyalTreasure = "Royal Treasure",
+
+	-- Shop
+	Shop_Note = "Robux purchases are optional - you can earn everything by playing! Ask a grown-up first.",
+	Shop_Boosts = "⚡ BOOSTS",
+	Shop_Passes = "👑 GAME PASSES - forever yours",
+	Shop_Soon = "Soon",
+	Shop_Buy = "Buy",
+	Shop_Owned = "OWNED ✓",
+	Product_InstantRepair_Title = "Instant Repair",
+	Product_InstantRepair_Desc = "Finish a repair right now. Unused ones are saved as ⚡ tokens.",
+	Product_MoneyBoost2x_Title = "2x Money",
+	Product_MoneyBoost2x_Desc = "Double sell money for 15 minutes. Stacks!",
+	Product_CashPackSmall_Title = "Cash Pack",
+	Product_CashPackSmall_Desc = "+$2,500 bazaar cash.",
+	Pass_VIPAutoCleaner_Title = "VIP Robo-Cleaner",
+	Pass_VIPAutoCleaner_Desc = "Repairs your items by itself, +2 workbench slots.",
+	Pass_ExtraCapacity_Title = "+20 Bag Slots",
+	Pass_ExtraCapacity_Desc = "Carry 20 more items at once.",
+	Ribbon_Popular = "POPULAR",
+	Ribbon_BestValue = "BEST VALUE",
+	Ribbon_VIP = "VIP",
+
+	-- Rewards
+	Rewards_Daily = "🎁 Daily Gift",
+	Rewards_Claim = "Claim!",
+	Rewards_ComeBack = "Next gift in {1}",
+	Rewards_Day = "Day {1}",
+	Rewards_Quests = "📜 Today's Quests · new in {1}",
+	Rewards_Done = "✓ Done",
+	Quest_OpenCrates = "Open boxes ({1}×)",
+	Quest_OpenManyCrates = "Open boxes ({1}×)",
+	Quest_RepairItems = "Repair items ({1}×)",
+	Quest_RepairManyItems = "Repair items ({1}×)",
+	Quest_SellItems = "Sell items ({1}×)",
+	Quest_EarnCash = "Earn {1}",
+	Quest_Scrub = "Scrub ({1}×)",
+	Quest_FindRare = "Find Rare items ({1}×)",
+	Quest_FindLegendary = "Find a Legendary item ({1}×)",
+
+	-- Collection
+	Index_Progress = "{1}  {2}/{3}",
+	Index_Claim = "Claim {1}",
+	Index_Claimed = "✓ Claimed",
+	Index_FindAll = "Find them all!",
+	Index_Shinies = "✨ Shinies found: {1}/{2}",
+
+	-- Settings
+	Settings_Sound = "🔊 Sound effects",
+	Settings_Music = "🎵 Music",
+	Settings_Language = "🌍 Language",
+	Settings_On = "ON",
+	Settings_Off = "OFF",
+	Settings_Auto = "Auto",
+	Settings_SkipTutorial = "Skip tutorial",
+
+	-- Tutorial
+	Tut_1 = "Step 1/4: Walk to the orange 📦 Bazaar and buy a Mystery Box!",
+	Tut_2 = "Step 2/4: Go to the blue 🔧 Workbench and press Repair!",
+	Tut_3 = "Step 3/4: Wait - or tap 🧽 Scrub to clean it faster!",
+	Tut_4 = "Step 4/4: Take it to the green 💰 Sell Counter and sell it!",
+	Tut_Prompt = "Press E or tap the button at the stall",
+
+	-- World
+	World_Bazaar = "📦 BAZAAR",
+	World_Workbench = "🔧 WORKBENCH",
+	World_SellCounter = "💰 SELL",
+	Prompt_Bazaar = "Buy boxes",
+	Prompt_Workbench = "Repair",
+	Prompt_SellCounter = "Sell",
+	Prompt_Object = "Stall",
+
+	-- Server notifications
+	N_NeedBazaar = "Walk up to the 📦 Bazaar to buy boxes.",
+	N_InventoryFull = "Your bag is full! Sell something first.",
+	N_NotEnoughCash = "Not enough cash yet - sell some items!",
+	N_CrateLocked = "Reach level {1} to open this!",
+	N_Found = "You found: {1}!",
+	N_NewDiscovery = "📖 New in your book: {1}!",
+	N_ShinyFound = "✨ WOW, a SHINY item! It's worth 2.5×!",
+	N_NeedWorkbench = "Bring it to the 🔧 Workbench first.",
+	N_BenchBusy = "All workbench slots are busy.",
+	N_Repaired = "{1} is sparkling clean! ✨",
+	N_InstantRepaired = "⚡ {1} fixed instantly!",
+	N_InstantNotConfigured = "Instant Repair is not available yet.",
+	N_TokenAdded = "⚡ Instant Repair token added!",
+	N_StillRepairing = "That item is still on the workbench.",
+	N_NeedCounter = "Head to the 💰 Sell Counter to sell.",
+	N_Sold = "Sold {1} for {2}!",
+	N_SoldMany = "Sold {1} items for {2}!",
+	N_NothingClean = "No clean items to sell yet.",
+	N_BoostActive = "💰 2x Money for {1}!",
+	N_CashAdded = "💵 {1} added!",
+	N_NotOnSale = "This is not on sale yet.",
+	N_AlreadyOwned = "You already own this!",
+	N_LevelUp = "LEVEL {1}! Bonus {2}",
+	N_QuestComplete = "📜 Quest complete! Claim your reward.",
+	N_RewardClaimed = "🎁 Reward: {1}",
+	N_DailyAlready = "Already claimed - come back tomorrow!",
+	N_CollectionReady = "📖 You found every {1} item! Claim your reward in the book.",
+	N_TutorialDone = "🎉 You're a real flipper now! Bonus: {1}",
+}
+
+local sk: { [string]: string } = {
+	Title_Inventory = "🎒 Batoh {1}/{2}",
+	Title_Bazaar = "📦 Bazár harabúrd",
+	Title_Shop = "🛒 Obchod",
+	Title_Rewards = "📜 Úlohy a darčeky",
+	Title_Index = "📖 Zberateľská kniha",
+	Title_Settings = "⚙️ Nastavenia",
+	Nav_Bag = "Batoh",
+	Nav_Crates = "Krabice",
+	Nav_Quests = "Úlohy",
+	Nav_Index = "Kniha",
+	Nav_Shop = "Obchod",
+	Nav_Settings = "Nastav.",
+
+	HUD_Level = "Úr. {1}",
+	HUD_Workbench = "🔧 Dielňa {1}/{2}",
+	HUD_EmptySlot = "Voľné miesto",
+	HUD_Boost = "💰 2x PENIAZE {1}",
+	HUD_GetBoost = "💰 2x Peniaze",
+	HUD_Done = "Hotovo!",
+	HUD_Slots = "+2 miesta",
+
+	Rarity_Trash = "Bežné",
+	Rarity_Rare = "Vzácne",
+	Rarity_Legendary = "Legendárne",
+	Shiny = "✨ LESKLÉ",
+
+	Inv_Hint = "🔧 Oprav v Dielni · 💰 Predaj pri Pulte · ⚡ x{1}",
+	Inv_Empty = "Batoh je prázdny!\nKúp si tajomnú krabicu na 📦 Bazári.",
+	Inv_SellAll = "💰 Predať všetko čisté",
+	Inv_Dirty = "Špinavé · čisté za {1}",
+	Inv_Repairing = "Opravuje sa… {1}",
+	Inv_Finishing = "Skoro hotovo…",
+	Inv_Clean = "✨ Čisté - môžeš predať!",
+	Inv_Repair = "🔧 Opraviť {1}",
+	Inv_Scrub = "🧽 Drhni!",
+	Inv_SellAsIs = "Predať špinavé {1}",
+	Inv_Sell = "💰 Predať {1}",
+	Inv_OnBench = "Je v dielni",
+	Inv_Upgrade = "🎒 +20 miest",
+
+	Bazaar_HintNear = "Peniaze: {1} · Otvor krabicu, oprav, čo nájdeš, a predaj!",
+	Bazaar_HintFar = "Peniaze: {1} · Dôjdi k oranžovému stánku 📦 Bazár.",
+	Bazaar_Buy = "Kúpiť {1}",
+	Bazaar_Locked = "🔒 Úroveň {1}",
+	Crate_JunkBox = "Tajomná krabica",
+	Crate_AntiqueChest = "Truhlica starožitností",
+	Crate_RoyalTreasure = "Kráľovský poklad",
+
+	Shop_Note = "Nákupy za Robux sú dobrovoľné - všetko získaš aj hraním! Najprv sa opýtaj rodiča.",
+	Shop_Boosts = "⚡ VYLEPŠENIA",
+	Shop_Passes = "👑 HERNÉ PASY - navždy tvoje",
+	Shop_Soon = "Čoskoro",
+	Shop_Buy = "Kúpiť",
+	Shop_Owned = "MÁŠ ✓",
+	Product_InstantRepair_Title = "Okamžitá oprava",
+	Product_InstantRepair_Desc = "Dokonči opravu hneď. Nepoužité sa uložia ako ⚡ žetóny.",
+	Product_MoneyBoost2x_Title = "2x Peniaze",
+	Product_MoneyBoost2x_Desc = "Dvojnásobné peniaze z predaja na 15 minút. Dá sa sčítať!",
+	Product_CashPackSmall_Title = "Balík peňazí",
+	Product_CashPackSmall_Desc = "+$2,500 do peňaženky.",
+	Pass_VIPAutoCleaner_Title = "VIP Robot-čistič",
+	Pass_VIPAutoCleaner_Desc = "Opravuje predmety sám a pridá 2 miesta v dielni.",
+	Pass_ExtraCapacity_Title = "+20 miest v batohu",
+	Pass_ExtraCapacity_Desc = "Unesieš naraz o 20 predmetov viac.",
+	Ribbon_Popular = "OBĽÚBENÉ",
+	Ribbon_BestValue = "NAJVÝHODNEJŠIE",
+	Ribbon_VIP = "VIP",
+
+	Rewards_Daily = "🎁 Denný darček",
+	Rewards_Claim = "Vyzdvihni!",
+	Rewards_ComeBack = "Ďalší darček o {1}",
+	Rewards_Day = "Deň {1}",
+	Rewards_Quests = "📜 Dnešné úlohy · nové o {1}",
+	Rewards_Done = "✓ Hotovo",
+	Quest_OpenCrates = "Otvor krabice ({1}×)",
+	Quest_OpenManyCrates = "Otvor krabice ({1}×)",
+	Quest_RepairItems = "Oprav predmety ({1}×)",
+	Quest_RepairManyItems = "Oprav predmety ({1}×)",
+	Quest_SellItems = "Predaj predmety ({1}×)",
+	Quest_EarnCash = "Zarob {1}",
+	Quest_Scrub = "Drhni ({1}×)",
+	Quest_FindRare = "Nájdi vzácne predmety ({1}×)",
+	Quest_FindLegendary = "Nájdi legendárny predmet ({1}×)",
+
+	Index_Progress = "{1}  {2}/{3}",
+	Index_Claim = "Vyzdvihni {1}",
+	Index_Claimed = "✓ Vyzdvihnuté",
+	Index_FindAll = "Nájdi všetky!",
+	Index_Shinies = "✨ Nájdené lesklé: {1}/{2}",
+
+	Settings_Sound = "🔊 Zvuky",
+	Settings_Music = "🎵 Hudba",
+	Settings_Language = "🌍 Jazyk",
+	Settings_On = "ZAP",
+	Settings_Off = "VYP",
+	Settings_Auto = "Auto",
+	Settings_SkipTutorial = "Preskočiť návod",
+
+	Tut_1 = "Krok 1/4: Choď k oranžovému 📦 Bazáru a kúp si Tajomnú krabicu!",
+	Tut_2 = "Krok 2/4: Choď k modrej 🔧 Dielni a stlač Opraviť!",
+	Tut_3 = "Krok 3/4: Počkaj - alebo ťukaj na 🧽 Drhni a pôjde to rýchlejšie!",
+	Tut_4 = "Krok 4/4: Zanes to k zelenému 💰 Pultu a predaj to!",
+	Tut_Prompt = "Stlač E alebo ťukni na tlačidlo pri stánku",
+
+	World_Bazaar = "📦 BAZÁR",
+	World_Workbench = "🔧 DIELŇA",
+	World_SellCounter = "💰 PREDAJ",
+	Prompt_Bazaar = "Kúpiť krabice",
+	Prompt_Workbench = "Opraviť",
+	Prompt_SellCounter = "Predať",
+	Prompt_Object = "Stánok",
+
+	N_NeedBazaar = "Dôjdi k 📦 Bazáru a kúp si krabicu.",
+	N_InventoryFull = "Batoh je plný! Najprv niečo predaj.",
+	N_NotEnoughCash = "Zatiaľ nemáš dosť peňazí - predaj niečo!",
+	N_CrateLocked = "Dosiahni úroveň {1} a otvoríš to!",
+	N_Found = "Nález: {1}!",
+	N_NewDiscovery = "📖 Nové v knihe: {1}!",
+	N_ShinyFound = "✨ WOW, LESKLÝ predmet! Má hodnotu 2,5×!",
+	N_NeedWorkbench = "Najprv to zanes do 🔧 Dielne.",
+	N_BenchBusy = "Všetky miesta v dielni sú obsadené.",
+	N_Repaired = "{1} sa blyští! ✨",
+	N_InstantRepaired = "⚡ {1} - opravené okamžite!",
+	N_InstantNotConfigured = "Okamžitá oprava zatiaľ nie je dostupná.",
+	N_TokenAdded = "⚡ Pridaný žetón okamžitej opravy!",
+	N_StillRepairing = "Ten predmet je ešte v dielni.",
+	N_NeedCounter = "Choď k 💰 Pultu a predaj to.",
+	N_Sold = "Predané: {1} za {2}!",
+	N_SoldMany = "Predaných predmetov: {1} za {2}!",
+	N_NothingClean = "Zatiaľ nemáš žiadne čisté predmety.",
+	N_BoostActive = "💰 2x peniaze na {1}!",
+	N_CashAdded = "💵 Pridané {1}!",
+	N_NotOnSale = "Toto sa zatiaľ nepredáva.",
+	N_AlreadyOwned = "Toto už máš!",
+	N_LevelUp = "ÚROVEŇ {1}! Bonus {2}",
+	N_QuestComplete = "📜 Úloha splnená! Vyzdvihni si odmenu.",
+	N_RewardClaimed = "🎁 Odmena: {1}",
+	N_DailyAlready = "Dnes už vyzdvihnuté - príď zajtra!",
+	N_CollectionReady = "📖 Máš všetky predmety ({1})! Vyzdvihni odmenu v knihe.",
+	N_TutorialDone = "🎉 Si skutočný obchodník! Bonus: {1}",
+
+	Item_RustySpoon = "Hrdzavá lyžica",
+	Item_CrackedTeapot = "Prasknutá kanvica",
+	Item_MoldyBoot = "Plesnivá čižma",
+	Item_BrokenRadio = "Pokazené rádio",
+	Item_ChippedVase = "Otlčená váza",
+	Item_BentBell = "Ohnutý zvonček",
+	Item_SqueakyDuck = "Pískacia kačička",
+	Item_DentedKettle = "Otlčený kotlík",
+	Item_VintageCamera = "Starý fotoaparát",
+	Item_BrassCompass = "Mosadzný kompas",
+	Item_Gramophone = "Starý gramofón",
+	Item_PocketWatch = "Strieborné hodinky",
+	Item_RetroConsole = "Retro konzola",
+	Item_RobotToy = "Natahovací robot",
+	Item_Telescope = "Kapitánsky ďalekohľad",
+	Item_GrandfatherClock = "Stojacie hodiny",
+	Item_GoldenSamovar = "Zlatý samovar",
+	Item_PersianRug = "Perzský koberec",
+	Item_JeweledMusicBox = "Hracia skrinka",
+	Item_DragonEgg = "Dračie vajce",
+	Item_PirateMap = "Pirátska mapa",
+}
+
+local tables: { [string]: { [string]: string } } = { en = en, sk = sk }
+local current = "en"
+
+function Locale.SetLanguage(language: string)
+	if tables[language] then
+		current = language
+	end
+end
+
+function Locale.GetLanguage(): string
+	return current
+end
+
+-- "auto" picks Slovak for sk/cs Roblox locales, English otherwise.
+function Locale.Resolve(setting: string, robloxLocaleId: string): string
+	if tables[setting] then
+		return setting
+	end
+	local prefix = string.lower(string.sub(robloxLocaleId, 1, 2))
+	if prefix == "sk" or prefix == "cs" then
+		return "sk"
+	end
+	return "en"
+end
+
+local function lookup(key: string): string
+	return tables[current][key] or en[key] or key
+end
+
+function Locale.ItemName(templateId: string): string
+	local localized = tables[current]["Item_" .. templateId]
+	if localized then
+		return localized
+	end
+	local template = Items.Get(templateId)
+	return if template then template.Name else templateId
+end
+
+function Locale.RarityName(rarity: string): string
+	return lookup("Rarity_" .. rarity)
+end
+
+-- Server-side: compact, language-neutral reward encoding.
+function Locale.EncodeReward(reward: Types.Reward): string
+	return string.format("@reward:%d;%d;%d;%d", reward.Cash or 0, reward.Tokens or 0, reward.BoostMinutes or 0, reward.XP or 0)
+end
+
+local function formatCash(n: number): string
+	local whole = tostring(math.floor(n))
+	local formatted = whole:reverse():gsub("(%d%d%d)", "%1,"):reverse()
+	if formatted:sub(1, 1) == "," then
+		formatted = formatted:sub(2)
+	end
+	return "$" .. formatted
+end
+
+function Locale.RewardText(reward: Types.Reward): string
+	local parts = {}
+	if (reward.Cash or 0) > 0 then
+		table.insert(parts, formatCash(reward.Cash :: number))
+	end
+	if (reward.Tokens or 0) > 0 then
+		table.insert(parts, "⚡x" .. tostring(reward.Tokens))
+	end
+	if (reward.BoostMinutes or 0) > 0 then
+		table.insert(parts, "💰2x " .. tostring(reward.BoostMinutes) .. "m")
+	end
+	if (reward.XP or 0) > 0 then
+		table.insert(parts, "⭐" .. tostring(reward.XP) .. " XP")
+	end
+	return table.concat(parts, " · ")
+end
+
+local function resolveArg(arg: string): string
+	local item = string.match(arg, "^@item:(.+)$")
+	if item then
+		return Locale.ItemName(item)
+	end
+	local rarity = string.match(arg, "^@rarity:(.+)$")
+	if rarity then
+		return Locale.RarityName(rarity)
+	end
+	local cash, tokens, boost, xp = string.match(arg, "^@reward:(%d+);(%d+);(%d+);(%d+)$")
+	if cash and tokens and boost and xp then
+		return Locale.RewardText({
+			Cash = tonumber(cash),
+			Tokens = tonumber(tokens),
+			BoostMinutes = tonumber(boost),
+			XP = tonumber(xp),
+		})
+	end
+	return arg
+end
+
+function Locale.T(key: string, args: { any }?): string
+	local text = lookup(key)
+	if args then
+		text = string.gsub(text, "{(%d+)}", function(index: string): string
+			local value = args[tonumber(index) :: number]
+			if value == nil then
+				return ""
+			end
+			return resolveArg(tostring(value))
+		end)
+	end
+	return text
+end
+
+return Locale

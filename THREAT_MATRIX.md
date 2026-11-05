@@ -25,6 +25,11 @@ character's network physics. The server owns all state that matters.
 | 16 | Remote flood / server DoS | Thousands of events per second | Global bucket drops excess traffic at the first check | `RemoteGuard` |
 | 17 | RemoteFunction hang | Exploiter never returns from `InvokeClient` | The game uses no RemoteFunctions; server → client traffic is fire-and-forget events | `Net` |
 | 18 | Purchase prompt spam | Fires `PromptProduct` in a loop | Rate-limited (1/s), keys whitelisted, and prompts sent from the server | `MonetizationService` |
+| 20 | **Fake quest / XP progress** | Fires events to complete quests or level up | No remote reports progress. Progress and XP are emitted only by the server inside already-validated actions (crate bought, repair finished, item sold) | `ProgressService.Record` |
+| 21 | **Double-claiming rewards** | Spams `ClaimDaily` / `ClaimQuest` / `ClaimCollection` | The claim flag is set in the same non-yielding block that grants the reward. Days are UTC from `os.time()`, never from the client clock | `ProgressService` |
+| 22 | **Scrub auto-clicker** | Macro taps the scrub button | Each tap removes at most 0.5 s, capped at 60% of the repair. Taps faster than 8/s are dropped (silently, so excited kids are never flagged) | `RepairService.onScrub`, `RemoteGuard` `Silent` |
+| 23 | Forged settings | Sends odd keys/values to `SetSetting` | Keys whitelisted; values type-checked per key | `ProgressService.onSetSetting` |
+| 24 | Locked crate | Buys a high-level box early | Level re-checked on the server from saved XP | `ItemService.onBuyCrate` |
 | 19 | Client code theft | Decompiles LocalScripts | The client holds no secrets or authority: only rendering and requests | architecture |
 
 ## Flag scoring

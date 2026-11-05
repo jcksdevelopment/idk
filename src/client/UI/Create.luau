@@ -9,6 +9,7 @@
 local TweenService = game:GetService("TweenService")
 
 local Theme = require(script.Parent.Theme)
+local SoundController = require(script.Parent.Parent.Controllers.SoundController)
 
 local Create = {}
 
@@ -133,10 +134,31 @@ function Create.Button(props: Props, onActivated: () -> ()): TextButton
 	end)
 	button.Activated:Connect(function()
 		if button.Active then
+			SoundController.Play("Click")
 			onActivated()
 		end
 	end)
 	return button
+end
+
+-- Small red "!" dot shown on nav buttons when something can be claimed.
+function Create.Badge(parent: GuiObject): Frame
+	local badge: Frame = Create.new("Frame", {
+		Name = "Badge",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.9, 0.1),
+		Size = UDim2.fromScale(0.34, 0.34),
+		BackgroundColor3 = Theme.Colors.Danger,
+		Visible = false,
+		ZIndex = 4,
+		Parent = parent,
+	}, {
+		Create.Corner(UDim.new(0.5, 0)),
+		Create.Stroke(Color3.new(1, 1, 1), 2),
+		Create.Aspect(1),
+	})
+	Create.Label({ Text = "!", Size = UDim2.fromScale(1, 1), ZIndex = 5, MaxTextSize = 22, Parent = badge })
+	return badge
 end
 
 function Create.SetButtonEnabled(button: TextButton, enabled: boolean, enabledColor: Color3)

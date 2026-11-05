@@ -10,13 +10,13 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local Format = require(Shared.Format)
-local Items = require(Shared.Items)
 local Valuation = require(Shared.Valuation)
 
 local DataService = require(script.Parent.DataService)
 local FlagService = require(script.Parent.FlagService)
-local ItemService = require(script.Parent.ItemService)
+local ProgressService = require(script.Parent.ProgressService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
@@ -29,7 +29,7 @@ local function requireCounter(player: Player): boolean
 		return true
 	end
 	FlagService.Flag(player, "SellOutOfRange", 2)
-	SyncService.Notify(player, "error", "Head to the Sell Counter to cash out.")
+	SyncService.Notify(player, "error", "N_NeedCounter")
 	return false
 end
 
@@ -44,7 +44,7 @@ local function onSellItem(player: Player, itemId: string)
 		return -- already sold / never existed: duplicate requests die here
 	end
 	if item.State == "Repairing" then
-		SyncService.Notify(player, "error", "That item is still on the workbench.")
+		SyncService.Notify(player, "error", "N_StillRepairing")
 		return
 	end
 	if not requireCounter(player) then
@@ -54,12 +54,14 @@ local function onSellItem(player: Player, itemId: string)
 	-- Atomic section (no yields): price, remove, pay.
 	local value = Valuation.SellValue(item, Rules.MoneyMultiplier(data))
 	data.Inventory[itemId] = nil
-	ItemService.AddCash(data, value, true)
+	local earned = Rules.AddCash(data, value, true)
 	data.Stats.ItemsSold += 1
 
+	ProgressService.AddXP(player, data, Config.Progression.XP.Sold[item.Rarity] or 1)
+	ProgressService.Record(player, data, "ItemSold", 1)
+	ProgressService.Record(player, data, "CashEarned", earned)
 	SyncService.MarkDirty(player)
-	local template = Items.Get(item.TemplateId)
-	SyncService.Notify(player, "success", string.format("Sold %s for %s", if template then template.Name else "item", Format.Cash(value)))
+	SyncService.Notify(player, "success", "N_Sold", { "@item:" .. item.TemplateId, Format.Cash(value) })
 end
 
 local function onSellAllClean(player: Player)
@@ -80,23 +82,28 @@ local function onSellAllClean(player: Player)
 		end
 	end
 	if #toSell == 0 then
-		SyncService.Notify(player, "info", "No clean items to sell yet.")
+		SyncService.Notify(player, "info", "N_NothingClean")
 		return
 	end
 
 	local total = 0
+	local xp = 0
 	for _, id in toSell do
 		local item = data.Inventory[id]
 		if item then
 			total += Valuation.SellValue(item, multiplier)
+			xp += Config.Progression.XP.Sold[item.Rarity] or 1
 			data.Inventory[id] = nil
 			data.Stats.ItemsSold += 1
 		end
 	end
-	ItemService.AddCash(data, total, true)
+	local earned = Rules.AddCash(data, total, true)
 
+	ProgressService.AddXP(player, data, xp)
+	ProgressService.Record(player, data, "ItemSold", #toSell)
+	ProgressService.Record(player, data, "CashEarned", earned)
 	SyncService.MarkDirty(player)
-	SyncService.Notify(player, "success", string.format("Sold %d items for %s", #toSell, Format.Cash(total)))
+	SyncService.Notify(player, "success", "N_SoldMany", { tostring(#toSell), Format.Cash(total) })
 end
 
 function SellService.Start()

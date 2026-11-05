@@ -20,6 +20,7 @@ local START_ORDER = {
 	"GamePassService",
 	"SyncService",
 	"WorldService",
+	"ProgressService",
 	"AntiExploitService",
 	"ItemService",
 	"RepairService",

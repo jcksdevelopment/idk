@@ -4,6 +4,18 @@ Buy mystery junk at the bazaar, repair it on the workbench (time-based), and fli
 it at the sell counter for profit. The game is built server-authoritative, with
 session-locked saves and a receipt handler that can't double-grant.
 
+**Kid-friendly edition (v2):** an interactive tutorial with a guide arrow, levels &
+XP, daily quests, a 7-day login gift, a collection book, ✨ shiny items, a
+"scrub" tap mini-game, sounds and confetti, a decorated market plaza, and full
+**Slovak + English** UI (auto-detected, switchable in Settings). Monetization is
+pressure-free: no pop-up upsells by default, and everything sold for Robux can
+also be earned by playing.
+
+> 🇸🇰 **Rýchly štart:** `rojo serve` → v Roblox Studiu plugin Rojo → *Connect* →
+> *Play*. ID herných pasov a produktov vlož do `src/shared/Config.luau`. Hra sa
+> automaticky prepne do slovenčiny pre hráčov so slovenským (alebo českým)
+> nastavením Robloxu; jazyk sa dá zmeniť v ⚙️ Nastaveniach.
+
 * Rojo 7 project, strict Luau (`--!strict`) in every file, no external dependencies
 * Security design: see **[THREAT_MATRIX.md](THREAT_MATRIX.md)**
 
@@ -69,8 +81,10 @@ has no effect in live servers.
 default.project.json
 src/
   shared/      → ReplicatedStorage.Shared
-    Config.luau       ★ IDs, economy, timings, station layout
+    Config.luau       ★ IDs, economy, quests, rewards, sounds, station layout
     Items.luau        item catalog (the only source of item value)
+    Locale.luau       all player-facing text (English + Slovak)
+    Progression.luau  level curve
     Types.luau        shared type definitions
     Valuation.luau    pure price math (server-authoritative)
     Net.luau          single list of RemoteEvents
@@ -83,7 +97,9 @@ src/
       FlagService.luau         suspicion score → kick
       AntiExploitService.luau  speed / teleport / fly-up checks
       GamePassService.luau     server-side pass ownership
-      Rules.luau               capacity, repair slots, money multiplier
+      Rules.luau               capacity, repair slots, money multiplier, cash/boost
+      ProgressService.luau     XP/levels, daily quests, login gift, collection, tutorial, settings
+      ProgressViews.luau       read-only quest/daily projections for snapshots
       SyncService.luau         per-player state snapshots + leaderstats
       WorldService.luau        map build + station proximity
       ItemService.luau         crates, rarity rolls (70/25/5), item creation
@@ -91,25 +107,43 @@ src/
       SellService.luau         id-only selling
       MonetizationService.luau ProcessReceipt + server-side prompts
   client/      → StarterPlayerScripts.Client  (init.client.luau = bootstrap)
-    Controllers/  State, UI, Input, Repair, Proximity
-    UI/           Theme, Create, HUD, InventoryPanel, BazaarPanel, CashShopPanel, Toast
+    Controllers/  State, UI, Input, Repair, Proximity, Sound, Guide (tutorial beam)
+    UI/           Theme, Create, Effects, Toast, HUD, InventoryPanel, BazaarPanel,
+                  RewardsPanel, IndexPanel, CashShopPanel, SettingsPanel
 ```
 
 ## Game loop and monetization
 
 | Feature | Behaviour |
 |---|---|
-| Mystery Junk Box ($25) | Trash 70% / Rare 25% / Legendary 5%, rolled on the server |
-| Estate Sale Chest ($250) | 40 / 45 / 15 |
-| Repair | Trash 8 s, Rare 30 s, Legendary 90 s. Timer persists across sessions (`os.time`) |
+| Mystery Junk Box ($25, level 1) | Common 70% / Rare 25% / Legendary 5%, rolled on the server |
+| Estate Sale Chest ($250, level 3) | 40 / 45 / 15 |
+| Royal Treasure ($1,500, level 8) | 15 / 50 / 35 |
+| ✨ Shiny | 3% of found items, worth 2.5× |
+| Repair | Common 8 s, Rare 30 s, Legendary 90 s. Timer persists across sessions (`os.time`) |
+| 🧽 Scrub | Tap a repairing item (card or workbench slot): −0.5 s per tap, at most 60% of the repair, max 8 taps/s |
+| Levels & XP | XP for opening, repairing and selling; each level gives bonus cash, every 5 levels +2 bag slots, levels unlock bigger boxes |
+| 📜 Daily quests | 3 per day (UTC), picked from a pool of 9, with cash/token/boost/XP rewards |
+| 🎁 Login gift | 7-day streak calendar (day 7 is the big one) |
+| 📖 Collection book | Discover every item of a rarity to claim a reward; shinies are tracked too |
+| Tutorial | 4 steps with a glowing beam + arrow to the next stall; reward on completion |
 | Selling | Clean items sell at full value; dirty items at 35% |
 | **Instant Repair** (Dev Product) | ⚡ on a card prompts a purchase that finishes that item. A purchase with no target becomes a reusable token |
 | **2x Money Boost** (Dev Product) | 15 min, stacks up to 24 h, expiry tracked with `os.time()` |
 | **VIP Auto-Cleaner** (Game Pass) | +2 workbench slots; repairs start and finish in the background |
 | **+20 Inventory** (Game Pass) | Capacity 10 → 30 |
 
-Controls: **I** inventory, **B** crates, **P** shop, **Backspace** close, **E** at a stall.
-Gamepad: Y / X / B. Touch: HUD buttons.
+Controls: **I** bag, **B** boxes, **Q** quests, **C** collection book, **P** shop,
+**Backspace** close, **E** at a stall. Gamepad: Y / X / L1 / R1 / B. Touch: HUD buttons.
+
+### Kid-friendly defaults
+* `Config.Monetization.ShowUpsells = false`: no "+2 slots" / "+20 slots" / "⚡R$" nudges. The shop is still one tap away.
+* The shop shows a note that Robux purchases are optional and to ask a grown-up.
+* Mystery boxes are bought **only with in-game cash**, never Robux, and their odds are always shown.
+* Sounds use built-in Roblox sounds; swap in your own in `Config.Sounds` and add background music via `Config.Sounds.Music.Id`.
+
+### Adding a language
+Add a table to `src/shared/Locale.luau`, register it in `tables`, and add its code to `Config.Languages`.
 
 ## Development
 

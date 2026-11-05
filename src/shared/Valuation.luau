@@ -16,7 +16,11 @@ function Valuation.CleanValue(item: Types.ItemRecord): number
 	if not template then
 		return 0
 	end
-	return math.max(1, math.floor(template.BaseValue * item.Quality))
+	local value = template.BaseValue * item.Quality
+	if item.Shiny then
+		value *= Config.Shiny.ValueMultiplier
+	end
+	return math.max(1, math.floor(value))
 end
 
 function Valuation.SellValue(item: Types.ItemRecord, moneyMultiplier: number): number

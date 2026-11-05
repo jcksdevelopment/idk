@@ -3,12 +3,11 @@
 	ItemService
 	Item generation (server RNG only) and crate purchases.
 
-	- Rarity is rolled with the server's Random object using the crate's weights.
-	- Item IDs are server-generated GUIDs, so a client can only ever refer to
-	  items it was told about; it can never mint or choose one.
-	- Cash check, deduction and item insertion happen in one non-yielding
-	  block, so there is no window in which a second request (or a leave /
-	  save) can observe a half-finished purchase.
+	- Rarity, shiny chance and quality are rolled with the server's Random.
+	- Item IDs are server-generated GUIDs: a client can only refer to items it
+	  was told about; it can never mint or choose one.
+	- Level lock, capacity, cash check, deduction and insertion happen in one
+	  non-yielding block: no window for double-spend or half-done purchases.
 ]]
 
 local HttpService = game:GetService("HttpService")
@@ -21,6 +20,7 @@ local Types = require(Shared.Types)
 
 local DataService = require(script.Parent.DataService)
 local FlagService = require(script.Parent.FlagService)
+local ProgressService = require(script.Parent.ProgressService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
@@ -64,20 +64,17 @@ function ItemService.CreateItem(data: Types.PlayerData, rarity: Types.Rarity): T
 		Rarity = template.Rarity,
 		State = "Dirty",
 		Quality = quality,
+		Shiny = rng:NextNumber() < Config.Shiny.Chance,
 		AcquiredAt = os.time(),
 		RepairStartedAt = nil,
 		RepairEndsAt = nil,
+		ScrubSeconds = 0,
 	}
 end
 
+-- Kept for callers that predate Rules.AddCash.
 function ItemService.AddCash(data: Types.PlayerData, amount: number, countsAsEarned: boolean)
-	if amount <= 0 or amount ~= amount then
-		return
-	end
-	data.Cash = math.min(Config.Economy.MaxCash, data.Cash + amount)
-	if countsAsEarned then
-		data.LifetimeEarned += amount
-	end
+	Rules.AddCash(data, amount, countsAsEarned)
 end
 
 local function onBuyCrate(player: Player, crateKey: string)
@@ -92,30 +89,39 @@ local function onBuyCrate(player: Player, crateKey: string)
 
 	if not WorldService.IsNear(player, "Bazaar") then
 		FlagService.Flag(player, "BuyCrateOutOfRange", 2)
-		SyncService.Notify(player, "error", "Walk up to the Junk Bazaar to buy crates.")
+		SyncService.Notify(player, "error", "N_NeedBazaar")
 		return
 	end
 
 	local data = profile.Data
-	if Rules.InventoryCount(data) >= Rules.Capacity(player) then
-		SyncService.Notify(player, "error", "Inventory full! Sell some junk or grab +20 Inventory in the shop.")
+	if Rules.Level(data) < crate.UnlockLevel then
+		SyncService.Notify(player, "error", "N_CrateLocked", { tostring(crate.UnlockLevel) })
+		return
+	end
+	if Rules.InventoryCount(data) >= Rules.Capacity(player, data) then
+		SyncService.Notify(player, "error", "N_InventoryFull")
 		return
 	end
 	if data.Cash < crate.Price then
-		SyncService.Notify(player, "error", "Not enough cash for that crate.")
+		SyncService.Notify(player, "error", "N_NotEnoughCash")
 		return
 	end
 
-	-- Atomic section (no yields): pay, roll, insert.
+	-- Atomic section (no yields): pay, roll, insert, progress.
 	data.Cash -= crate.Price
 	local item = ItemService.CreateItem(data, ItemService.RollRarity(crate.Weights))
 	data.Inventory[item.Id] = item
 	data.Stats.CratesOpened += 1
 
+	SyncService.Notify(player, "reveal", "N_Found", { item.Rarity, item.TemplateId, if item.Shiny then "1" else "0" })
+	if item.Shiny then
+		SyncService.Notify(player, "levelup", "N_ShinyFound")
+	end
+
+	ProgressService.Discover(player, data, item)
+	ProgressService.AddXP(player, data, Config.Progression.XP.CrateOpened)
+	ProgressService.Record(player, data, "CrateOpened", 1)
 	SyncService.MarkDirty(player)
-	local template = Items.Get(item.TemplateId)
-	local name = if template then template.Name else item.TemplateId
-	SyncService.Notify(player, "reveal", string.format("%s|%s|%s", item.Rarity, name, if template then template.Icon else ""))
 end
 
 function ItemService.Start()

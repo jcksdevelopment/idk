@@ -4,7 +4,8 @@
 	Robux shop: developer products (boosts) + game passes.
 	Buttons only ask the SERVER to prompt the purchase; granting happens
 	exclusively in ProcessReceipt / PromptGamePassPurchaseFinished.
-	Prices are fetched live from Roblox so they are never hard-coded wrong.
+	Prices are fetched live from Roblox. A friendly note reminds kids that
+	everything can be earned by playing and to ask a grown-up first.
 ]]
 
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -12,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Locale = require(Shared.Locale)
 local Types = require(Shared.Types)
 
 local Controllers = script.Parent.Parent.Controllers
@@ -31,6 +33,8 @@ type Entry = {
 	PriceText: string,
 }
 
+local priceCache: { [number]: string } = {}
+
 local function sortedKeys(map: { [string]: any }): { string }
 	local keys = {}
 	for key in map do
@@ -44,7 +48,11 @@ end
 
 local function fetchPrice(entry: Entry)
 	if entry.Id == 0 then
-		entry.PriceText = "Soon"
+		entry.PriceText = Locale.T("Shop_Soon")
+		return
+	end
+	if priceCache[entry.Id] then
+		entry.PriceText = priceCache[entry.Id]
 		return
 	end
 	task.spawn(function()
@@ -52,14 +60,25 @@ local function fetchPrice(entry: Entry)
 		local ok, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, entry.Id, infoType)
 		if ok and type(info) == "table" and type(info.PriceInRobux) == "number" then
 			entry.PriceText = "R$ " .. tostring(info.PriceInRobux)
+			priceCache[entry.Id] = entry.PriceText
 		else
-			entry.PriceText = "Buy"
+			entry.PriceText = Locale.T("Shop_Buy")
 		end
-		entry.Button.Text = entry.PriceText
+		if entry.Button.Parent and entry.Button.Text ~= Locale.T("Shop_Owned") then
+			entry.Button.Text = entry.PriceText
+		end
 	end)
 end
 
-local function buildCard(parent: Instance, order: number, display: any, wide: boolean, accent: Color3): (Frame, TextButton)
+local function buildCard(
+	parent: Instance,
+	order: number,
+	prefix: string,
+	key: string,
+	display: any,
+	wide: boolean,
+	accent: Color3
+): TextButton
 	local card: Frame = Create.new("Frame", {
 		LayoutOrder = order,
 		Size = if wide then UDim2.fromScale(0.485, 1) else UDim2.fromScale(0.315, 1),
@@ -72,12 +91,12 @@ local function buildCard(parent: Instance, order: number, display: any, wide: bo
 		local ribbon: Frame = Create.new("Frame", {
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.fromScale(1, 0),
-			Size = if wide then UDim2.fromScale(0.26, 0.2) else UDim2.fromScale(0.5, 0.12),
-			BackgroundColor3 = Theme.Colors.Danger,
+			Size = if wide then UDim2.fromScale(0.3, 0.2) else UDim2.fromScale(0.56, 0.12),
+			BackgroundColor3 = Theme.Colors.Pink,
 			Parent = card,
 		}, { Create.Corner(UDim.new(0.3, 0)) })
 		Create.Label({
-			Text = display.Ribbon,
+			Text = Locale.T(display.Ribbon),
 			Size = UDim2.fromScale(0.9, 0.8),
 			Position = UDim2.fromScale(0.05, 0.1),
 			MaxTextSize = 18,
@@ -85,7 +104,9 @@ local function buildCard(parent: Instance, order: number, display: any, wide: bo
 		})
 	end
 
-	local button: TextButton
+	local title = Locale.T(prefix .. key .. "_Title")
+	local description = Locale.T(prefix .. key .. "_Desc")
+
 	if wide then
 		Create.Label({
 			Text = display.Icon,
@@ -95,7 +116,7 @@ local function buildCard(parent: Instance, order: number, display: any, wide: bo
 			Parent = card,
 		})
 		Create.Label({
-			Text = display.Title,
+			Text = title,
 			Font = Theme.Fonts.Display,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Size = UDim2.fromScale(0.45, 0.24),
@@ -104,7 +125,7 @@ local function buildCard(parent: Instance, order: number, display: any, wide: bo
 			Parent = card,
 		})
 		Create.Label({
-			Text = display.Description,
+			Text = description,
 			Font = Theme.Fonts.Regular,
 			TextColor3 = Theme.Colors.Muted,
 			TextXAlignment = Enum.TextXAlignment.Left,
@@ -114,7 +135,7 @@ local function buildCard(parent: Instance, order: number, display: any, wide: bo
 			MaxTextSize = 20,
 			Parent = card,
 		})
-		button = Create.Button({
+		return Create.Button({
 			Text = "…",
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.fromScale(0.97, 0.6),
@@ -122,71 +143,80 @@ local function buildCard(parent: Instance, order: number, display: any, wide: bo
 			BackgroundColor3 = Theme.Colors.Robux,
 			Parent = card,
 		}, function() end)
-	else
-		Create.Label({
-			Text = display.Icon,
-			Size = UDim2.fromScale(1, 0.28),
-			Position = UDim2.fromScale(0, 0.12),
-			MaxTextSize = 80,
-			Parent = card,
-		})
-		Create.Label({
-			Text = display.Title,
-			Font = Theme.Fonts.Display,
-			Size = UDim2.fromScale(0.9, 0.12),
-			Position = UDim2.fromScale(0.05, 0.42),
-			MaxTextSize = 30,
-			Parent = card,
-		})
-		Create.Label({
-			Text = display.Description,
-			Font = Theme.Fonts.Regular,
-			TextColor3 = Theme.Colors.Muted,
-			TextWrapped = true,
-			Size = UDim2.fromScale(0.9, 0.2),
-			Position = UDim2.fromScale(0.05, 0.56),
-			MaxTextSize = 20,
-			Parent = card,
-		})
-		button = Create.Button({
-			Text = "…",
-			Size = UDim2.fromScale(0.86, 0.15),
-			Position = UDim2.fromScale(0.07, 0.8),
-			BackgroundColor3 = Theme.Colors.Robux,
-			Parent = card,
-		}, function() end)
 	end
-	return card, button
+
+	Create.Label({
+		Text = display.Icon,
+		Size = UDim2.fromScale(1, 0.28),
+		Position = UDim2.fromScale(0, 0.12),
+		MaxTextSize = 80,
+		Parent = card,
+	})
+	Create.Label({
+		Text = title,
+		Font = Theme.Fonts.Display,
+		Size = UDim2.fromScale(0.9, 0.12),
+		Position = UDim2.fromScale(0.05, 0.42),
+		MaxTextSize = 30,
+		Parent = card,
+	})
+	Create.Label({
+		Text = description,
+		Font = Theme.Fonts.Regular,
+		TextColor3 = Theme.Colors.Muted,
+		TextWrapped = true,
+		Size = UDim2.fromScale(0.9, 0.2),
+		Position = UDim2.fromScale(0.05, 0.56),
+		MaxTextSize = 20,
+		Parent = card,
+	})
+	return Create.Button({
+		Text = "…",
+		Size = UDim2.fromScale(0.86, 0.15),
+		Position = UDim2.fromScale(0.07, 0.8),
+		BackgroundColor3 = Theme.Colors.Robux,
+		Parent = card,
+	}, function() end)
 end
 
 function CashShopPanel.Build(gui: ScreenGui)
-	local panel, _header, close = Create.Panel("CashShop", "🛒 Cash Shop", Theme.Colors.Robux, 1.5, gui)
+	local panel, _header, close = Create.Panel("CashShop", Locale.T("Title_Shop"), Theme.Colors.Robux, 1.5, gui)
 	close.Activated:Connect(UIController.Close)
 
 	Create.Label({
-		Text = "⚡ BOOSTS",
+		Text = "💛 " .. Locale.T("Shop_Note"),
+		Font = Theme.Fonts.Regular,
+		TextColor3 = Theme.Colors.Muted,
+		TextWrapped = true,
+		Size = UDim2.fromScale(0.94, 0.05),
+		Position = UDim2.fromScale(0.03, 0.14),
+		MaxTextSize = 18,
+		Parent = panel,
+	})
+	Create.Label({
+		Text = Locale.T("Shop_Boosts"),
 		Font = Theme.Fonts.Display,
 		TextColor3 = Theme.Colors.Accent,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.5, 0.055),
-		Position = UDim2.fromScale(0.03, 0.15),
+		Size = UDim2.fromScale(0.5, 0.05),
+		Position = UDim2.fromScale(0.03, 0.2),
 		MaxTextSize = 28,
 		Parent = panel,
 	})
 	local productRow: Frame = Create.new("Frame", {
-		Position = UDim2.fromScale(0.03, 0.215),
-		Size = UDim2.fromScale(0.94, 0.4),
+		Position = UDim2.fromScale(0.03, 0.255),
+		Size = UDim2.fromScale(0.94, 0.37),
 		BackgroundTransparency = 1,
 		Parent = panel,
 	}, { Create.List(Enum.FillDirection.Horizontal, 0.0275) })
 
 	Create.Label({
-		Text = "👑 GAME PASSES - forever yours",
+		Text = Locale.T("Shop_Passes"),
 		Font = Theme.Fonts.Display,
 		TextColor3 = Theme.Colors.VIP,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.6, 0.055),
-		Position = UDim2.fromScale(0.03, 0.635),
+		Size = UDim2.fromScale(0.6, 0.05),
+		Position = UDim2.fromScale(0.03, 0.64),
 		MaxTextSize = 28,
 		Parent = panel,
 	})
@@ -201,7 +231,7 @@ function CashShopPanel.Build(gui: ScreenGui)
 
 	for order, key in sortedKeys(Config.ShopDisplay.DevProducts) do
 		local display = (Config.ShopDisplay.DevProducts :: any)[key]
-		local _card, button = buildCard(productRow, order, display, false, Theme.Colors.Accent)
+		local button = buildCard(productRow, order, "Product_", key, display, false, Theme.Colors.Accent)
 		local entry: Entry = { Key = key, Kind = "Product", Id = (Config.DevProducts :: any)[key] or 0, Button = button, PriceText = "…" }
 		button.Activated:Connect(function()
 			if entry.Id ~= 0 then
@@ -213,7 +243,7 @@ function CashShopPanel.Build(gui: ScreenGui)
 
 	for order, key in sortedKeys(Config.ShopDisplay.GamePasses) do
 		local display = (Config.ShopDisplay.GamePasses :: any)[key]
-		local _card, button = buildCard(passRow, order, display, true, Theme.Colors.VIP)
+		local button = buildCard(passRow, order, "Pass_", key, display, true, Theme.Colors.VIP)
 		local entry: Entry = { Key = key, Kind = "Pass", Id = (Config.GamePasses :: any)[key] or 0, Button = button, PriceText = "…" }
 		button.Activated:Connect(function()
 			local snapshot = StateController.Current
@@ -232,7 +262,7 @@ function CashShopPanel.Build(gui: ScreenGui)
 	local function render(snapshot: Types.Snapshot)
 		for _, entry in entries do
 			if entry.Kind == "Pass" and (snapshot.Passes :: any)[entry.Key] == true then
-				entry.Button.Text = "OWNED ✓"
+				entry.Button.Text = Locale.T("Shop_Owned")
 				Create.SetButtonEnabled(entry.Button, false, Theme.Colors.Robux)
 			else
 				entry.Button.Text = entry.PriceText
@@ -241,7 +271,7 @@ function CashShopPanel.Build(gui: ScreenGui)
 		end
 	end
 
-	StateController.Changed:Connect(render)
+	UIController.Track(StateController.Changed:Connect(render))
 	if StateController.Current then
 		render(StateController.Current)
 	end
