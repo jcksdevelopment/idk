@@ -187,7 +187,7 @@ local function makeCard(itemId: string, parent: Instance): Card
 	}
 end
 
-local function updateCard(card: Card, item: Types.ItemView, order: number, tokens: number, repairBonus: number)
+local function updateCard(card: Card, item: Types.ItemView, order: number, tokens: number, repairBonus: number, wanted: boolean)
 	local color = Items.RarityColors[item.Rarity] or Theme.Colors.Muted
 	card.Frame.LayoutOrder = order
 	card.Stroke.Color = if item.Shiny then Color3.new(1, 1, 1) else color
@@ -201,7 +201,9 @@ local function updateCard(card: Card, item: Types.ItemView, order: number, token
 	card.Instant.Text = if tokens > 0 then "⚡" .. tokens elseif Config.Monetization.ShowUpsells then "⚡R$" else "⚡"
 
 	if item.State == "Dirty" then
-		card.Status.Text = Locale.T("Inv_Dirty", { Format.Cash(item.CleanValue) })
+		card.Status.Text = if wanted
+			then Locale.T("Inv_Wanted", { tostring(Config.Requests.Multiplier) })
+			else Locale.T("Inv_Dirty", { Format.Cash(item.CleanValue) })
 		card.Bar.Visible = false
 		card.Action.Visible = true
 		local seconds = math.max(1, Valuation.RepairSeconds(item.Rarity) * (1 - repairBonus))
@@ -222,7 +224,7 @@ local function updateCard(card: Card, item: Types.ItemView, order: number, token
 		card.Sell.Text = Locale.T("Inv_OnBench")
 		Create.SetButtonEnabled(card.Sell, false, Theme.Colors.Success)
 	else
-		card.Status.Text = Locale.T("Inv_Clean")
+		card.Status.Text = if wanted then Locale.T("Inv_Wanted", { tostring(Config.Requests.Multiplier) }) else Locale.T("Inv_Clean")
 		card.Bar.Visible = false
 		card.Action.Visible = false
 		card.Instant.Visible = false
@@ -331,7 +333,9 @@ function InventoryPanel.Build(gui: ScreenGui)
 				card = makeCard(item.Id, scroller)
 				cards[item.Id] = card
 			end
-			updateCard(card, item, index, snapshot.InstantRepairTokens, snapshot.PetBonuses.Repair or 0)
+			local request = snapshot.Request
+			local wanted = request.TemplateId == item.TemplateId and request.ExpiresAt > StateController.ServerNow()
+			updateCard(card, item, index, snapshot.InstantRepairTokens, snapshot.PetBonuses.Repair or 0, wanted)
 		end
 		for id, card in cards do
 			if not seen[id] then

@@ -133,6 +133,7 @@ local function newData(): Types.PlayerData
 		RedeemedCodes = {},
 		LastFreeBoxDay = -1,
 		Weekly = { Week = -1, Id = "", Progress = 0, Claimed = false },
+		Request = { TemplateId = "", ExpiresAt = 0, NextAt = 0 },
 		LastSpinAt = 0,
 		Pets = {},
 		Stats = {
@@ -275,6 +276,14 @@ local function sanitize(raw: any): Types.PlayerData
 		data.EquippedTitle = raw.EquippedTitle
 	end
 	data.LastFreeBoxDay = math.floor(readNumber(raw.LastFreeBoxDay, -1, -1, math.huge))
+	if type(raw.Request) == "table" and type(raw.Request.TemplateId) == "string" then
+		local templateId = raw.Request.TemplateId
+		data.Request = {
+			TemplateId = if Items.Get(templateId) then templateId else "",
+			ExpiresAt = readNumber(raw.Request.ExpiresAt, 0, 0, math.huge),
+			NextAt = readNumber(raw.Request.NextAt, 0, 0, math.huge),
+		}
+	end
 	if type(raw.Weekly) == "table" and type(raw.Weekly.Id) == "string" then
 		data.Weekly = {
 			Week = math.floor(readNumber(raw.Weekly.Week, -1, -1, math.huge)),

@@ -514,6 +514,15 @@ Config.Weekly = {
 	},
 }
 
+-- Customer requests: a customer wants one specific item; sell it clean in
+-- time for Multiplier x the price. Weights pick the rarity of the wanted item.
+Config.Requests = {
+	Multiplier = 2,
+	DurationSeconds = 8 * 60,
+	CooldownSeconds = 90,
+	Weights = { Trash = 60, Rare = 35, Legendary = 5 },
+}
+
 -- On join, open the Quests & Gifts panel automatically when a gift is waiting.
 Config.AutoOpenDailyGift = true
 

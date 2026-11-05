@@ -141,6 +141,7 @@ src/
 | 👥 Group & ⭐ Premium | `Config.Social.GroupId`: group members +10% money; Roblox Premium members +10% (server-checked) |
 | 💌 Invite friends | HUD button opens Roblox's invite dialog (friends in the server give the friend bonus) |
 | ⏳ Loading screen | Branded loader in `src/first` with logo (`Config.Images.Logo`) and tips in SK/EN |
+| 🧑‍💼 Customer requests | Every few minutes a customer wants one specific item: sell it clean within 8 min for ×2 price (bar under the HUD, “WANTED” tag in the bag). Tune in `Config.Requests` |
 | 🎟️ Gift codes | Settings → type a code (e.g. `WELCOME`, `BAZAR`, `FLIPPER`; `SNOWDAY` only during Winter). Each works once per player. Add your own in `Config.Codes` |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
 | 📊 Leaderboard | Top 10 lifetime earners on a board in the plaza (OrderedDataStore, refreshed every 2 min) |

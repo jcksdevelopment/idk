@@ -122,6 +122,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		ActiveEvents = Events.ActiveList(),
 		FreeBoxAvailable = Config.FreeDailyBox.Enabled and data.LastFreeBoxDay ~= today,
 		Weekly = ProgressViews.Weekly(data),
+		Request = data.Request,
 		SocialBonus = SocialService.Bonus(player),
 		InGroup = SocialService.InGroup(player),
 		GroupEnabled = SocialService.GroupEnabled(),

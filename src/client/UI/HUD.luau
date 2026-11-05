@@ -168,6 +168,26 @@ function HUD.Build(gui: ScreenGui)
 		Visible = false,
 		Parent = root,
 	}, { Create.Corner(UDim.new(0.4, 0)), Create.Stroke(Color3.new(1, 1, 1), 3), Create.Aspect(8.5) })
+	-- Customer request bar (same spot as the tutorial banner; hidden during the tutorial)
+	local requestButton = Create.Button({
+		Name = "Request",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.fromScale(0.5, 0.205),
+		Size = UDim2.fromScale(0.36, 0.055),
+		BackgroundColor3 = Theme.Colors.PanelDark,
+		Text = "",
+		MaxTextSize = 22,
+		Visible = false,
+		Parent = root,
+	}, function()
+		UIController.Open("Inventory")
+	end)
+	local requestStroke = requestButton:FindFirstChildOfClass("UIStroke")
+	if requestStroke then
+		requestStroke.Color = Theme.Colors.Accent
+		requestStroke.Transparency = 0
+	end
+
 	local tutorialLabel = Create.Label({
 		Text = "",
 		TextColor3 = Theme.Colors.PanelDark,
@@ -474,6 +494,19 @@ function HUD.Build(gui: ScreenGui)
 			return
 		end
 		local now = StateController.ServerNow()
+
+		local request = snapshot.Request
+		requestButton.Visible = not tutorial.Visible
+		if request.TemplateId ~= "" and request.ExpiresAt > now then
+			local template = Items.Get(request.TemplateId)
+			requestButton.Text = Locale.T("HUD_Request", {
+				(if template then template.Icon .. " " else "") .. Locale.ItemName(request.TemplateId),
+				tostring(Config.Requests.Multiplier),
+				Format.Duration(request.ExpiresAt - now),
+			})
+		else
+			requestButton.Text = Locale.T("HUD_RequestNext", { Format.Duration(math.max(request.NextAt - now, 0)) })
+		end
 
 		local spinLeft = snapshot.NextSpinAt - now
 		local spinReady = spinLeft <= 0

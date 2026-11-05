@@ -17,6 +17,7 @@ local Valuation = require(Shared.Valuation)
 local DataService = require(script.Parent.DataService)
 local FlagService = require(script.Parent.FlagService)
 local ProgressService = require(script.Parent.ProgressService)
+local RequestService = require(script.Parent.RequestService)
 local RemoteGuard = require(script.Parent.RemoteGuard)
 local Rules = require(script.Parent.Rules)
 local SyncService = require(script.Parent.SyncService)
@@ -52,7 +53,11 @@ local function onSellItem(player: Player, itemId: string)
 	end
 
 	-- Atomic section (no yields): price, remove, pay.
-	local value = Valuation.SellValue(item, Rules.MoneyMultiplier(player, data))
+	local requestMultiplier = RequestService.TryFulfill(player, data, item)
+	local value = Valuation.SellValue(item, Rules.MoneyMultiplier(player, data) * requestMultiplier)
+	if requestMultiplier > 1 then
+		SyncService.Notify(player, "levelup", "N_RequestDone", { tostring(requestMultiplier), Format.Cash(value) })
+	end
 	data.Inventory[itemId] = nil
 	local earned = Rules.AddCash(data, value, true)
 	data.Stats.ItemsSold += 1
@@ -92,7 +97,11 @@ local function onSellAllClean(player: Player)
 	for _, id in toSell do
 		local item = data.Inventory[id]
 		if item then
-			total += Valuation.SellValue(item, multiplier)
+			local requestMultiplier = RequestService.TryFulfill(player, data, item)
+			if requestMultiplier > 1 then
+				SyncService.Notify(player, "levelup", "N_RequestDone", { tostring(requestMultiplier), "" })
+			end
+			total += Valuation.SellValue(item, multiplier * requestMultiplier)
 			xp += Config.Progression.XP.Sold[item.Rarity] or 1
 			data.Inventory[id] = nil
 			data.Stats.ItemsSold += 1

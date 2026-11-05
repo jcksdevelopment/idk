@@ -50,6 +50,7 @@ export type Moderation = {
 
 export type QuestEntry = { Id: string, Progress: number, Claimed: boolean }
 export type QuestState = { Day: number, Entries: { QuestEntry } }
+export type RequestState = { TemplateId: string, ExpiresAt: number, NextAt: number }
 export type WeeklyState = { Week: number, Id: string, Progress: number, Claimed: boolean }
 export type WeeklyView = { Id: string, Goal: number, Progress: number, Claimed: boolean, Reward: Reward, ResetsAt: number }
 export type DailyState = { Streak: number, LastClaimDay: number }
@@ -78,6 +79,7 @@ export type PlayerData = {
 	RedeemedCodes: { [string]: boolean },
 	LastFreeBoxDay: number,
 	Weekly: WeeklyState,
+	Request: RequestState,
 	LastSpinAt: number,
 	Pets: { [string]: PetRecord }, -- keyed by server GUID
 	Stats: PlayerStats,
@@ -158,6 +160,7 @@ export type Snapshot = {
 	ActiveEvents: { string },
 	FreeBoxAvailable: boolean,
 	Weekly: WeeklyView?,
+	Request: RequestState,
 	SocialBonus: number, -- group + Premium bonus, e.g. 0.2 = +20%
 	InGroup: boolean,
 	GroupEnabled: boolean,

@@ -291,6 +291,17 @@ check(not Events.IsActive("Winter", at(2026, 7, 1)), "Winter inactive in July")
 check(Events.IsActive("Halloween", at(2026, 10, 20)), "Halloween active Oct 20")
 check(not Events.IsActive("Halloween", at(2026, 11, 5)), "Halloween over Nov 5")
 
+-- Customer requests
+local requestTotal = 0
+for _, w in Config.Requests.Weights do
+	requestTotal += w
+end
+check(requestTotal == 100, "request rarity weights sum to 100")
+check(Config.Requests.Multiplier >= 1.5 and Config.Requests.DurationSeconds >= 180, "requests are worth it and last long enough")
+Locale.SetLanguage("sk")
+check(string.find(Locale.T("HUD_Request", { "@item:Gramophone", "2", "5:00" }), "Starý gramofón", 1, true) ~= nil, "request text names the item in SK")
+Locale.SetLanguage("en")
+
 -- Pets & icons
 check(Pets.Get("Dragon") ~= nil and #Pets.ByRarity("Legendary") == 3, "pet catalog")
 check(Icons.Lookup("Items", "RustySpoon") == nil, "empty image id falls back to emoji")
