@@ -45,6 +45,7 @@ namespace JcksAnticheat.Core.Config
         public GameEventPolicy GameEvents { get; set; } = new GameEventPolicy();
         public VisionConfig Vision { get; set; } = new VisionConfig();
         public DashboardConfig Dashboard { get; set; } = new DashboardConfig();
+        public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
 
         public List<string> WeaponBlacklist { get; set; } = new List<string>
         {
@@ -200,6 +201,14 @@ namespace JcksAnticheat.Core.Config
                 cfg.Vision.FlagConfidence = v.Num("flagConfidence") ?? cfg.Vision.FlagConfidence;
                 cfg.Vision.CooldownSeconds = (int)(v.Num("cooldownSeconds") ?? cfg.Vision.CooldownSeconds);
                 cfg.Vision.MaxStoredCaptures = (int)(v.Num("maxStoredCaptures") ?? cfg.Vision.MaxStoredCaptures);
+            }
+
+            if (root.Obj("discord") is { } dc)
+            {
+                cfg.Discord.Enabled = dc.Bool("enabled") ?? cfg.Discord.Enabled;
+                cfg.Discord.WebhookEnv = dc.Str("webhookEnv") ?? cfg.Discord.WebhookEnv;
+                cfg.Discord.MinAction = dc.Str("minAction") ?? cfg.Discord.MinAction;
+                cfg.Discord.Username = dc.Str("username") ?? cfg.Discord.Username;
             }
 
             if (root.Obj("dashboard") is { } db)

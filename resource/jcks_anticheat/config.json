@@ -62,6 +62,13 @@
     "maxStoredCaptures": 500
   },
 
+  "discord": {
+    "enabled": false,
+    "webhookEnv": "JCKS_AC_DISCORD_WEBHOOK",
+    "minAction": "kick",
+    "username": "JCKS Anticheat"
+  },
+
   "dashboard": {
     "enabled": false,
     "url": "http://localhost:3000",

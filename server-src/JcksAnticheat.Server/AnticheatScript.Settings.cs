@@ -157,6 +157,7 @@ namespace JcksAnticheat.Server
             PushSettingsToDashboard();
             var msg = $"Settings {(save ? "saved and applied" : "reloaded")} by {actor}. dryRun={_cfg.DryRun}.";
             Log(msg);
+            _discord.Notice("Settings " + (save ? "saved" : "reloaded"), $"by {actor}; dryRun={_cfg.DryRun}");
             _dashboard.Enqueue("settings_changed", new Dictionary<string, object?> { ["actor"] = actor, ["saved"] = save });
             return msg;
         }

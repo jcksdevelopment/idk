@@ -75,6 +75,8 @@ namespace JcksAnticheat.Server
             }
             DrainVisionResults();
 
+            if (_tickCount % 3 == 0) _ = _discord.FlushAsync();
+
             if (_dashboard.Enabled)
             {
                 if (_tickCount % Math.Max(1, _cfg.Dashboard.FlushSeconds) == 0)

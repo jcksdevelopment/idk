@@ -44,6 +44,7 @@ namespace JcksAnticheat.Server
         private readonly ScreenshotAssembler _screenshots = new ScreenshotAssembler();
         private readonly AIVisionEvaluator _vision;
         private readonly DashboardBridge _dashboard;
+        private readonly JcksAnticheat.Core.Logging.DiscordWebhook _discord;
         private HashSet<uint> _weaponBlacklist; // rebuilt on settings reload
         private readonly string _dataDir;
 
@@ -82,6 +83,7 @@ namespace JcksAnticheat.Server
             _bans = new BanStore(Path.Combine(_dataDir, "bans.json"));
             _vision = new AIVisionEvaluator(_cfg.Vision);
             _dashboard = new DashboardBridge(_cfg.Dashboard);
+            _discord = new JcksAnticheat.Core.Logging.DiscordWebhook(_cfg.Discord);
 
             RegisterEvents();
             // Players already connected when the resource (re)starts must handshake too.

@@ -499,6 +499,40 @@
       ]
     },
     {
+      "id": "discord",
+      "title": "Discord logs",
+      "fields": [
+        {
+          "key": "discord.enabled",
+          "label": "Enabled",
+          "type": "bool"
+        },
+        {
+          "key": "discord.webhookEnv",
+          "label": "Webhook URL environment variable",
+          "type": "string",
+          "help": "Set this variable on the FiveM process to the webhook URL. The URL itself is never stored in config."
+        },
+        {
+          "key": "discord.minAction",
+          "label": "Post detections from",
+          "type": "select",
+          "options": [
+            "log",
+            "screenshot",
+            "kick",
+            "ban"
+          ],
+          "help": "Bans and settings changes are always posted."
+        },
+        {
+          "key": "discord.username",
+          "label": "Bot name",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "id": "dashboard",
       "title": "Web dashboard",
       "fields": [

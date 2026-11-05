@@ -241,6 +241,14 @@ severity overrides, `ignore` codes (switched off entirely; the client stops send
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
 
+### Discord logs
+
+Set `discord.enabled` and give the FiveM process the webhook URL in the variable named by
+`discord.webhookEnv` (default `JCKS_AC_DISCORD_WEBHOOK`). Detections at or above
+`discord.minAction` (default `kick`) are posted as embeds with player, action, score and evidence.
+Bans and settings changes are always posted. Embeds are batched (10 per message) and sent off the
+game thread.
+
 ## Dashboard
 
 ```bash
@@ -299,7 +307,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-74 tests cover:
+77 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -325,7 +333,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 74 tests pass.
+- Both C# projects build with no warnings and the 77 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

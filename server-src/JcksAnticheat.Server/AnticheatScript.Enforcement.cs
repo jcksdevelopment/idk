@@ -36,6 +36,7 @@ namespace JcksAnticheat.Server
                 ["evidence"] = v.Evidence, ["bypass"] = bypass, ["dryRun"] = _cfg.DryRun,
             });
 
+            _discord.Detection(player.Name, v.Player, v, _cfg.DryRun);
             if (bypass || _cfg.DryRun) return;
 
             switch (v.Action)
@@ -76,6 +77,7 @@ namespace JcksAnticheat.Server
                 ExpiresAt = durationHours.HasValue && durationHours > 0 ? DateTime.UtcNow.AddHours(durationHours.Value) : (DateTime?)null,
             });
             _dashboard.Enqueue("ban", ban);
+            _discord.Ban(ban.Name, ban.Id, reason, actor, ban.ExpiresAt);
             DropPlayer(player.Handle, $"[JCKS Anticheat] Banned. Reason: {reason} | Ban ID: {ban.Id}");
         }
 
