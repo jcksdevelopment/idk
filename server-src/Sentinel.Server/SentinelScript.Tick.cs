@@ -31,7 +31,11 @@ namespace Sentinel.Server
                 foreach (var p in players) CheckPlayerState(p, now);
 
                 foreach (var (player, silent) in _heartbeats.FindMissing(now))
-                    Punish(new Violation(player, "HB_MISSING", ViolationSource.Heartbeat, new Dictionary<string, object?> { ["silentSec"] = (int)silent.TotalSeconds }));
+                    Punish(new Violation(player, "HB_MISSING", ViolationSource.Heartbeat, new Dictionary<string, object?>
+                    {
+                        ["silentSec"] = (int)silent.TotalSeconds,
+                        ["handshake"] = _heartbeats.HasSession(player),
+                    }));
 
                 if (_absorb.HasPending)
                 {
@@ -60,7 +64,13 @@ namespace Sentinel.Server
         {
             int id = ToId(player.Handle);
             int ped = GetPlayerPed(player.Handle);
-            if (ped == 0 || !_heartbeats.HasSession(id)) return; // still loading in
+            // Server-side checks don't wait for the handshake: a client that blocks sentinel:hello
+            // must not switch off the server's own movement and health validation.
+            if (ped == 0) return; // no ped yet: still downloading or loading in
+
+            // The handshake clock starts once the player is in the world, not at join: first-time
+            // players can spend minutes downloading resources before any client script runs.
+            _heartbeats.ExpectHandshake(id, now);
 
             int health = GetEntityHealth(ped);
             int armor = GetPedArmour(ped);

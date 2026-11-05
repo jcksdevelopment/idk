@@ -80,7 +80,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `NET_CLEAR_TASKS` | Kick players out of vehicles / freeze them | `clearPedTasksEvent` aimed at another player's ped (cancelled) | S | `SentinelScript.cs` | 40 |
 | `NET_FLOOD` | Event flood / spam triggers | 40+ rate-limited events within 10 s: the player is disconnected at once | S | `SentinelScript.cs` (`Guard`) | 40 |
 | `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `SentinelScript.cs` (honeypot events) | 60 |
-| `HB_MISSING` | Scanner killed | No valid heartbeat for > 20 s | H | `HeartbeatManager` | 60 |
+| `HB_MISSING` | Scanner killed or never started | No valid heartbeat for > 20 s, or in the world for > 120 s without the `sentinel:hello` handshake | H | `HeartbeatManager` | 60 |
 | `HB_INVALID` | Heartbeat forgery/replay | MAC mismatch, sequence replay, or stale challenge | H | `HeartbeatManager` | 60 |
 | `EXE_RESOURCE_COUNT` | Executor `GetNumResources` spoof | Client resource count/list ≠ server's started list | C | `integrity.lua` | 40 |
 | `EXE_RESOURCE_INJECT` | Injected resource | Unknown resource starts on the client | C | `integrity.lua` | 50 |

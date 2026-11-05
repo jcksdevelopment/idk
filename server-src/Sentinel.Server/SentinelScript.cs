@@ -64,6 +64,7 @@ namespace Sentinel.Server
             _ledger = new ViolationLedger(_cfg.Scoring);
             _eventRule = new RateLimiter.Rule(_cfg.EventBurst, _cfg.EventRefillPerSecond);
             _heartbeats.MissingAfter = TimeSpan.FromSeconds(_cfg.HeartbeatMissingSeconds);
+            _heartbeats.HandshakeTimeout = TimeSpan.FromSeconds(_cfg.HandshakeTimeoutSeconds);
             _movement = new MovementValidator(_cfg.Movement);
             _damage = new DamageValidator(_cfg.Damage);
             _explosions = new ExplosionValidator(_cfg.Explosions);
@@ -78,6 +79,8 @@ namespace Sentinel.Server
             _dashboard = new DashboardBridge(_cfg.Dashboard);
 
             RegisterEvents();
+            // Players already connected when the resource (re)starts must handshake too.
+            foreach (var p in Players) OnPlayerJoining(p, "");
             RegisterExports();
             Tick += OnTick;
 
@@ -89,6 +92,7 @@ namespace Sentinel.Server
         {
             EventHandlers["playerConnecting"] += new Action<Player, string, CallbackDelegate, IDictionary<string, object>>(OnPlayerConnecting);
             EventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDropped);
+            EventHandlers["playerJoining"] += new Action<Player, string>(OnPlayerJoining);
             EventHandlers["sentinel:hello"] += new Action<Player>(OnHello);
             EventHandlers[_hbEvent] += new Action<Player, object, string, string, string>(OnHeartbeat);
             EventHandlers[_ssUploadEvent] += new Action<Player, string, int, int, string>(OnScreenshotChunk);
@@ -133,6 +137,17 @@ namespace Sentinel.Server
             ((CallbackDelegate)deferrals["done"])(message);
             Log($"rejected banned connection {name} ({ban.Id})");
             _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = ban.Id });
+        }
+
+        private void OnPlayerJoining([FromSource] Player player, string oldId)
+        {
+            int id = ToId(player.Handle);
+            if (id <= 0) return;
+            // Loading in and spawning teleports and heals the ped; server checks run from the start,
+            // so they get the same grace the handshake grants.
+            _movement.GrantGrace(id, TimeSpan.FromSeconds(90));
+            _state.GrantGrace(id, "heal", TimeSpan.FromSeconds(90));
+            _state.GrantGrace(id, "armor", TimeSpan.FromSeconds(90));
         }
 
         private void OnPlayerDropped([FromSource] Player player, string reason)

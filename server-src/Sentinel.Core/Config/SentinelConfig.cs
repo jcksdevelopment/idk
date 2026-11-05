@@ -76,6 +76,8 @@ namespace Sentinel.Core.Config
 
         public int HeartbeatIntervalMs { get; set; } = 5000;
         public int HeartbeatMissingSeconds { get; set; } = 20;
+        /// <summary>Seconds a player may be in the world (has a ped) without completing the handshake.</summary>
+        public int HandshakeTimeoutSeconds { get; set; } = 120;
         public int MaxHealth { get; set; } = 200;
         public double ExpectedDamageModifier { get; set; } = 1.0;
         public bool DryRun { get; set; }
@@ -90,6 +92,7 @@ namespace Sentinel.Core.Config
             cfg.DryRun = root.Bool("dryRun") ?? cfg.DryRun;
             cfg.HeartbeatIntervalMs = (int)(root.Num("heartbeatIntervalMs") ?? cfg.HeartbeatIntervalMs);
             cfg.HeartbeatMissingSeconds = (int)(root.Num("heartbeatMissingSeconds") ?? cfg.HeartbeatMissingSeconds);
+            cfg.HandshakeTimeoutSeconds = (int)(root.Num("handshakeTimeoutSeconds") ?? cfg.HandshakeTimeoutSeconds);
             cfg.MaxHealth = (int)(root.Num("maxHealth") ?? cfg.MaxHealth);
             cfg.ExpectedDamageModifier = root.Num("expectedDamageModifier") ?? cfg.ExpectedDamageModifier;
             cfg.EventBurst = root.Num("eventBurst") ?? cfg.EventBurst;

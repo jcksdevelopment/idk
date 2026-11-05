@@ -161,3 +161,39 @@ public class HeartbeatInteropTests
                 System.Text.Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"))));
     }
 }
+
+public class HandshakeTimeoutTests
+{
+    [Fact]
+    public void PlayerWhoNeverSendsHelloIsReportedOnce()
+    {
+        var mgr = new HeartbeatManager { HandshakeTimeout = TimeSpan.FromSeconds(150) };
+        var t0 = DateTime.UtcNow;
+        mgr.ExpectHandshake(4, t0);
+        Assert.Empty(mgr.FindMissing(t0.AddSeconds(100)));
+        var missing = mgr.FindMissing(t0.AddSeconds(151));
+        Assert.Equal(4, Assert.Single(missing).player);
+        Assert.Empty(mgr.FindMissing(t0.AddSeconds(200)));
+    }
+
+    [Fact]
+    public void HandshakeClearsTheExpectation()
+    {
+        var mgr = new HeartbeatManager();
+        var t0 = DateTime.UtcNow;
+        mgr.ExpectHandshake(5, t0);
+        mgr.Begin(5, t0.AddSeconds(10));
+        // Only the session's own first-heartbeat grace (90 s from Begin) applies now.
+        Assert.Empty(mgr.FindMissing(t0.AddSeconds(160 - 70)));
+    }
+
+    [Fact]
+    public void DroppedPlayerIsNotReported()
+    {
+        var mgr = new HeartbeatManager();
+        var t0 = DateTime.UtcNow;
+        mgr.ExpectHandshake(6, t0);
+        mgr.End(6);
+        Assert.Empty(mgr.FindMissing(t0.AddSeconds(500)));
+    }
+}

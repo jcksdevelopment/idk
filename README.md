@@ -49,7 +49,10 @@ plain net event a cheat could block or spoof to stay clean. Blocking the heartbe
    ratchet `key = SHA256(key ‖ mac)`, so a captured packet can't be replayed and a forger who missed
    one packet loses the key.
 4. A second handshake after a working session is itself a violation (`HB_INVALID`).
-5. An invalid heartbeat (`HB_INVALID`) or 20 s of silence (`HB_MISSING`) disconnects the player
+5. A client that never handshakes can't opt out: once the player has a ped in the world, they
+   have `handshakeTimeoutSeconds` (120) to send `sentinel:hello`, or they get `HB_MISSING`. The
+   server's own movement and health checks run from the moment the ped exists, handshake or not.
+6. An invalid heartbeat (`HB_INVALID`) or 20 s of silence (`HB_MISSING`) disconnects the player
    immediately (`scoring.dropImmediately`). That's a kick, not a ban: a crashed or frozen client
    looks the same as a killed scanner.
 
@@ -208,7 +211,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-32 tests cover:
+35 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -234,7 +237,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 32 tests pass.
+- Both C# projects build with no warnings and the 35 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

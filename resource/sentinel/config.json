@@ -2,6 +2,7 @@
   "dryRun": true,
   "heartbeatIntervalMs": 5000,
   "heartbeatMissingSeconds": 20,
+  "handshakeTimeoutSeconds": 120,
   "maxHealth": 200,
   "expectedDamageModifier": 1.0,
   "eventBurst": 60,

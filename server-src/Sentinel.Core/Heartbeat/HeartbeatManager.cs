@@ -51,6 +51,20 @@ namespace Sentinel.Core.Heartbeat
     public sealed class HeartbeatManager
     {
         private readonly ConcurrentDictionary<int, HeartbeatSession> _sessions = new ConcurrentDictionary<int, HeartbeatSession>();
+        /// <summary>Players who joined but haven't completed the handshake yet, with their join time.</summary>
+        private readonly ConcurrentDictionary<int, DateTime> _awaitingHello = new ConcurrentDictionary<int, DateTime>();
+
+        /// <summary>How long a joined player may go without sending sentinel:hello.</summary>
+        public TimeSpan HandshakeTimeout { get; set; } = TimeSpan.FromSeconds(150);
+
+        /// <summary>
+        /// Call (repeatedly is fine; only the first call counts) once a player is in the world. Blocking the hello event must not let a client opt out of the
+        /// heartbeat, so a player who never handshakes is reported by FindMissing.
+        /// </summary>
+        public void ExpectHandshake(int player, DateTime? now = null)
+        {
+            if (!_sessions.ContainsKey(player)) _awaitingHello.TryAdd(player, now ?? DateTime.UtcNow);
+        }
 
         public TimeSpan MissingAfter { get; set; } = TimeSpan.FromSeconds(20);
         /// <summary>The first heartbeat is allowed to take longer (client still loading).</summary>
@@ -63,6 +77,7 @@ namespace Sentinel.Core.Heartbeat
             var key = SentinelCrypto.RandomBytes(32);
             var challenge = NewChallenge();
             _sessions[player] = new HeartbeatSession(player, key, challenge, now ?? DateTime.UtcNow);
+            _awaitingHello.TryRemove(player, out _);
             return (SentinelCrypto.ToHex(key), challenge);
         }
 
@@ -70,7 +85,11 @@ namespace Sentinel.Core.Heartbeat
 
         public HeartbeatSession? Get(int player) => _sessions.TryGetValue(player, out var s) ? s : null;
 
-        public void End(int player) => _sessions.TryRemove(player, out _);
+        public void End(int player)
+        {
+            _sessions.TryRemove(player, out _);
+            _awaitingHello.TryRemove(player, out _);
+        }
 
         public HeartbeatResult Verify(int player, object? seqArg, string? nonceHex, string? ctHex, string? macHex, DateTime? now = null)
         {
@@ -125,6 +144,12 @@ namespace Sentinel.Core.Heartbeat
         {
             var t = now ?? DateTime.UtcNow;
             var result = new List<(int, TimeSpan)>();
+            foreach (var kv in _awaitingHello)
+            {
+                var waited = t - kv.Value;
+                // Reported once: the entry is removed, so the next FindMissing doesn't repeat it.
+                if (waited > HandshakeTimeout && _awaitingHello.TryRemove(kv.Key, out _)) result.Add((kv.Key, waited));
+            }
             foreach (var kv in _sessions)
             {
                 var s = kv.Value;
