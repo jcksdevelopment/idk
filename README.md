@@ -548,6 +548,28 @@ The interop tests need `lua5.4` on `PATH`; set `JCKS_AC_SKIP_LUA=1` to skip them
 cd dashboard && npm run lint && npm run build
 ```
 
+## Simulator
+
+No FiveM server or game client runs here, so `tools/sim` runs the real code against scripted
+players instead:
+
+- `lua5.4 tools/sim/client_sim.lua resource/jcks_anticheat all` loads the real client scanner and
+  countermeasures with stubbed natives backed by a fake game state, and plays 31 scenarios (clean
+  player, clean driver, a mechanic repairing from another client, and 28 cheats: godmode, proofs,
+  invisible ped and vehicle, noclip, freecam, speed, super jump, thermal, tiny ped, spectate, weapons,
+  damage modifiers, vehicle repair/plate/power/top speed/gravity/ramming/godmode, injected
+  resource/command, menu textures). Each must raise its code and, where a countermeasure exists,
+  the fake game state must be back to normal afterwards. It also runs as a unit test.
+- `dotnet run -c Release --project tools/sim/server` drives the real C# validators and scoring with
+  server-side scenarios (teleport, sync flags, damage, explosions, spawn floods, attachments, mass
+  kills, projectiles, an external report) plus the client scenarios above, prints what was
+  detected and the resulting action, and exits non-zero if a clean player is flagged or a cheater is
+  missed. With `JCKS_AC_DASHBOARD_URL` and `JCKS_AC_DASHBOARD_SECRET` set it pushes the players,
+  detections and bans into a running dashboard through the real `DashboardBridge`.
+
+The simulator shows the logic works on the inputs it is given. It does not show that the game
+returns those inputs, which only a real server can.
+
 ## What has and hasn't been verified
 
 Verified in this repository:
