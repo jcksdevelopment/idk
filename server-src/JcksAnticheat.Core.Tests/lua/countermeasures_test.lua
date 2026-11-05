@@ -14,6 +14,7 @@ function PlayerPedId() return 42 end
 function PlayerId() return 0 end
 function GetVehiclePedIsIn() return 0 end
 SetPlayerInvincible = rec("SetPlayerInvincible")
+SetPlayerInvincibleKeepRagdollEnabled = rec("SetPlayerInvincibleKeepRagdollEnabled")
 SetEntityInvincible = rec("SetEntityInvincible")
 SetEntityCanBeDamaged = rec("SetEntityCanBeDamaged")
 SetEntityHealth = rec("SetEntityHealth")
@@ -70,7 +71,7 @@ reset()
 S.server.countermeasures = true
 S.flag("PLY_GODMODE_FLAG", {})
 S.flag("PLY_GODMODE_FLAG", {})
-expect(#log == 6, "countermeasure must apply on every detection, not only outside the flag cooldown (" .. #log .. ")")
+expect(#log == 8, "countermeasure must apply on every detection, not only outside the flag cooldown (" .. #log .. ")")
 expect(S.t("footSpeed") == 12, "default threshold")
 S.server.thresholds = { footSpeed = 20 }
 expect(S.t("footSpeed") == 20 and S.t("healthJump") == 25, "server threshold override")
