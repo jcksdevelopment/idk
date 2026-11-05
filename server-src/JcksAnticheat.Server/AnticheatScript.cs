@@ -36,6 +36,7 @@ namespace JcksAnticheat.Server
         private readonly AbsorbTracker _absorb = new AbsorbTracker();
         private readonly ExplosionValidator _explosions;
         private readonly GameEventValidator _gameEvents;
+        private readonly VehicleOwnership _vehicles = new VehicleOwnership();
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
@@ -109,6 +110,8 @@ namespace JcksAnticheat.Server
             EventHandlers["weaponDamageEvent"] += new Action<object, object>(OnWeaponDamage);
             EventHandlers["explosionEvent"] += new Action<object, object>(OnExplosion);
             EventHandlers["entityCreating"] += new Action<int>(OnEntityCreating);
+            EventHandlers["entityCreated"] += new Action<int>(OnEntityCreated);
+            EventHandlers["entityRemoved"] += new Action<int>(h => _vehicles.Untrack(NetworkGetNetworkIdFromEntity(h)));
             EventHandlers["giveWeaponEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "giveWeaponEvent"));
             EventHandlers["removeWeaponEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeWeaponEvent"));
             EventHandlers["removeAllWeaponsEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeAllWeaponsEvent"));
@@ -177,6 +180,7 @@ namespace JcksAnticheat.Server
             _damage.Forget(id);
             _explosions.Forget(id);
             _gameEvents.Forget(id);
+            _vehicles.ForgetPlayer(id);
             _entities.Forget(id);
             _state.Forget(id);
             _consistency.Forget(id);
@@ -373,6 +377,14 @@ namespace JcksAnticheat.Server
             var (found, cancel) = _entities.Evaluate(owner, model, kind, scriptCreated, DateTime.UtcNow);
             foreach (var v in found) Punish(v);
             if (cancel) CancelEvent();
+        }
+
+        /// <summary>Remember who spawned each script-created vehicle (for VEH_HIJACK).</summary>
+        private void OnEntityCreated(int handle)
+        {
+            if (GetEntityType(handle) != (int)EntityKind.Vehicle || GetEntityPopulationType(handle) != 7) return;
+            int owner = NetworkGetEntityOwner(handle);
+            if (owner > 0) _vehicles.Track(NetworkGetNetworkIdFromEntity(handle), owner);
         }
 
         private void OnForbiddenWeaponEvent(object sender, string eventName)

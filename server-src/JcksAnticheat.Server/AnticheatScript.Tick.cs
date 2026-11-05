@@ -98,6 +98,15 @@ namespace JcksAnticheat.Server
             if (!_state.HasGrace(id, "invisible", now) && veh == 0 && !dead && !IsEntityVisible(ped))
                 Punish(new Violation(id, "PLY_INVISIBLE", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }));
 
+            if (veh != 0 && GetPedInVehicleSeat(veh, -1) == ped)
+            {
+                int netId = NetworkGetNetworkIdFromEntity(veh);
+                int creator = _vehicles.CreatorOf(netId);
+                var hijack = _vehicles.CheckDriver(id, netId, GetVehicleDoorLockStatus(veh),
+                    creatorOnline: creator > 0 && Players[creator] != null, hasGrace: _state.HasGrace(id, "vehicle", now));
+                if (hijack != null) Punish(hijack);
+            }
+
             uint weapon = Joaat.FromSigned(GetSelectedPedWeapon(ped));
             if (_weaponBlacklist.Contains(weapon))
             {

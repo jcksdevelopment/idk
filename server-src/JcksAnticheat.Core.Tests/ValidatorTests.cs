@@ -489,3 +489,32 @@ public class GameEventTests
         Assert.NotEmpty(all);
     }
 }
+
+public class VehicleOwnershipTests
+{
+    [Fact]
+    public void DriverOfSomeoneElsesLockedCarIsFlaggedOnce()
+    {
+        var v = new VehicleOwnership();
+        v.Track(100, creatorPlayer: 1);
+        Assert.Null(v.CheckDriver(1, 100, 2, true, false));                 // owner driving their own car
+        Assert.Null(v.CheckDriver(2, 100, 1, true, false));                 // unlocked (lockpicked / keys given)
+        Assert.Null(v.CheckDriver(2, 100, 2, true, true));                  // garage/job grace
+        Assert.Null(v.CheckDriver(2, 100, 2, false, false));                // owner offline: abandoned car
+        Assert.Equal("VEH_HIJACK", v.CheckDriver(2, 100, 2, true, false)!.Code);
+        Assert.Null(v.CheckDriver(2, 100, 2, true, false));                 // reported once
+    }
+
+    [Fact]
+    public void UntrackedAndRemovedVehiclesAreIgnored()
+    {
+        var v = new VehicleOwnership();
+        Assert.Null(v.CheckDriver(2, 5, 2, true, false));
+        v.Track(6, 1);
+        v.Untrack(6);
+        Assert.Null(v.CheckDriver(2, 6, 2, true, false));
+        v.Track(7, 1);
+        v.ForgetPlayer(1);
+        Assert.Equal(0, v.CreatorOf(7));
+    }
+}

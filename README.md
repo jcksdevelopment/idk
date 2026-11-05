@@ -113,6 +113,7 @@ on the server-side checks, the heartbeat and AI vision.
 | `AbsorbTracker` | Semi-godmode: confirmed hits that never lower the victim's health |
 | `ExplosionValidator` | Explosive ammo (`EXP_TAG_BULLET`), blacklisted and stealth explosions, explosion spam. Cancels the event. |
 | `EntityValidator` | Blacklisted vehicles and objects, spawn floods. Cancels `entityCreating`. |
+| `VehicleOwnership` | Remembers who spawned each vehicle; another player in the driver seat of it while it's locked is a hijack (`VEH_HIJACK`). Lockpick/key scripts unlock first; garages and jobs can grant `vehicle` grace. |
 | `GameEventValidator` | `startProjectileEvent` (projectiles spawned away from the shooter or as another player, blacklisted launchers, spam), `fireEvent` (fires on other players, spam), `ptFxEvent` (particle spam, oversized or attached to other players). Offending events are cancelled. |
 | `StateConsistencyValidator` | Hooked natives and forged heartbeats: the health, armour and position the client reports must match the server's own view (3 heartbeats in a row before reporting) |
 | `PlayerStateValidator` | Health and armour jumps without a server-granted heal, max-health tampering |
@@ -264,7 +265,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-58 tests cover:
+60 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -290,7 +291,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 58 tests pass.
+- Both C# projects build with no warnings and the 60 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

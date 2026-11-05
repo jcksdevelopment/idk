@@ -51,7 +51,7 @@ namespace JcksAnticheat.Core.Detection
             ["WPN_PROJECTILE_ORIGIN"] = 45, ["WPN_PROJECTILE_SPAM"] = 40, ["WPN_FIRE_PLAYER"] = 45, ["WPN_FIRE_SPAM"] = 40,
             ["NET_PTFX_SPAM"] = 35,
 
-            ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30, ["VEH_REPAIR"] = 25, ["VEH_PLATE"] = 20, ["EXE_MENU_TEXTURE"] = 50,
+            ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30, ["VEH_REPAIR"] = 25, ["VEH_HIJACK"] = 40, ["VEH_PLATE"] = 20, ["EXE_MENU_TEXTURE"] = 50,
 
             ["NET_RATE"] = 20, ["NET_FLOOD"] = 40, ["NET_HONEYPOT"] = 60, ["NET_CLEAR_TASKS"] = 40, ["HB_MISSING"] = 60, ["HB_INVALID"] = 60, ["HB_STATE_MISMATCH"] = 30,
             ["EXE_RESOURCE_COUNT"] = 40, ["EXE_RESOURCE_INJECT"] = 50, ["EXE_COMMAND_INJECT"] = 40,

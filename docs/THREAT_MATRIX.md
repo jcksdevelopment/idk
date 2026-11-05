@@ -76,6 +76,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `ENT_SPAWN_FLOOD` | Object/ped spam | > 15 entities in 10 s from one owner | S | `EntityValidator` | 45 |
 | `VEH_HANDLING` | Handling edit | Handling floats drift from the baseline captured on entering | C | `vehicle.lua` | 30 |
 | `VEH_POWER` | Power/torque boost | `GetVehicleCheatPowerIncrease` > 1.0 or top-speed modifier set | C | `vehicle.lua` | 30 |
+| `VEH_HIJACK` | Hijack / warp into another player's vehicle | Driver seat of a locked vehicle another online player spawned, without a `vehicle` grant | S | `VehicleOwnership` | 40 |
 | `VEH_REPAIR` | Instant vehicle repair ("fix vehicle") | Engine or body health jumps from < 600 to full in 0.5 s without a `vehicle` grant | C | `vehicle.lua` | 25 |
 | `VEH_PLATE` | Plate changer | Plate text changes while driving the same vehicle without a `vehicle` grant | C | `vehicle.lua` | 20 |
 | `VEH_GODMODE` | Vehicle godmode | `GetEntityCanBeDamaged` false on own vehicle, or every damage proof set | C | `vehicle.lua` | 30 |
