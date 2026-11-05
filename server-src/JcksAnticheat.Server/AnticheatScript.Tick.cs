@@ -34,21 +34,20 @@ namespace JcksAnticheat.Server
                 if (_tickTeleports.Count > 0)
                 {
                     var outcome = MassTeleportDetector.Process(_tickTeleports, _tickPositions);
+                    var bringAll = outcome.FirstOrDefault(v => v.Code == "MOV_BRING_ALL");
+                    bool bringReported = false;
                     foreach (var v in outcome)
-                    {
-                        if (v.Code == "MOV_BRING_ALL") Punish(v);
-                        else Defer(v.Player, "teleport", now, v, null);
-                    }
-                    if (CountermeasureOn("MOV_BRING_ALL"))
-                        foreach (var t in _tickTeleports)
-                            if (!outcome.Contains(t.violation))
+                        if (v.Code != "MOV_BRING_ALL") Defer(v.Player, "teleport", now, v, null);
+                    foreach (var t in _tickTeleports)
+                        if (!outcome.Contains(t.violation))
+                        {
+                            int victimId = t.player;
+                            Defer(victimId, "teleport", now, null, () =>
                             {
-                                int victimId = t.player;
-                                Defer(victimId, "teleport", now, null, () =>
-                                {
-                                    if (Players[victimId] is { } victim) PutBack(victimId, GetPlayerPed(victim.Handle));
-                                });
-                            }
+                                if (bringAll != null && !bringReported) { bringReported = true; Punish(bringAll); }
+                                if (CountermeasureOn("MOV_BRING_ALL") && Players[victimId] is { } victim) PutBack(victimId, GetPlayerPed(victim.Handle));
+                            });
+                        }
                 }
 
                 ResolveDeferred(now);

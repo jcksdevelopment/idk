@@ -87,6 +87,10 @@ Then restart those resources (or the server). Each manifest gets one first line,
 `fxmanifest.lua.jac-backup`. `jac shield uninstall` removes the line and `jac shield status`
 counts installs.
 
+The shield is Lua. C# and JavaScript client scripts don't load it, so their heals, teleports or
+blips are not seen and not trusted automatically; list those resources under Trusted resources
+(`integrations.resources`) or have their server side call `exports.jcks_anticheat:GrantGrace`.
+
 How it detects:
 - FiveM names every chunk loaded from a resource file `@@<resource>/<path>`. Code an executor
   pushes in has no file behind it (`=(load)`, raw code text, or a made-up resource name).
