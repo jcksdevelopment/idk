@@ -1005,6 +1005,58 @@
       ]
     },
     {
+      "id": "vpnCheck",
+      "title": "VPN / proxy check",
+      "fields": [
+        {
+          "key": "vpnCheck.enabled",
+          "label": "Refuse VPN and proxy connections",
+          "type": "bool",
+          "help": "Looks up each connecting player's IP with the service below and refuses the connection when the answer matches the block pattern. If the service is down or slow, the player is let in."
+        },
+        {
+          "key": "vpnCheck.urlTemplate",
+          "label": "Lookup URL",
+          "type": "string",
+          "help": "https URL with {ip} and optionally {key}. The default is proxycheck.io's v2 API; any service that answers over HTTPS works with a matching block pattern."
+        },
+        {
+          "key": "vpnCheck.apiKeyEnv",
+          "label": "API key environment variable",
+          "type": "string",
+          "help": "Name of the environment variable holding the service's key; the key itself is never stored in config."
+        },
+        {
+          "key": "vpnCheck.blockRegex",
+          "label": "Block pattern",
+          "type": "string",
+          "help": "Regular expression matched against the service's response body; a match refuses the player."
+        },
+        {
+          "key": "vpnCheck.cacheHours",
+          "label": "Cache hours",
+          "type": "number",
+          "min": 0,
+          "max": 720,
+          "step": 1
+        },
+        {
+          "key": "vpnCheck.timeoutMs",
+          "label": "Timeout (ms)",
+          "type": "number",
+          "min": 500,
+          "max": 10000,
+          "step": 100
+        },
+        {
+          "key": "vpnCheck.allowIdentifiers",
+          "label": "Allowed identifiers",
+          "type": "list",
+          "help": "Players with any of these identifiers (license:…, discord:…) may use a VPN."
+        }
+      ]
+    },
+    {
       "id": "staffAlerts",
       "title": "Staff alerts",
       "fields": [
@@ -1070,6 +1122,12 @@
           "label": "Name rejected",
           "type": "string",
           "help": "Shown when the player's name is refused; {reason} says why. Placeholders: {code}, {reason}, {id} (ban ID), {expires}, {name}, {appeal} (adds ' | Appeal: <appealUrl>' when set)."
+        },
+        {
+          "key": "messages.vpnRejected",
+          "label": "VPN refused",
+          "type": "string",
+          "help": "Shown when the VPN check refuses a connection. Placeholders: {name}, {appeal}."
         },
         {
           "key": "messages.appealUrl",

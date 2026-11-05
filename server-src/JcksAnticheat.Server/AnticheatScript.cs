@@ -40,6 +40,7 @@ namespace JcksAnticheat.Server
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
         private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
         private readonly MassKillTracker _massKills;
+        private readonly VpnChecker _vpn;
         private readonly JcksAnticheat.Core.Logging.ReportThrottle _throttle = new JcksAnticheat.Core.Logging.ReportThrottle();
         private ConfigHistory _history = null!;
         private readonly JcksAnticheat.Core.Logging.RecentViolations _recent = new JcksAnticheat.Core.Logging.RecentViolations();
@@ -77,6 +78,7 @@ namespace JcksAnticheat.Server
             _movement = new MovementValidator(_cfg.Movement);
             _damage = new DamageValidator(_cfg.Damage);
             _massKills = new MassKillTracker(_cfg.Damage);
+            _vpn = new VpnChecker(_cfg.Vpn);
             _staffAlerts = new JcksAnticheat.Core.Logging.StaffAlerts(_cfg.StaffAlerts);
             _explosions = new ExplosionValidator(_cfg.Explosions);
             _entities = new EntityValidator(_cfg.Entities);
@@ -163,7 +165,11 @@ namespace JcksAnticheat.Server
 
             var ids = IdentifiersOf(player.Handle);
             var ban = _bans.Find(ids);
-            if (ban == null) return;
+            if (ban == null)
+            {
+                if (_cfg.Vpn.Enabled && !_vpn.Allowed(ids)) CheckVpn(name, ids, deferrals);
+                return;
+            }
 
             if (_cfg.LinkBanIdentifiers)
             {
@@ -179,6 +185,26 @@ namespace JcksAnticheat.Server
             ((CallbackDelegate)deferrals["done"])(message);
             Log($"rejected banned connection {name} ({ban.Id})");
             _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = ban.Id });
+        }
+
+        private async void CheckVpn(string name, List<string> ids, IDictionary<string, object> deferrals)
+        {
+            var ip = ids.FirstOrDefault(i => i.StartsWith("ip:", StringComparison.Ordinal))?.Substring(3);
+            if (string.IsNullOrEmpty(ip)) return;
+            ((CallbackDelegate)deferrals["defer"])();
+            ((CallbackDelegate)deferrals["update"])("[JCKS Anticheat] Checking your connection…");
+            bool? vpn = null;
+            try { vpn = await _vpn.IsVpnAsync(ip!, DateTime.UtcNow); }
+            catch (Exception ex) { Log("vpn check failed: " + ex.Message); }
+            if (vpn == true)
+            {
+                ((CallbackDelegate)deferrals["done"])(Msg(_cfg.Messages.VpnRejected, "VPN", "VPN or proxy", null, null, name));
+                Log($"refused connection: {name} uses a VPN or proxy");
+                _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = "vpn check" });
+                return;
+            }
+            if (vpn == null) Log($"vpn check for {name} unavailable; letting them in");
+            ((CallbackDelegate)deferrals["done"])();
         }
 
         private void OnServerResourceStart(string name)

@@ -98,6 +98,16 @@
     "disabledRules": []
   },
 
+  "vpnCheck": {
+    "enabled": false,
+    "urlTemplate": "https://proxycheck.io/v2/{ip}?vpn=1&key={key}",
+    "apiKeyEnv": "JCKS_AC_VPN_API_KEY",
+    "blockRegex": "\"proxy\"\\s*:\\s*\"yes\"",
+    "cacheHours": 24,
+    "timeoutMs": 3000,
+    "allowIdentifiers": []
+  },
+
   "staffAlerts": { "enabled": true, "minAction": "log", "cooldownSeconds": 30 },
 
   "messages": {
@@ -106,6 +116,7 @@
     "banned": "[JCKS Anticheat] You are banned. Reason: {reason} | Ban ID: {id} | Expires: {expires}{appeal}",
     "staffKick": "[JCKS Anticheat] Kicked by staff: {reason}",
     "nameRejected": "[JCKS Anticheat] {reason} Change your FiveM name and reconnect.",
+    "vpnRejected": "[JCKS Anticheat] VPN and proxy connections are not allowed here.{appeal}",
     "appealUrl": ""
   },
 

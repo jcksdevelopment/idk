@@ -11,6 +11,7 @@ namespace JcksAnticheat.Core.Messages
         public string Banned { get; set; } = "[JCKS Anticheat] You are banned. Reason: {reason} | Ban ID: {id} | Expires: {expires}{appeal}";
         public string StaffKick { get; set; } = "[JCKS Anticheat] Kicked by staff: {reason}";
         public string NameRejected { get; set; } = "[JCKS Anticheat] {reason} Change your FiveM name and reconnect.";
+        public string VpnRejected { get; set; } = "[JCKS Anticheat] VPN and proxy connections are not allowed here.{appeal}";
         public string AppealUrl { get; set; } = "";
 
         private static readonly Regex Placeholder = new Regex(@"\{([a-z]+)\}", RegexOptions.Compiled);

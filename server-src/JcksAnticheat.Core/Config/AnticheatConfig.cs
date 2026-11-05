@@ -70,6 +70,7 @@ namespace JcksAnticheat.Core.Config
         public AntiDumpConfig AntiDump { get; set; } = new AntiDumpConfig();
         public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
+        public JcksAnticheat.Core.Validation.VpnConfig Vpn { get; set; } = new JcksAnticheat.Core.Validation.VpnConfig();
         public JcksAnticheat.Core.Logging.StaffAlertConfig StaffAlerts { get; set; } = new JcksAnticheat.Core.Logging.StaffAlertConfig();
         public JcksAnticheat.Core.Messages.MessageSettings Messages { get; set; } = new JcksAnticheat.Core.Messages.MessageSettings();
 
@@ -332,6 +333,17 @@ namespace JcksAnticheat.Core.Config
                 cfg.Backdoor.DisabledRules = Strings(bd, "disabledRules") ?? cfg.Backdoor.DisabledRules;
             }
 
+            if (root.Obj("vpnCheck") is { } vc)
+            {
+                cfg.Vpn.Enabled = vc.Bool("enabled") ?? cfg.Vpn.Enabled;
+                cfg.Vpn.UrlTemplate = vc.Str("urlTemplate") ?? cfg.Vpn.UrlTemplate;
+                cfg.Vpn.ApiKeyEnv = vc.Str("apiKeyEnv") ?? cfg.Vpn.ApiKeyEnv;
+                cfg.Vpn.BlockRegex = vc.Str("blockRegex") ?? cfg.Vpn.BlockRegex;
+                cfg.Vpn.CacheHours = (int)(vc.Num("cacheHours") ?? cfg.Vpn.CacheHours);
+                cfg.Vpn.TimeoutMs = (int)(vc.Num("timeoutMs") ?? cfg.Vpn.TimeoutMs);
+                if (Strings(vc, "allowIdentifiers") is { } allow) cfg.Vpn.AllowIdentifiers = allow;
+            }
+
             if (root.Obj("staffAlerts") is { } sa)
             {
                 cfg.StaffAlerts.Enabled = sa.Bool("enabled") ?? cfg.StaffAlerts.Enabled;
@@ -347,6 +359,7 @@ namespace JcksAnticheat.Core.Config
                 cfg.Messages.StaffKick = msg.Str("staffKick") ?? cfg.Messages.StaffKick;
                 cfg.Messages.NameRejected = msg.Str("nameRejected") ?? cfg.Messages.NameRejected;
                 cfg.Messages.AppealUrl = msg.Str("appealUrl") ?? cfg.Messages.AppealUrl;
+                cfg.Messages.VpnRejected = msg.Str("vpnRejected") ?? cfg.Messages.VpnRejected;
             }
 
             if (root.Obj("discord") is { } dc)

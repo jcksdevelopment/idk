@@ -410,6 +410,16 @@ tokens; never IP addresses). With `linkBanIdentifiers` on (default), a banned pl
 on a new Rockstar license or Discord account but with a matching token or other identifier is
 refused, and the new identifiers are added to the same ban.
 
+### VPN / proxy check (optional)
+
+`vpnCheck` (off by default) looks up each connecting player's IP and refuses VPN and proxy
+connections. The default `urlTemplate` is proxycheck.io's v2 API (`/v2/{ip}?vpn=1&key={key}`, an IP
+is blocked when its `proxy` field is `"yes"`); any HTTPS service works with a matching
+`blockRegex`. The key comes from the environment variable named in `apiKeyEnv`. Results are cached
+(`cacheHours`), private and local addresses are never looked up, identifiers in `allowIdentifiers`
+may use a VPN, and if the service fails or times out the player is let in. The refusal text is
+`messages.vpnRejected`.
+
 ### server.cfg audit
 
 On start (`auditOnStart`) and on `jac audit`, the server's own security convars are compared with

@@ -111,6 +111,11 @@ namespace JcksAnticheat.Core.Config
                 ["ignoreIds"] = Backdoor.IgnoreIds.ToList(), ["ignoreResources"] = Backdoor.IgnoreResources.ToList(),
                 ["disabledRules"] = Backdoor.DisabledRules.ToList(),
             },
+            ["vpnCheck"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = Vpn.Enabled, ["urlTemplate"] = Vpn.UrlTemplate, ["apiKeyEnv"] = Vpn.ApiKeyEnv, ["blockRegex"] = Vpn.BlockRegex,
+                ["cacheHours"] = Vpn.CacheHours, ["timeoutMs"] = Vpn.TimeoutMs, ["allowIdentifiers"] = Vpn.AllowIdentifiers.ToList(),
+            },
             ["staffAlerts"] = new Dictionary<string, object?>
             {
                 ["enabled"] = StaffAlerts.Enabled, ["minAction"] = StaffAlerts.MinAction, ["cooldownSeconds"] = StaffAlerts.CooldownSeconds,
@@ -118,7 +123,7 @@ namespace JcksAnticheat.Core.Config
             ["messages"] = new Dictionary<string, object?>
             {
                 ["kick"] = Messages.Kick, ["ban"] = Messages.Ban, ["banned"] = Messages.Banned, ["staffKick"] = Messages.StaffKick,
-                ["nameRejected"] = Messages.NameRejected, ["appealUrl"] = Messages.AppealUrl,
+                ["nameRejected"] = Messages.NameRejected, ["vpnRejected"] = Messages.VpnRejected, ["appealUrl"] = Messages.AppealUrl,
             },
             ["discord"] = new Dictionary<string, object?>
             {
@@ -196,6 +201,10 @@ namespace JcksAnticheat.Core.Config
             Require(new[] { "low", "medium", "high" }.Contains(Backdoor.MinSeverity) && new[] { "low", "medium", "high" }.Contains(Backdoor.AutoActionMinSeverity),
                 "backdoorScanner severities must be low, medium or high");
             Require(new[] { "none", "remove", "quarantine" }.Contains(Backdoor.AutoAction), "backdoorScanner.autoAction must be none, remove or quarantine");
+            Require(Uri.TryCreate(Vpn.UrlTemplate.Replace("{ip}", "1.1.1.1").Replace("{key}", "k"), UriKind.Absolute, out var vpnUri) && vpnUri.Scheme == "https", "vpnCheck.urlTemplate must be an https URL containing {ip}");
+            Require(Vpn.UrlTemplate.Contains("{ip}"), "vpnCheck.urlTemplate must contain {ip}");
+            Require(IsRegex(Vpn.BlockRegex), "vpnCheck.blockRegex is not a valid regular expression");
+            Require(Vpn.CacheHours >= 0 && Vpn.CacheHours <= 720 && Vpn.TimeoutMs >= 500 && Vpn.TimeoutMs <= 10000, "vpnCheck cacheHours 0–720, timeoutMs 500–10000");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(StaffAlerts.MinAction), "staffAlerts.minAction must be log, screenshot, kick or ban");
             Require(StaffAlerts.CooldownSeconds >= 0 && StaffAlerts.CooldownSeconds <= 3600, "staffAlerts.cooldownSeconds must be 0–3600");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(Discord.MinAction), "discord.minAction must be log, screenshot, kick or ban");
@@ -205,11 +214,17 @@ namespace JcksAnticheat.Core.Config
             foreach (var kv in ClientThresholds)
                 Require(kv.Value > 0 && kv.Value < 100000, "client." + kv.Key + " must be positive");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
-            foreach (var m in new[] { Messages.Kick, Messages.Ban, Messages.Banned, Messages.StaffKick, Messages.NameRejected })
+            foreach (var m in new[] { Messages.Kick, Messages.Ban, Messages.Banned, Messages.StaffKick, Messages.NameRejected, Messages.VpnRejected })
                 Require(!string.IsNullOrWhiteSpace(m) && m.Length <= 400, "messages must be 1–400 characters");
             Require(Messages.AppealUrl.Length <= 200, "messages.appealUrl is too long");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");
             return errors;
+        }
+
+        private static bool IsRegex(string pattern)
+        {
+            try { _ = new System.Text.RegularExpressions.Regex(pattern); return !string.IsNullOrEmpty(pattern); }
+            catch (ArgumentException) { return false; }
         }
 
         public static AnticheatConfig ParseValidated(string json)
