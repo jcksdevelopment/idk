@@ -119,6 +119,14 @@ Config.Crates = {
 		Event = "Winter", -- only sold while the event is active; drops only event items
 		Weights = { Trash = 50, Rare = 38, Legendary = 12 },
 	},
+	SpookyBox = {
+		Icon = "🎃",
+		Price = 300,
+		Order = 0,
+		UnlockLevel = 1,
+		Event = "Halloween",
+		Weights = { Trash = 50, Rare = 38, Legendary = 12 },
+	},
 	RoyalTreasure = {
 		Icon = "👑",
 		Price = 1500,
@@ -255,7 +263,7 @@ Config.Languages = { "en", "sk" }
 
 Config.Debug = {
 	StudioGrantAllPasses = false, -- Studio only
-	ForceEvent = "", -- Studio only: e.g. "Winter" to test the Winter Festival any day
+	ForceEvent = "", -- Studio only: "Winter" or "Halloween" to test an event any day
 	VerboseLogging = false,
 }
 
@@ -318,6 +326,7 @@ Config.Friends = {
 -- Seasonal events (UTC month/day, inclusive). Wrapping over New Year is fine.
 Config.Events = {
 	Winter = { Start = { 12, 1 }, End = { 1, 6 }, Icon = "❄️" },
+	Halloween = { Start = { 10, 15 }, End = { 11, 2 }, Icon = "🎃" },
 }
 
 -- Pet helpers: hatched from eggs with in-game cash (never Robux), they
@@ -362,6 +371,7 @@ Config.Codes = {
 	BAZAR = { Reward = { Cash = 500 } },
 	FLIPPER = { Reward = { BoostMinutes = 10 } },
 	SNOWDAY = { Reward = { Cash = 1000, Tokens = 1 }, Event = "Winter" },
+	SPOOKY = { Reward = { Cash = 1000, Tokens = 1 }, Event = "Halloween" },
 }
 
 Config.Leaderboard = {

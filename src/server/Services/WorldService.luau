@@ -419,13 +419,76 @@ local function buildWinterDecor(parent: Instance): Folder
 	return folder
 end
 
+-- 🎃 Halloween decorations: friendly pumpkins with glowing faces, purple lights.
+local function buildHalloweenDecor(parent: Instance): Folder
+	local folder = Instance.new("Folder")
+	folder.Name = "HalloweenDecor"
+	for i = 0, 11 do
+		local angle = (i / 12) * math.pi * 2
+		local position = Vector3.new(math.cos(angle) * 36, 0, -10 + math.sin(angle) * 32)
+		local size = if i % 3 == 0 then 4 else 2.6
+		local pumpkin = part({
+			Name = "Pumpkin",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(size, size, size),
+			Position = position + Vector3.new(0, size / 2 + 0.3, 0),
+			Color = Color3.fromRGB(255, 130, 20),
+			Material = Enum.Material.SmoothPlastic,
+			Parent = folder,
+		})
+		part({
+			Name = "Stem",
+			Size = Vector3.new(0.4, 0.8, 0.4),
+			Position = pumpkin.Position + Vector3.new(0, size / 2 + 0.3, 0),
+			Color = Color3.fromRGB(70, 130, 40),
+			Material = Enum.Material.Grass,
+			Parent = folder,
+		})
+		local face = Instance.new("BillboardGui")
+		face.Size = UDim2.fromScale(size * 0.8, size * 0.8)
+		face.LightInfluence = 0
+		face.MaxDistance = 80
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.fromScale(1, 1)
+		text.BackgroundTransparency = 1
+		text.Text = "😊"
+		text.TextScaled = true
+		text.Parent = face
+		face.Parent = pumpkin
+		light(pumpkin, Color3.fromRGB(255, 150, 40), 12, 1.2)
+	end
+	for i = 0, 5 do
+		local angle = (i / 6) * math.pi * 2 + 0.5
+		local orb = part({
+			Name = "SpookyLight",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(1.2, 1.2, 1.2),
+			Position = Vector3.new(math.cos(angle) * 20, 9, -10 + math.sin(angle) * 18),
+			Color = Color3.fromRGB(170, 80, 255),
+			Material = Enum.Material.Neon,
+			CanCollide = false,
+			Parent = folder,
+		})
+		light(orb, Color3.fromRGB(170, 90, 255), 24, 1.5)
+	end
+	folder.Parent = parent
+	return folder
+end
+
+local SEASONAL_DECOR: { [string]: { Folder: string, Build: (Instance) -> Folder } } = {
+	Winter = { Folder = "WinterDecor", Build = buildWinterDecor },
+	Halloween = { Folder = "HalloweenDecor", Build = buildHalloweenDecor },
+}
+
 local function syncSeasonalDecor(parent: Instance)
-	local existing = parent:FindFirstChild("WinterDecor")
-	local active = Events.IsActive("Winter")
-	if active and not existing then
-		buildWinterDecor(parent)
-	elseif not active and existing then
-		existing:Destroy()
+	for eventId, decor in SEASONAL_DECOR do
+		local existing = parent:FindFirstChild(decor.Folder)
+		local active = Events.IsActive(eventId)
+		if active and not existing then
+			decor.Build(parent)
+		elseif not active and existing then
+			existing:Destroy()
+		end
 	end
 end
 

@@ -54,6 +54,14 @@ local catalog: { ItemTemplate } = {
 	{ Id = "IceSkates", Name = "Ice Skates", Rarity = "Rare", BaseValue = 150, Icon = "⛸️", Event = "Winter" },
 	{ Id = "MagicSnowman", Name = "Magic Snowman", Rarity = "Legendary", BaseValue = 1200, Icon = "⛄", Event = "Winter" },
 	{ Id = "SantaSleigh", Name = "Santa's Sleigh", Rarity = "Legendary", BaseValue = 1400, Icon = "🛷", Event = "Winter" },
+
+	-- 🎃 Halloween (only from the Spooky Box while the event runs)
+	{ Id = "CandyPile", Name = "Pile of Candy", Rarity = "Trash", BaseValue = 28, Icon = "🍬", Event = "Halloween" },
+	{ Id = "OldBroom", Name = "Witch's Old Broom", Rarity = "Trash", BaseValue = 24, Icon = "🧹", Event = "Halloween" },
+	{ Id = "GhostLantern", Name = "Ghost Lantern", Rarity = "Rare", BaseValue = 155, Icon = "🏮", Event = "Halloween" },
+	{ Id = "CatStatue", Name = "Lucky Cat Statue", Rarity = "Rare", BaseValue = 145, Icon = "🐈", Event = "Halloween" },
+	{ Id = "PumpkinKing", Name = "Pumpkin King", Rarity = "Legendary", BaseValue = 1250, Icon = "🎃", Event = "Halloween" },
+	{ Id = "MagicTopHat", Name = "Magician's Top Hat", Rarity = "Legendary", BaseValue = 1150, Icon = "🎩", Event = "Halloween" },
 }
 
 local byId: { [string]: ItemTemplate } = {}

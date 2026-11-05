@@ -133,6 +133,7 @@ src/
 | 🔄 New Start (rebirth) | From level 15 + $25,000 (rises each time): reset cash & level, keep items/book/trophies, **+25% money forever** per New Start. Two-tap confirm |
 | 🎡 Lucky Wheel | One **free** spin every 4 h (never for Robux); 7 prizes, cash scales with level; the server picks, the client only animates |
 | ✨ Pet fusion | 3 identical pets (same kind and stars) fuse into one with +1 ⭐ (max 2): ×2 bonus at ⭐, ×4 at ⭐⭐. Team bonuses are capped (money +150%, XP +100%, shiny +7%, repair −50%) |
+| 🎃 Halloween (Oct 15 – Nov 2) | Spooky Box with 6 event items, friendly glowing pumpkins and purple lights; code `SPOOKY`. Test any day with `Config.Debug.ForceEvent = "Halloween"` in Studio |
 | 🎟️ Gift codes | Settings → type a code (e.g. `WELCOME`, `BAZAR`, `FLIPPER`; `SNOWDAY` only during Winter). Each works once per player. Add your own in `Config.Codes` |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
 | 📊 Leaderboard | Top 10 lifetime earners on a board in the plaza (OrderedDataStore, refreshed every 2 min) |
