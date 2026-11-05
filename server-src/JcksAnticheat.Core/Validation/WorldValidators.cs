@@ -14,25 +14,23 @@ namespace JcksAnticheat.Core.Validation
         public bool IsAudible { get; set; } = true;
         public float CameraShake { get; set; }
         public Vec3 Position { get; set; }
-        /// <summary>Player who owns the explosion's owner entity (ownerNetId), or 0 if none/not a player.</summary>
         public int OwnerPlayer { get; set; }
         public DateTime At { get; set; } = DateTime.UtcNow;
     }
 
     public sealed class ExplosionPolicy
     {
-        /// <summary>eExplosionTag values a player-originated event may never use.</summary>
         public HashSet<int> Blacklist { get; set; } = new HashSet<int>
         {
-            16, // SHIP_DESTROY
-            18, // BULLET: explosive ammo
-            26, // TRAIN
-            29, // BLIMP
-            32, // PLANE_ROCKET
-            35, // BIRD_CRAP
-            36, // RAILGUN
-            37, // BLIMP2
-            41, // VALKYRIE_CANNON
+            16,
+            18,
+            26,
+            29,
+            32,
+            35,
+            36,
+            37,
+            41,
         };
         public int MaxPerSecond { get; set; } = 4;
         public int MaxPer10Seconds { get; set; } = 12;
@@ -41,11 +39,6 @@ namespace JcksAnticheat.Core.Validation
 
     public sealed class ExplosionValidator
     {
-        /// <summary>
-        /// eExplosionTag values created directly by a player's weapon: grenade, grenade launcher,
-        /// sticky bomb, molotov, rocket, tank shell, explosive ammo, plane rocket, vehicle bullet,
-        /// railgun, proximity mine.
-        /// </summary>
         public static readonly HashSet<int> WeaponExplosionTypes = new HashSet<int> { 0, 1, 2, 3, 4, 5, 18, 32, 33, 36, 40 };
 
         private readonly ExplosionPolicy _policy;
@@ -53,7 +46,6 @@ namespace JcksAnticheat.Core.Validation
 
         public ExplosionValidator(ExplosionPolicy policy) { _policy = policy; }
 
-        /// <summary>Returns violations and whether the event should be cancelled.</summary>
         public (List<Violation> violations, bool cancel) Evaluate(ExplosionInfo e)
         {
             var found = new List<Violation>();
@@ -68,14 +60,9 @@ namespace JcksAnticheat.Core.Validation
             else if (_policy.Blacklist.Contains(e.ExplosionType))
                 found.Add(new Violation(e.Source, "WPN_EXPLOSION_BLACKLIST", ViolationSource.Server, evidence));
 
-            // Owned explosions blamed on someone else: the owner entity belongs to a different player.
-            // Only for weapon explosions, which the shooter's own client creates. When a vehicle or
-            // object is destroyed, the client that owns it sends the explosion with the attacker as
-            // owner, which legitimately differs from the sender.
             if (e.OwnerPlayer > 0 && e.OwnerPlayer != e.Source && WeaponExplosionTypes.Contains(e.ExplosionType))
                 found.Add(new Violation(e.Source, "WPN_EXPLOSION_BLAME", ViolationSource.Server, With(evidence, "owner", e.OwnerPlayer)));
 
-            // Stealth explosions (invisible + silent) are a menu signature; the game doesn't make these itself.
             if (e.IsInvisible && !e.IsAudible && e.CameraShake <= 0)
                 found.Add(new Violation(e.Source, "WPN_EXPLOSION_BLACKLIST", ViolationSource.Server, With(evidence, "stealth", true)));
 
@@ -103,7 +90,6 @@ namespace JcksAnticheat.Core.Validation
     {
         public HashSet<uint> BlacklistedModels { get; set; } = new HashSet<uint>();
         public HashSet<uint> AllowedPedModels { get; set; } = new HashSet<uint>();
-        /// <summary>Names behind AllowedPedModels, kept so the config can be written back.</summary>
         public List<string> AllowedPedModelNames { get; set; } = new List<string>();
         public int MaxVehiclesPer10s { get; set; } = 5;
         public int MaxEntitiesPer10s { get; set; } = 15;
@@ -116,7 +102,6 @@ namespace JcksAnticheat.Core.Validation
 
         public EntityValidator(EntityPolicy policy) { _policy = policy; }
 
-        /// <summary>Evaluates an entityCreating event. Returns violations and whether to cancel creation.</summary>
         public (List<Violation> violations, bool cancel) Evaluate(int owner, uint model, EntityKind kind, bool scriptCreated, DateTime now)
         {
             var found = new List<Violation>();
@@ -130,7 +115,6 @@ namespace JcksAnticheat.Core.Validation
                 cancel = true;
             }
 
-            // Only script-created entities count toward floods. Ambient population is created by clients too.
             if (scriptCreated)
             {
                 string key = owner.ToString();
@@ -153,7 +137,6 @@ namespace JcksAnticheat.Core.Validation
             return (found, cancel);
         }
 
-        /// <summary>Server-side ped model check, used from the state tick.</summary>
         public Violation? CheckPedModel(int player, uint model)
         {
             if (_policy.AllowedPedModels.Count == 0 || _policy.AllowedPedModels.Contains(model)) return null;
@@ -163,10 +146,6 @@ namespace JcksAnticheat.Core.Validation
         public void Forget(int player) => _counter.RemoveWhere(k => k.StartsWith(player + ":", StringComparison.Ordinal));
     }
 
-    /// <summary>
-    /// Server-observed health and armour. A jump with no server-authorised heal is a health lock or
-    /// regen cheat. Only server grace counts here: client-side grace can be forged.
-    /// </summary>
     public sealed class PlayerStateValidator
     {
         private readonly ConcurrentDictionary<int, (int health, int armor)> _last = new ConcurrentDictionary<int, (int, int)>();

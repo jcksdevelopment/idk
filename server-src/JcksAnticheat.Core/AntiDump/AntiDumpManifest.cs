@@ -6,10 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace JcksAnticheat.Core.AntiDump
 {
-    /// <summary>
-    /// Moves a resource's client-only scripts out of its manifest, so clients never download them;
-    /// the anticheat streams them at runtime instead.
-    /// </summary>
     public static class AntiDumpManifest
     {
         public const string Marker = "jac_antidump 'yes'";
@@ -20,7 +16,6 @@ namespace JcksAnticheat.Core.AntiDump
 
         public static bool IsProtected(string manifest) => manifest.Contains(Marker);
 
-        /// <summary>Returns the manifest without its local client scripts, plus the entries removed (may contain globs). @-includes stay.</summary>
         public static (string manifest, List<string> entries) Extract(string manifest)
         {
             var entries = new List<string>();
@@ -42,7 +37,6 @@ namespace JcksAnticheat.Core.AntiDump
             return (result, entries);
         }
 
-        /// <summary>Expands glob entries (client/*.lua, client/**.lua) against the resource folder, in a stable order.</summary>
         public static List<string> Expand(string root, IEnumerable<string> entries)
         {
             var files = new List<string>();
@@ -65,7 +59,6 @@ namespace JcksAnticheat.Core.AntiDump
             return files.Distinct().ToList();
         }
 
-        /// <summary>A protected file path must stay inside the resource and be Lua.</summary>
         public static bool SafePath(string file) => !file.Contains("..") && !Path.IsPathRooted(file) && file.EndsWith(".lua", StringComparison.OrdinalIgnoreCase);
     }
 }

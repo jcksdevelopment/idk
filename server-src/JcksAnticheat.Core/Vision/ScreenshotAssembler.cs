@@ -4,11 +4,6 @@ using System.Text;
 
 namespace JcksAnticheat.Core.Vision
 {
-    /// <summary>
-    /// Reassembles base64 screenshot chunks sent over latent events. Every capture id is issued by the
-    /// server, so chunks for unknown ids (a client pushing unsolicited images) are dropped. Size and
-    /// age are capped.
-    /// </summary>
     public sealed class ScreenshotAssembler
     {
         private sealed class Capture
@@ -73,7 +68,7 @@ namespace JcksAnticheat.Core.Vision
                 if (cap.Parts == null) cap.Parts = new string?[total];
                 else if (cap.Parts.Length != total) { _captures.TryRemove(id, out _); return ChunkResult.Rejected; }
 
-                if (cap.Parts[index - 1] != null) return ChunkResult.Accepted; // duplicate, ignore
+                if (cap.Parts[index - 1] != null) return ChunkResult.Accepted;
                 cap.Bytes += data.Length;
                 if (cap.Bytes > MaxBase64Bytes) { _captures.TryRemove(id, out _); return ChunkResult.Rejected; }
 

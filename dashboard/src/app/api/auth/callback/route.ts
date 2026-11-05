@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 import { exchangeCode, SESSION_COOKIE, signSession, STATE_COOKIE } from "@/lib/auth";
 import { store } from "@/lib/store";
 
-/** Step 2: verify state, exchange the code, set the session cookie. */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const jar = await cookies();

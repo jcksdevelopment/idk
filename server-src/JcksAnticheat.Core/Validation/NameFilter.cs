@@ -5,15 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace JcksAnticheat.Core.Validation
 {
-    /// <summary>
-    /// Player-name checks at connect time. HTML in a name is how chat/NUI injection exploits arrive
-    /// (a name rendered as markup by scoreboards, chat or phones); the word list is the operator's.
-    /// </summary>
     public static class NameFilter
     {
         private static readonly Regex Html = new Regex(@"</?[a-zA-Z!][^>]*>|<script|javascript:|\bon[a-z]+\s*=", RegexOptions.IgnoreCase);
 
-        /// <summary>Returns the reason the name is refused, or null if it's allowed.</summary>
         public static string? Check(string? name, bool blockHtml, IEnumerable<string> blacklist)
         {
             if (string.IsNullOrWhiteSpace(name)) return "Your name is empty.";

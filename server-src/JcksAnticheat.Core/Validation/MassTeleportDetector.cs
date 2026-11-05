@@ -5,12 +5,6 @@ using JcksAnticheat.Core.Detection;
 
 namespace JcksAnticheat.Core.Validation
 {
-    /// <summary>
-    /// "Bring all players": a menu teleports many players onto itself at once. Each victim would
-    /// otherwise get MOV_TELEPORT. When several teleports in one tick land in the same spot, the
-    /// victims' violations are dropped and the player standing at that spot who did NOT teleport
-    /// (the one everybody was pulled to) is reported instead.
-    /// </summary>
     public static class MassTeleportDetector
     {
         public const int MinVictims = 3;

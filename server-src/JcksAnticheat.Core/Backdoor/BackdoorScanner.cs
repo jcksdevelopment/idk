@@ -80,7 +80,6 @@ namespace JcksAnticheat.Core.Backdoor
 
         public static IReadOnlyList<string> RuleIds => Rules.Select(r => r.Id).Concat(new[] { "JS_OBFUSCATED", "HUGE_LINE" }).ToList();
 
-        /// <summary>Scans one resource folder. resourceName is used for reporting and ignore rules.</summary>
         public static List<Finding> ScanResource(string resourceName, string root, ScanOptions options)
         {
             var findings = new List<Finding>();
@@ -203,7 +202,6 @@ namespace JcksAnticheat.Core.Backdoor
 
     public static class BackdoorRemover
     {
-        /// <summary>Deletes the flagged line (backup kept as file.jac-bak). Returns false if the line no longer matches.</summary>
         public static bool RemoveLine(Finding f, out string message)
         {
             try
@@ -225,7 +223,6 @@ namespace JcksAnticheat.Core.Backdoor
             catch (Exception ex) { message = ex.Message; return false; }
         }
 
-        /// <summary>Moves the whole file into resource/.jac-quarantine/ so it can't load.</summary>
         public static bool Quarantine(Finding f, string resourceRoot, out string message)
         {
             try

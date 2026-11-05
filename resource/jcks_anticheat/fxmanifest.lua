@@ -3,7 +3,8 @@ game "gta5"
 lua54 "yes"
 
 name "jcks_anticheat"
-description "JcksAC anticheat: Lua client scanner + C# server authority"
+author "JCKS"
+description "JCKS Anticheat"
 version "1.0.0"
 
 shared_script "shared/crypto.lua"
@@ -17,15 +18,20 @@ client_scripts {
   "client/detections/*.lua",
 }
 
--- Built from server-src/JcksAC.Server (see README). The build copies the DLLs here.
 server_scripts {
-  "server/JcksAC.Core.net.dll",
-  "server/JcksAC.Server.net.dll",
+  "server/JcksAnticheat.Core.net.dll",
+  "server/JcksAnticheat.Server.net.dll",
 }
 
 ui_page "html/index.html"
-files { "html/index.html", "html/panel.js", "html/panel.css", "shield/shield.lua" }
 
--- config.json is read by the server with LoadResourceFile; it is not sent to clients.
+files {
+  "html/index.html",
+  "html/panel.js",
+  "html/panel.css",
+  "shield/shield.lua",
+}
 
--- screenshot-basic is optional; only the AI vision capture uses it.
+escrow_ignore {
+  "shield/shield.lua",
+}

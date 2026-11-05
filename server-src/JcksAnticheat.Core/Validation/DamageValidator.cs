@@ -5,11 +5,9 @@ using JcksAnticheat.Core.Detection;
 
 namespace JcksAnticheat.Core.Validation
 {
-    /// <summary>A weaponDamageEvent joined with server-side positions of both peds.</summary>
     public sealed class WeaponHit
     {
         public int Attacker { get; set; }
-        /// <summary>Victim player id, or 0 when the victim is not a player.</summary>
         public int VictimPlayer { get; set; }
         public int VictimNetId { get; set; }
         public uint WeaponHash { get; set; }
@@ -19,7 +17,6 @@ namespace JcksAnticheat.Core.Validation
         public Vec3 AttackerPos { get; set; }
         public float AttackerHeading { get; set; }
         public bool AttackerInVehicle { get; set; }
-        /// <summary>weaponDamageEvent impactDirX/Y/Z when hasImpactDir is set: the direction the bullet travelled.</summary>
         public Vec3? ImpactDir { get; set; }
         public Vec3 VictimPos { get; set; }
         public DateTime At { get; set; } = DateTime.UtcNow;
@@ -30,11 +27,8 @@ namespace JcksAnticheat.Core.Validation
         public float BodyDamageMultiplier { get; set; } = 1.6f;
         public float HeadDamageMultiplier { get; set; } = 4.0f;
         public float RangeMultiplier { get; set; } = 1.25f;
-        /// <summary>Above this angle between the shooter's facing and the victim, a hit is implausible.</summary>
         public float MaxAimAngle { get; set; } = 60f;
-        /// <summary>Max angle between the bullet's impact direction and the shooter→victim line.</summary>
         public float MaxTrajectoryAngle { get; set; } = 45f;
-        /// <summary>The angle check is skipped closer than this (point-blank, melee, body overlap).</summary>
         public float AimAngleMinDistance { get; set; } = 4f;
         public float RateMultiplier { get; set; } = 1.5f;
         public int HeadshotSampleSize { get; set; } = 25;
@@ -42,10 +36,6 @@ namespace JcksAnticheat.Core.Validation
         public float HeadshotMinDistance { get; set; } = 15f;
     }
 
-    /// <summary>
-    /// Validates each weaponDamageEvent against weapon baselines and geometry the attacker can't spoof:
-    /// damage scaling, range, silent-aim angle, rate of fire, and long-run headshot ratio.
-    /// </summary>
     public sealed class DamageValidator
     {
         private sealed class ShooterStats
@@ -81,7 +71,6 @@ namespace JcksAnticheat.Core.Validation
 
             if (spec != null)
             {
-                // Damage scaling.
                 if (hit.Damage > 0 && spec.Group != WeaponGroup.Melee)
                 {
                     float mult = hit.Headshot ? _limits.HeadDamageMultiplier : _limits.BodyDamageMultiplier;
@@ -90,14 +79,11 @@ namespace JcksAnticheat.Core.Validation
                         found.Add(new Violation(hit.Attacker, "WPN_DMG_MODIFIER", ViolationSource.Server, Evidence(("cap", Math.Round(cap, 1)))));
                 }
 
-                // Range.
                 float maxRange = spec.Range * _limits.RangeMultiplier;
                 if (distance > maxRange)
                     found.Add(new Violation(hit.Attacker, "WPN_RANGE", ViolationSource.Server, Evidence(("max", Math.Round(maxRange, 1)))));
             }
 
-            // Silent aim: the shooter is facing well away from the victim at the moment of the hit.
-            // Drive-bys and vehicle weapons aim independently of ped heading, so they're skipped.
             if (!hit.AttackerInVehicle && distance > _limits.AimAngleMinDistance && spec?.Group != WeaponGroup.Melee)
             {
                 var facing = Vec3.FromHeading(hit.AttackerHeading);
@@ -107,11 +93,6 @@ namespace JcksAnticheat.Core.Validation
                     found.Add(new Violation(hit.Attacker, "WPN_AIM_ANGLE", ViolationSource.Server, Evidence(("angle", Math.Round(angle, 1)))));
             }
 
-            // Trajectory: the impact direction the attacker's client reported must lie along the line from
-            // shooter to victim. A hit whose bullet travelled sideways, or arrived from behind a wall the
-            // shooter never fired through, was fabricated (magic bullet / silent aim that rewrites the hit).
-            // The sign convention of impactDir isn't documented, so the check compares lines, not directions:
-            // angle = min(a, 180 - a). That loses "from behind" detection but never misreads a valid shot.
             if (hit.ImpactDir is Vec3 dir && dir.Length > 0.1f && distance > _limits.AimAngleMinDistance && spec?.Group != WeaponGroup.Melee
                 && spec?.Group != WeaponGroup.Shotgun)
             {
@@ -125,7 +106,6 @@ namespace JcksAnticheat.Core.Validation
             var stats = _stats.GetOrAdd(hit.Attacker, _ => new ShooterStats());
             lock (stats)
             {
-                // Rate of fire, per weapon, over a 1-second window.
                 if (spec != null && spec.Group != WeaponGroup.Melee)
                 {
                     if (stats.RecentWeapon != hit.WeaponHash) { stats.RecentHits.Clear(); stats.RecentWeapon = hit.WeaponHash; }
@@ -141,7 +121,6 @@ namespace JcksAnticheat.Core.Validation
                     }
                 }
 
-                // Headshot ratio on ranged hits against players.
                 if (hit.VictimPlayer != 0 && distance >= _limits.HeadshotMinDistance && spec?.Group != WeaponGroup.Melee && spec?.Group != WeaponGroup.Shotgun)
                 {
                     stats.RangedHits++;
@@ -162,10 +141,6 @@ namespace JcksAnticheat.Core.Validation
         }
     }
 
-    /// <summary>
-    /// Semi-godmode detection: the server confirms hits on a player but their health never drops.
-    /// Hits are queued and checked about a second later, once the victim's health has replicated.
-    /// </summary>
     public sealed class AbsorbTracker
     {
         private readonly struct Pending
@@ -188,7 +163,6 @@ namespace JcksAnticheat.Core.Validation
 
         public bool HasPending => !_pending.IsEmpty;
 
-        /// <summary>Process hits whose check time has passed. healthOf returns (health, armor, isDead, isOnline).</summary>
         public List<Violation> Process(DateTime now, Func<int, (int health, int armor, bool dead, bool online)> healthOf, Func<int, bool> hasGodmodeGrace)
         {
             var found = new List<Violation>();

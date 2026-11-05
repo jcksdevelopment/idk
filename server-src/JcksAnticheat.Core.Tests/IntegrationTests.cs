@@ -24,10 +24,10 @@ public class IntegrationTests
         var policy = IntegrationPolicy.Build(cfg, presets, running.Contains);
 
         Assert.True(policy.Allows("vMenu", "noclip"));
-        Assert.False(policy.Allows("monitor", "noclip"));          // txAdmin not running here
+        Assert.False(policy.Allows("monitor", "noclip"));
         Assert.True(policy.Allows("qb-ambulancejob", "heal"));
-        Assert.False(policy.Allows("qb-ambulancejob", "teleport")); // config replaced the preset
-        Assert.True(policy.Allows("my_script", "godmode"));         // *
+        Assert.False(policy.Allows("qb-ambulancejob", "teleport"));
+        Assert.True(policy.Allows("my_script", "godmode"));
         Assert.False(policy.Allows("unknown", "heal"));
     }
 

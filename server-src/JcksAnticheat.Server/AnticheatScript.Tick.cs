@@ -16,10 +16,6 @@ namespace JcksAnticheat.Server
         private readonly List<(int player, Violation violation, Vec3 to)> _tickTeleports = new List<(int, Violation, Vec3)>();
         private readonly List<(int player, Vec3 pos)> _tickPositions = new List<(int, Vec3)>();
 
-        /// <summary>
-        /// Runs once per second. With no players online it touches nothing and goes straight back to
-        /// sleep, which is what keeps idle resmon at 0.00 ms.
-        /// </summary>
         private async Task OnTick()
         {
             await Delay(1000);
@@ -35,12 +31,10 @@ namespace JcksAnticheat.Server
                 _tickTeleports.Clear();
                 _tickPositions.Clear();
                 foreach (var p in players) CheckPlayerState(p, now);
-                // Teleports are judged together: many landing on one spot is a "bring all".
                 if (_tickTeleports.Count > 0)
                 {
                     var outcome = MassTeleportDetector.Process(_tickTeleports, _tickPositions);
                     foreach (var v in outcome) Punish(v);
-                    // Bring-all victims did nothing wrong but were moved: put them back where they were.
                     if (CountermeasureOn("MOV_BRING_ALL"))
                         foreach (var t in _tickTeleports)
                             if (!outcome.Contains(t.violation) && Players[t.player] is { } victim)
@@ -63,8 +57,6 @@ namespace JcksAnticheat.Server
 
             if (!_removing.IsEmpty) ProcessScheduledDrops(now);
 
-            // Keep capturing players who stay suspicious, not just at the moment they cross the line.
-            // RequestScreenshot enforces vision.cooldownSeconds per player.
             if (_tickCount % 60 == 0 && _vision.IsConfigured && !_cfg.DryRun && players.Count > 0)
             {
                 foreach (var p in players)
@@ -78,7 +70,6 @@ namespace JcksAnticheat.Server
             if (_tickCount % 10 == 0) _screenshots.Sweep(now);
             if (_tickCount % 600 == 0)
             {
-                // File I/O off the main thread; nothing here touches natives.
                 var dir = System.IO.Path.Combine(_dataDir, "vision");
                 int keep = _cfg.Vision.MaxStoredCaptures;
                 _ = Task.Run(() => CaptureRetention.Enforce(dir, keep));
@@ -106,17 +97,13 @@ namespace JcksAnticheat.Server
         {
             int id = ToId(player.Handle);
             int ped = GetPlayerPed(player.Handle);
-            // Server-side checks don't wait for the handshake: a client that blocks jcks_anticheat:hello
-            // must not switch off the server's own movement and health validation.
-            if (ped == 0) return; // no ped yet: still downloading or loading in
+            if (ped == 0) return;
 
-            // The handshake clock starts once the player is in the world, not at join: first-time
-            // players can spend minutes downloading resources before any client script runs.
             _heartbeats.ExpectHandshake(id, now);
 
             int health = GetEntityHealth(ped);
             int armor = GetPedArmour(ped);
-            bool dead = health <= 100; // MP peds die at or below 100 of 200
+            bool dead = health <= 100;
 
             int veh = GetVehiclePedIsIn(ped, false);
             var mode = dead ? MovementMode.Dead : veh == 0 ? MovementMode.OnFoot : ModeOf(GetVehicleType(veh));

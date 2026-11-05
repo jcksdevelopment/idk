@@ -1,15 +1,5 @@
--- Runs the real client scripts (shared/crypto.lua, client/main.lua, client/heartbeat.lua) under plain
--- Lua 5.4 with stubbed FiveM natives, so the C# tests can verify packets from the actual client code.
---
--- Protocol over stdio (one JSON object per line):
---   stdin  line 1: the init payload JSON the server would send on "jcks_anticheat:init"
---   stdout: {"event": name, "args": [...]} for every TriggerServerEvent
---   stdin  after each heartbeat: the next challenge (ack), or "-" for none
--- arg[1] = resource root, arg[2] = number of heartbeats to emit.
-
 local root, count = arg[1], tonumber(arg[2] or "3")
 
----------------------------------------------------------------- tiny JSON
 local json = {}
 do
   local function esc(s)
@@ -107,7 +97,6 @@ do
 end
 _ENV.json = json
 
----------------------------------------------------------------- scheduler + time
 local now = 1000
 local threads = {}
 function GetGameTimer() return now end
@@ -120,7 +109,7 @@ function AddEventHandler(name, fn) handlers[name] = fn end
 function TriggerEvent(name, ...) if handlers[name] then handlers[name](...) end end
 
 local heartbeatsSent = 0
-local ackName, ackHandler -- declared before TriggerServerEvent, which reads ackHandler
+local ackName, ackHandler
 function TriggerServerEvent(name, ...)
   io.write(json.encode({ event = name, args = { ... } }), "\n")
   io.flush()
@@ -131,7 +120,6 @@ function TriggerServerEvent(name, ...)
   end
 end
 
----------------------------------------------------------------- natives used by main/heartbeat
 local vec = function(x, y, z) return setmetatable({ x, y, z, x = x, y = y, z = z }, {}) end
 function PlayerPedId() return 42 end
 function PlayerId() return 0 end
@@ -153,7 +141,6 @@ function GetNumResources() return 12 end
 function GetHashKey(s) return #s end
 function exports(name, fn) end
 
--- The scanner table may be renamed by scripts/obfuscate.py; find it by shape instead of by name.
 local S
 local function scanner()
   if S then return S end
@@ -165,14 +152,12 @@ local function scanner()
   end
 end
 
--- Capture the ack handler the client registers on the random ack event.
 local realRegister = RegisterNetEvent
 function RegisterNetEvent(name, fn)
   realRegister(name, fn)
   if name == ackName then ackHandler = fn end
 end
 
----------------------------------------------------------------- load the real client code
 dofile(root .. "/shared/crypto.lua")
 dofile(root .. "/client/main.lua")
 dofile(root .. "/client/heartbeat.lua")
@@ -181,11 +166,9 @@ local initPayload = io.read("l")
 ackName = json.decode(initPayload).ack
 handlers["jcks_anticheat:init"](initPayload)
 
--- Queue a detection so the first heartbeat carries a flag.
 assert(scanner(), "scanner table not found")
 scanner().flag("PLY_GODMODE_FLAG", { inv = true })
 
----------------------------------------------------------------- run until enough heartbeats
 local guard = 0
 while heartbeatsSent < count and guard < 100000 do
   guard = guard + 1

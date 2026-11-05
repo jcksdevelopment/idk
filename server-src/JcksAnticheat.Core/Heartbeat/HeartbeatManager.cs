@@ -13,9 +13,7 @@ namespace JcksAnticheat.Core.Heartbeat
     {
         public HeartbeatStatus Status { get; set; }
         public string? Reason { get; set; }
-        /// <summary>Decrypted payload: { s, c, t, f: [ {c, t, d} ], st: {...} }.</summary>
         public Dictionary<string, object?>? Payload { get; set; }
-        /// <summary>Challenge to send back to the client for its next heartbeat.</summary>
         public string? NextChallenge { get; set; }
         public bool Ok => Status == HeartbeatStatus.Ok;
     }
@@ -43,35 +41,22 @@ namespace JcksAnticheat.Core.Heartbeat
         public uint Sequence => Seq;
     }
 
-    /// <summary>
-    /// Owns every player's heartbeat session. Wire format (all hex): seq, nonce(16B), ciphertext, mac.
-    /// mac = HMAC(key, uint32_be(seq) || nonce || ciphertext); plaintext = CTR(key, nonce, ciphertext).
-    /// After a valid packet both sides ratchet key = SHA256(key || mac).
-    /// </summary>
     public sealed class HeartbeatManager
     {
         private readonly ConcurrentDictionary<int, HeartbeatSession> _sessions = new ConcurrentDictionary<int, HeartbeatSession>();
-        /// <summary>Players who joined but haven't completed the handshake yet, with their join time.</summary>
         private readonly ConcurrentDictionary<int, DateTime> _awaitingHello = new ConcurrentDictionary<int, DateTime>();
 
-        /// <summary>How long a joined player may go without sending jcks_anticheat:hello.</summary>
         public TimeSpan HandshakeTimeout { get; set; } = TimeSpan.FromSeconds(150);
 
-        /// <summary>
-        /// Call (repeatedly is fine; only the first call counts) once a player is in the world. Blocking the hello event must not let a client opt out of the
-        /// heartbeat, so a player who never handshakes is reported by FindMissing.
-        /// </summary>
         public void ExpectHandshake(int player, DateTime? now = null)
         {
             if (!_sessions.ContainsKey(player)) _awaitingHello.TryAdd(player, now ?? DateTime.UtcNow);
         }
 
         public TimeSpan MissingAfter { get; set; } = TimeSpan.FromSeconds(20);
-        /// <summary>The first heartbeat is allowed to take longer (client still loading).</summary>
         public TimeSpan FirstHeartbeatGrace { get; set; } = TimeSpan.FromSeconds(90);
         public int MaxCiphertextBytes { get; set; } = 8 * 1024;
 
-        /// <summary>Starts (or restarts) a session. Returns the hex key and first challenge to send to the client.</summary>
         public (string keyHex, string challenge) Begin(int player, DateTime? now = null)
         {
             var key = AcCrypto.RandomBytes(32);
@@ -127,7 +112,6 @@ namespace JcksAnticheat.Core.Heartbeat
                 if (challenge != session.Challenge && challenge != session.PreviousChallenge)
                     return Fail(session, HeartbeatStatus.BadChallenge, "stale challenge");
 
-                // Accept: advance sequence, ratchet the key, rotate the challenge.
                 session.Seq = seq;
                 session.Key = AcCrypto.Sha256(AcCrypto.Concat(session.Key, mac));
                 session.PreviousChallenge = session.Challenge;
@@ -139,7 +123,6 @@ namespace JcksAnticheat.Core.Heartbeat
             }
         }
 
-        /// <summary>Players whose heartbeat is overdue. Each overdue session is reported once until it recovers.</summary>
         public List<(int player, TimeSpan silentFor)> FindMissing(DateTime? now = null)
         {
             var t = now ?? DateTime.UtcNow;
@@ -147,7 +130,6 @@ namespace JcksAnticheat.Core.Heartbeat
             foreach (var kv in _awaitingHello)
             {
                 var waited = t - kv.Value;
-                // Reported once: the entry is removed, so the next FindMissing doesn't repeat it.
                 if (waited > HandshakeTimeout && _awaitingHello.TryRemove(kv.Key, out _)) result.Add((kv.Key, waited));
             }
             foreach (var kv in _sessions)
@@ -175,7 +157,6 @@ namespace JcksAnticheat.Core.Heartbeat
 
         private static string NewChallenge() => AcCrypto.ToHex(AcCrypto.RandomBytes(8));
 
-        /// <summary>Random event name for this server boot: 16 hex chars, no recognisable prefix.</summary>
         public static string RandomEventName() => AcCrypto.ToHex(AcCrypto.RandomBytes(8));
     }
 }

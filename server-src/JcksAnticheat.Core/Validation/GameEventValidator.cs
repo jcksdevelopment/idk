@@ -7,7 +7,6 @@ namespace JcksAnticheat.Core.Validation
 {
     public sealed class GameEventPolicy
     {
-        /// <summary>Max distance between the shooter and where its projectile starts (on foot).</summary>
         public float ProjectileOriginMaxDistance { get; set; } = 12f;
         public int MaxProjectilesPer10s { get; set; } = 20;
         public int MaxFiresPer10s { get; set; } = 10;
@@ -29,7 +28,6 @@ namespace JcksAnticheat.Core.Validation
     public sealed class FireInfo
     {
         public int Source { get; set; }
-        /// <summary>Player whose ped a fire is attached to, or 0.</summary>
         public int TargetPlayer { get; set; }
         public int Count { get; set; } = 1;
         public DateTime At { get; set; } = DateTime.UtcNow;
@@ -39,16 +37,10 @@ namespace JcksAnticheat.Core.Validation
     {
         public int Source { get; set; }
         public float Scale { get; set; }
-        /// <summary>Player whose entity the effect is attached to (other than the source), or 0.</summary>
         public int TargetPlayer { get; set; }
         public DateTime At { get; set; } = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Validates the OneSync game events menus abuse for griefing: projectiles started out of thin
-    /// air (rockets/bullets spawned at other players), fires set on other players, and particle
-    /// spam (used to crash or blind players). Each check returns violations and whether to cancel.
-    /// </summary>
     public sealed class GameEventValidator
     {
         private readonly GameEventPolicy _policy;
@@ -73,7 +65,6 @@ namespace JcksAnticheat.Core.Validation
                 found.Add(new Violation(p.Source, "WPN_PROJECTILE_ORIGIN", ViolationSource.Server, new Dictionary<string, object?>(ev) { ["reason"] = "owner is another entity" }));
             else if (!p.ShooterInVehicle)
             {
-                // Vehicle weapons fire from the vehicle's hardpoints, metres from the driver's ped.
                 float d = Vec3.Distance(p.Origin, p.ShooterPos);
                 if (d > _policy.ProjectileOriginMaxDistance)
                     found.Add(new Violation(p.Source, "WPN_PROJECTILE_ORIGIN", ViolationSource.Server, new Dictionary<string, object?>(ev) { ["dist"] = Math.Round(d, 1) }));

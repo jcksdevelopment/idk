@@ -31,7 +31,7 @@ public class DiscordTests
     {
         var h = new Capture();
         var d = new DiscordWebhook(new DiscordConfig { Enabled = true, MinAction = "kick" }, h, () => "https://discord.test/hook");
-        d.Detection("Tony", 3, V(EnforcementAction.Log), false);        // below minAction: dropped
+        d.Detection("Tony", 3, V(EnforcementAction.Log), false);
         d.Detection("Tony", 3, V(EnforcementAction.Kick), false);
         d.Ban("Tony", "abc123", "Automated: MOV_TELEPORT", "jcks_anticheat", null);
         await d.FlushAsync();

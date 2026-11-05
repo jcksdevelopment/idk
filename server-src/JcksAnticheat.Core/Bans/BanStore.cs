@@ -16,7 +16,6 @@ namespace JcksAnticheat.Core.Bans
         public string Code { get; set; } = "";
         public string BannedBy { get; set; } = "jcks_anticheat";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        /// <summary>Null for a permanent ban.</summary>
         public DateTime? ExpiresAt { get; set; }
 
         public bool IsActive(DateTime now) => ExpiresAt == null || ExpiresAt > now;
@@ -45,10 +44,6 @@ namespace JcksAnticheat.Core.Bans
         }
     }
 
-    /// <summary>
-    /// Bans keyed by every identifier (license, discord, fivem, steam, hardware tokens), so a ban follows
-    /// the player across any identifier they keep. Persisted as JSON; writes are atomic (temp + rename).
-    /// </summary>
     public sealed class BanStore
     {
         private readonly string _path;
@@ -94,7 +89,6 @@ namespace JcksAnticheat.Core.Bans
             return true;
         }
 
-        /// <summary>IP identifiers are shared (CGNAT, households) so they never key a ban.</summary>
         private static bool IsIgnoredIdentifier(string id) => id.StartsWith("ip:", StringComparison.OrdinalIgnoreCase);
 
         private void Load()

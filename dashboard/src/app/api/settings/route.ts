@@ -14,10 +14,6 @@ export const GET = withSession(async (session, req) => {
   });
 });
 
-/**
- * Queues the full settings object for the game server, which validates it, writes config.json and
- * applies it live, then pushes the result back. Nothing changes here until the server confirms.
- */
 export const POST = withSession(async (session, req) => {
   if (!canEditSettings(session.role)) return NextResponse.json({ error: "Only Head Admins can change settings." }, { status: 403 });
   const body = (await req.json().catch(() => null)) as { serverId?: string; config?: unknown } | null;
@@ -30,7 +26,6 @@ export const POST = withSession(async (session, req) => {
   store.queueCommand({ serverId, type: "config", config, actor });
   store.markSettingsPending(serverId);
 
-  // Demo with no game server attached: accept it locally so the page round-trips.
   if (store.demo && !isServerConnected(serverId)) {
     store.takeCommands(serverId);
     store.setSettings(serverId, body.config as Record<string, unknown>, null);

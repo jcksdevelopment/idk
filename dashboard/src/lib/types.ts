@@ -18,7 +18,7 @@ export interface Detection {
 }
 
 export interface Player {
-  key: string; // serverId:id
+  key: string;
   id: number;
   serverId: string;
   name: string;
@@ -41,7 +41,6 @@ export interface Ban {
   bannedBy: string;
   createdAt: string;
   expiresAt: string | null;
-  /** Set when an unban was requested from the dashboard but the game server hasn't confirmed it yet. */
   pendingUnban?: boolean;
 }
 
@@ -80,7 +79,6 @@ export interface SettingsField {
   max?: number;
   step?: number;
   options?: string[];
-  /** For "map": upper-case the keys (detection codes). */
   upperKeys?: boolean;
 }
 
@@ -94,7 +92,6 @@ export interface ServerSettings {
   config: Record<string, unknown>;
   schema: SettingsSchema | null;
   updatedAt: string;
-  /** True while a change from the dashboard is queued and the game server hasn't confirmed it. */
   pending?: boolean;
 }
 
@@ -106,10 +103,8 @@ export interface Command {
   banId?: string;
   reason?: string;
   durationHours?: number;
-  /** For bans: lets the game server ban a player who has already disconnected. */
   identifiers?: string[];
   name?: string;
-  /** For "config": full settings JSON. */
   config?: string;
   actor: string;
   createdAt: string;

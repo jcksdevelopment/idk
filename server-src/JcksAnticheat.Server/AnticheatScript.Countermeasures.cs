@@ -9,11 +9,6 @@ namespace JcksAnticheat.Server
     {
         private bool CountermeasureOn(string code) => _cfg.Countermeasures.Enabled && !_cfg.Countermeasures.Skip.Contains(code);
 
-        /// <summary>
-        /// Undoes what the server can undo, whatever the punishment (also in dry run).
-        /// Game events (spawns, explosions, projectiles, fires, particles, weapon gives, damage) are
-        /// already cancelled where they are detected.
-        /// </summary>
         private void ApplyServerCountermeasure(Violation v, string handle)
         {
             if (!CountermeasureOn(v.Code)) return;
@@ -40,7 +35,6 @@ namespace JcksAnticheat.Server
             }
         }
 
-        /// <summary>Moves the player (or their vehicle) back to the last position that passed every check.</summary>
         private void PutBack(int player, int ped)
         {
             var good = _movement.LastGood(player);

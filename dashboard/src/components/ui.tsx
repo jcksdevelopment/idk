@@ -88,7 +88,6 @@ export function Pagination({ page, pages, total, onPage }: { page: number; pages
   );
 }
 
-/** Native <dialog> modal: focus trap, Escape and backdrop come for free. */
 export function Dialog({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {

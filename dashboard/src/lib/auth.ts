@@ -4,13 +4,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Session } from "./types";
 
-/**
- * Mock Discord OAuth2. The flow and cookie shape match a real integration, so swapping in real
- * Discord means replacing `exchangeCode` with a token exchange + /users/@me + guild role check.
- *
- *   /login → /api/auth/discord (authorize redirect) → /login/authorize (mock consent screen)
- *          → /api/auth/callback?code=…&state=… → signed session cookie → /live
- */
 
 export const SESSION_COOKIE = "jac_session";
 export const STATE_COOKIE = "jac_oauth_state";
@@ -25,7 +18,6 @@ function secret(): string {
   return "jac-dev-session-secret-change-me-please";
 }
 
-/** Staff accounts the mock consent screen offers. Real Discord would decide this from guild roles. */
 export const MOCK_DISCORD_USERS = [
   { id: "184405311681986560", username: "Mara", role: "Head Admin", avatar: "M" },
   { id: "300293746132516865", username: "Theo", role: "Moderator", avatar: "T" },
@@ -56,7 +48,6 @@ export function verifySession(token: string | undefined): Session | null {
   }
 }
 
-/** Mock code exchange: the code is "mock_<discord id>". */
 export function exchangeCode(code: string): Omit<Session, "exp"> | null {
   const id = code.startsWith("mock_") ? code.slice(5) : "";
   const user = MOCK_DISCORD_USERS.find((u) => u.id === id);
@@ -68,26 +59,22 @@ export async function getSession(): Promise<Session | null> {
   return verifySession(jar.get(SESSION_COOKIE)?.value);
 }
 
-/** For server components/layouts: redirect to /login when signed out. */
 export async function requireSession(): Promise<Session> {
   const s = await getSession();
   if (!s) redirect("/login");
   return s;
 }
 
-/** For route handlers: returns the session or null (caller answers 401). */
 export async function sessionFromRequest(): Promise<Session | null> {
   return getSession();
 }
 
-/** Only Head Admins change anticheat settings. */
 export const canEditSettings = (role: string) => role === "Head Admin";
 
 export function actorName(s: Session) {
   return `${s.username} (Discord)`;
 }
 
-/** Game-server → dashboard API auth: `Authorization: Bearer <JCKS_AC_DASHBOARD_SECRET>`. */
 export function checkServerToken(req: Request): boolean {
   const expected = process.env.JCKS_AC_DASHBOARD_SECRET;
   if (!expected) return false;

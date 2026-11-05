@@ -5,11 +5,6 @@ using JcksAnticheat.Core.Detection;
 
 namespace JcksAnticheat.Core.Validation
 {
-    /// <summary>
-    /// Remembers which player spawned each script-created vehicle, and flags another player sitting
-    /// in its driver seat while it's locked: menus' "hijack / warp into vehicle" options. Lockpick
-    /// and key scripts unlock the vehicle first, and job/garage scripts can grant "vehicle" grace.
-    /// </summary>
     public sealed class VehicleOwnership
     {
         private readonly ConcurrentDictionary<int, int> _creator = new ConcurrentDictionary<int, int>();
@@ -24,7 +19,6 @@ namespace JcksAnticheat.Core.Validation
 
         public int CreatorOf(int vehicleNetId) => _creator.TryGetValue(vehicleNetId, out var p) ? p : 0;
 
-        /// <summary>GTA door lock statuses that keep players out (locked, locked for player, locked-but-damageable, ...).</summary>
         public static bool IsLocked(int lockStatus) => lockStatus == 2 || lockStatus == 3 || lockStatus == 4 || lockStatus == 7 || lockStatus == 10;
 
         public Violation? CheckDriver(int driver, int vehicleNetId, int lockStatus, bool creatorOnline, bool hasGrace)

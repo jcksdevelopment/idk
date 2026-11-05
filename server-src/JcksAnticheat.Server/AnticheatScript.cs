@@ -16,18 +16,13 @@ using static CitizenFX.Core.Native.API;
 
 namespace JcksAnticheat.Server
 {
-    /// <summary>
-    /// Server authority. Wires FiveM events into the pure validators in JcksAnticheat.Core and enforces
-    /// the verdicts. Idle cost: one coroutine that wakes once per second and returns at once when
-    /// nobody is online; every other path is event-driven.
-    /// </summary>
     public sealed partial class AnticheatScript : BaseScript
     {
         private readonly string _resource;
         private readonly AnticheatConfig _cfg;
         private readonly ViolationLedger _ledger;
         private readonly RateLimiter _limiter = new RateLimiter();
-        private RateLimiter.Rule _eventRule; // rebuilt on settings reload
+        private RateLimiter.Rule _eventRule;
         private readonly RateLimiter.Rule _helloRule = new RateLimiter.Rule(3, 0.05);
         private readonly SlidingCounter _denied = new SlidingCounter();
         private readonly HeartbeatManager _heartbeats = new HeartbeatManager();
@@ -48,10 +43,9 @@ namespace JcksAnticheat.Server
         private readonly AIVisionEvaluator _vision;
         private readonly DashboardBridge _dashboard;
         private readonly JcksAnticheat.Core.Logging.DiscordWebhook _discord;
-        private HashSet<uint> _weaponBlacklist; // rebuilt on settings reload
+        private HashSet<uint> _weaponBlacklist;
         private readonly string _dataDir;
 
-        // Per-boot random event names. Only "jcks_anticheat:hello" and "jcks_anticheat:init" are fixed.
         private readonly string _hbEvent = HeartbeatManager.RandomEventName();
         private readonly string _ackEvent = HeartbeatManager.RandomEventName();
         private readonly string _graceEvent = HeartbeatManager.RandomEventName();
@@ -89,7 +83,6 @@ namespace JcksAnticheat.Server
             _discord = new JcksAnticheat.Core.Logging.DiscordWebhook(_cfg.Discord);
 
             RegisterEvents();
-            // Players already connected when the resource (re)starts must handshake too.
             foreach (var p in Players) OnPlayerJoining(p, "");
             RegisterExports();
             InitLicense();
@@ -116,7 +109,6 @@ namespace JcksAnticheat.Server
             RegisterHoneypots();
             RegisterProtectedEvents();
 
-            // OneSync game events.
             EventHandlers["weaponDamageEvent"] += new Action<object, object>(OnWeaponDamage);
             EventHandlers["explosionEvent"] += new Action<object, object>(OnExplosion);
             EventHandlers["entityCreating"] += new Action<int>(OnEntityCreating);
@@ -133,15 +125,12 @@ namespace JcksAnticheat.Server
 
         private void RegisterExports()
         {
-            // exports.jcks_anticheat:GrantGrace(src, "heal" | "armor" | "teleport" | "godmode" | "invisible" | "noclip" | ..., ms)
             Exports.Add("GrantGrace", new Action<object, string, int>((src, kind, ms) => GrantGrace(ToId(src), kind, ms)));
-            // exports.jcks_anticheat:Guard(src, "myresource:event") -> false when the player exceeds the event budget.
             Exports.Add("Guard", new Func<object, string, bool>((src, bucket) => Guard(ToId(src), bucket ?? "external")));
             Exports.Add("GetScore", new Func<object, double>(src => _ledger.ScoreOf(ToId(src))));
             Exports.Add("BanPlayer", new Action<object, string>((src, reason) => BanPlayer(ToId(src), "MANUAL", reason ?? "Banned by staff", "export")));
         }
 
-        // ── Connection lifecycle ─────────────────────────────────────────────────────────────
 
         private void OnPlayerConnecting([FromSource] Player player, string name, CallbackDelegate setKickReason, IDictionary<string, object> deferrals)
         {
@@ -167,10 +156,6 @@ namespace JcksAnticheat.Server
             _dashboard.Enqueue("connection_rejected", new Dictionary<string, object?> { ["name"] = name, ["banId"] = ban.Id });
         }
 
-        /// <summary>
-        /// A resource started after players joined (e.g. `ensure` from the console) is legitimate:
-        /// tell every client before its own onClientResourceStart check flags it as injected.
-        /// </summary>
         private void OnServerResourceStart(string name)
         {
             if (string.IsNullOrEmpty(name) || name == _resource) return;
@@ -179,10 +164,6 @@ namespace JcksAnticheat.Server
                 if (_heartbeats.HasSession(ToId(p.Handle))) p.TriggerEvent(_resourceEvent, name);
         }
 
-        /// <summary>
-        /// cfx chat: the client sends its own author name with each message. A menu sends someone
-        /// else's name to speak as them. The chat resource skips cancelled messages.
-        /// </summary>
         private void OnChatMessage([FromSource] Player player, object author, object color, object message)
         {
             if (!_cfg.ChatSpoofCheck) return;
@@ -202,8 +183,6 @@ namespace JcksAnticheat.Server
             int id = ToId(player.Handle);
             if (id <= 0) return;
             _ledger.Restore(id, LicenseOf(player.Handle));
-            // Loading in and spawning teleports and heals the ped; server checks run from the start,
-            // so they get the same grace the handshake grants.
             _movement.GrantGrace(id, TimeSpan.FromSeconds(90));
             _state.GrantGrace(id, "heal", TimeSpan.FromSeconds(90));
             _state.GrantGrace(id, "armor", TimeSpan.FromSeconds(90));
@@ -240,8 +219,6 @@ namespace JcksAnticheat.Server
             var existing = _heartbeats.Get(id);
             if (existing != null && existing.Sequence > 0)
             {
-                // A second handshake after a working session means someone restarted the protocol,
-                // e.g. a menu that killed the scanner and is trying to impersonate it.
                 Punish(new Violation(id, "HB_INVALID", ViolationSource.Heartbeat, new Dictionary<string, object?> { ["reason"] = "rehandshake" }));
                 return;
             }
@@ -267,7 +244,6 @@ namespace JcksAnticheat.Server
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));
         }
 
-        // ── Heartbeat ────────────────────────────────────────────────────────────────────────
 
         private void OnHeartbeat([FromSource] Player player, object seq, string nonce, string ct, string mac)
         {
@@ -304,11 +280,6 @@ namespace JcksAnticheat.Server
             }
         }
 
-        /// <summary>
-        /// Behaviour the shield saw a resource perform on this player. Allowed by the integration
-        /// rules: the server grants the same grace the client already took (rate-limited). In
-        /// learning mode every use is counted for 'jac integrations suggest'.
-        /// </summary>
         private void ProcessIntegrationUses(int id, List<object?>? uses)
         {
             if (uses == null) return;
@@ -332,7 +303,6 @@ namespace JcksAnticheat.Server
             _integrations = IntegrationPolicy.Build(_cfg.Integrations, presets, r => GetResourceState(r) != "missing");
         }
 
-        /// <summary>Client-reported state (heartbeat "st") vs. what the server sees for the same ped.</summary>
         private void CheckReportedState(Player player, int id, Dictionary<string, object?>? st)
         {
             if (st == null || !(st.Arr("p") is List<object?> p) || p.Count < 3) return;
@@ -342,7 +312,6 @@ namespace JcksAnticheat.Server
             var now = DateTime.UtcNow;
             int veh = GetVehiclePedIsIn(ped, false);
             var vel = GetEntityVelocity(veh != 0 ? veh : ped);
-            // Teleports, heals and death legitimately make the two views diverge for a moment.
             bool skip = serverHealth <= 100 || _state.HasGrace(id, "heal", now) || _state.HasGrace(id, "armor", now)
                         || _state.HasGrace(id, "teleport", now) || _state.HasGrace(id, "noclip", now);
             var v = _consistency.Evaluate(id,
@@ -357,11 +326,6 @@ namespace JcksAnticheat.Server
         private readonly HashSet<string> _protectedRegistered = new HashSet<string>(StringComparer.Ordinal);
         private readonly SlidingCounter _protectedCounter = new SlidingCounter();
 
-        /// <summary>
-        /// Adds a listener to each protected server event (alongside the resource's own handler).
-        /// Over the per-minute limit the trigger is reported and cancelled. CancelEvent stops handlers
-        /// that check WasEventCanceled and later ones; it can't undo a handler that already ran.
-        /// </summary>
         private void RegisterProtectedEvents()
         {
             foreach (var name in _cfg.ProtectedEvents.Keys)
@@ -386,7 +350,6 @@ namespace JcksAnticheat.Server
                 }));
         }
 
-        /// <summary>Registers handlers for honeypot names not yet registered (also after a settings reload).</summary>
         private void RegisterHoneypots()
         {
             foreach (var name in _cfg.HoneypotEvents)
@@ -399,14 +362,12 @@ namespace JcksAnticheat.Server
 
         private void OnHoneypot([FromSource] Player player, string eventName)
         {
-            // A name removed from the config in a live reload stays registered but goes quiet.
             if (!_cfg.HoneypotEvents.Contains(eventName)) return;
             int id = ToId(player.Handle);
-            if (id <= 0) return; // server-side TriggerEvent of the same name, not a client
+            if (id <= 0) return;
             Punish(new Violation(id, "NET_HONEYPOT", ViolationSource.Server, new Dictionary<string, object?> { ["event"] = eventName }));
         }
 
-        // ── OneSync game events ──────────────────────────────────────────────────────────────
 
         private void OnWeaponDamage(object sender, object rawData)
         {
@@ -479,13 +440,12 @@ namespace JcksAnticheat.Server
             if (owner <= 0) return;
             uint model = Joaat.FromSigned(GetEntityModel(handle));
             var kind = (EntityKind)GetEntityType(handle);
-            bool scriptCreated = GetEntityPopulationType(handle) == 7; // POPTYPE_MISSION
+            bool scriptCreated = GetEntityPopulationType(handle) == 7;
             var (found, cancel) = _entities.Evaluate(owner, model, kind, scriptCreated, DateTime.UtcNow);
             foreach (var v in found) Punish(v);
             if (cancel) CancelEvent();
         }
 
-        /// <summary>Remember who spawned each script-created vehicle (for VEH_HIJACK).</summary>
         private void OnEntityCreated(int handle)
         {
             if (GetEntityType(handle) != (int)EntityKind.Vehicle || GetEntityPopulationType(handle) != 7) return;
@@ -495,7 +455,6 @@ namespace JcksAnticheat.Server
 
         private void OnForbiddenWeaponEvent(object sender, string eventName)
         {
-            // Under OneSync, legitimate weapon give/remove happens via server natives, never via these client events.
             CancelEvent();
             int source = ToId(sender);
             if (source > 0) Punish(new Violation(source, "WPN_GIVE_EVENT", ViolationSource.Server, new Dictionary<string, object?> { ["event"] = eventName }));
@@ -507,7 +466,6 @@ namespace JcksAnticheat.Server
             if (source <= 0 || !(rawData is IDictionary<string, object> data)) return;
             int pedNetId = ToInt(Get(data, "pedId"));
             int ped = pedNetId != 0 ? NetworkGetEntityFromNetworkId(pedNetId) : 0;
-            // Clearing someone else's player ped (yanking them from vehicles) is a classic menu grief.
             if (ped != 0 && IsPedAPlayer(ped) && NetworkGetEntityOwner(ped) != source)
             {
                 CancelEvent();
@@ -518,10 +476,6 @@ namespace JcksAnticheat.Server
             }
         }
 
-        /// <summary>
-        /// Player behind an explosion owner: the player whose ped it is, or the driver of a vehicle
-        /// owner. 0 when there's no owner or it isn't tied to a player.
-        /// </summary>
         private static int OwnerPlayerOf(int netId)
         {
             if (netId == 0) return 0;
@@ -536,7 +490,6 @@ namespace JcksAnticheat.Server
             return 0;
         }
 
-        /// <summary>Player who owns the entity with this net id, if it's a player's ped; else 0.</summary>
         private static int PlayerOfNetEntity(int netId)
         {
             if (netId == 0) return 0;
@@ -560,7 +513,6 @@ namespace JcksAnticheat.Server
                 Origin = new Vec3(ToFloat(Get(data, "initialPositionX")), ToFloat(Get(data, "initialPositionY")), ToFloat(Get(data, "initialPositionZ"))),
                 ShooterPos = ToVec(GetEntityCoords(ped)),
                 ShooterInVehicle = shooterVeh != 0,
-                // A projectile whose owner is someone else's ped is being fired "as" them.
                 OwnerIsShooter = owner == 0 || owner == ped || owner == shooterVeh || !IsPedAPlayer(owner) || NetworkGetEntityOwner(owner) == source,
             });
             foreach (var v in found) Punish(v);
@@ -598,7 +550,6 @@ namespace JcksAnticheat.Server
             if (cancel) CancelEvent();
         }
 
-        // ── Screenshots ──────────────────────────────────────────────────────────────────────
 
         private void OnScreenshotChunk([FromSource] Player player, string captureId, int index, int total, string data)
         {
@@ -617,7 +568,6 @@ namespace JcksAnticheat.Server
                 return;
             }
             var context = completed.Reason;
-            // Off the main thread; the result is drained in the tick.
             System.Threading.Tasks.Task.Run(async () =>
             {
                 var verdict = await _vision.EvaluateAsync(completed.Jpeg, context).ConfigureAwait(false);
@@ -637,13 +587,11 @@ namespace JcksAnticheat.Server
             p.TriggerEvent(_ssRequestEvent, captureId);
         }
 
-        // ── Helpers ──────────────────────────────────────────────────────────────────────────
 
         private bool Guard(int player, string bucket)
         {
             if (player <= 0) return true;
             if (_limiter.TryConsume(player, "all", _eventRule)) return true;
-            // One denied event is noise (lag burst); a sustained stream of denials is a flood: drop the client.
             int denied = _denied.Add(player.ToString(), DateTime.UtcNow, TimeSpan.FromSeconds(10));
             if (denied == 1 || denied == _cfg.FloodDeniedPer10s)
             {

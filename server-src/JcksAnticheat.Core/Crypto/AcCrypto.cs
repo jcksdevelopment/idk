@@ -3,10 +3,6 @@ using System.Security.Cryptography;
 
 namespace JcksAnticheat.Core.Crypto
 {
-    /// <summary>
-    /// Server half of the heartbeat crypto. Byte-compatible with resource/jcks_anticheat/shared/crypto.lua:
-    /// SHA-256, HMAC-SHA256, and a SHA-256-CTR stream where block i = SHA256(key || nonce || uint32_be(i)).
-    /// </summary>
     public static class AcCrypto
     {
         public static byte[] Sha256(byte[] data)
@@ -87,7 +83,6 @@ namespace JcksAnticheat.Core.Crypto
             return new string(c);
         }
 
-        /// <summary>Parses lowercase or uppercase hex. Returns null on malformed input instead of throwing.</summary>
         public static byte[]? FromHex(string? hex, int maxBytes = 1 << 16)
         {
             if (hex == null || (hex.Length & 1) != 0 || hex.Length / 2 > maxBytes) return null;

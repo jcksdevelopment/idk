@@ -4,7 +4,6 @@ import { applyEvent } from "@/lib/ingest";
 import { markServerSeen } from "@/lib/servers";
 import { unauthorized, badRequest } from "@/lib/http";
 
-/** Game server → dashboard event batches. Auth: Bearer JCKS_AC_DASHBOARD_SECRET. */
 export async function POST(req: Request) {
   if (!checkServerToken(req)) return unauthorized();
   let body: { serverId?: unknown; events?: unknown };

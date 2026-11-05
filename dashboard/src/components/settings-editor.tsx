@@ -41,7 +41,6 @@ export function SettingsEditor() {
   const original = data?.settings?.config;
   const dirty = useMemo(() => !!draft && !!original && JSON.stringify(draft) !== JSON.stringify(original), [draft, original]);
 
-  // While a change is pending on the game server, poll until it confirms (pushes settings back).
   useEffect(() => {
     if (!data?.settings?.pending) return;
     const t = setInterval(async () => {
@@ -190,7 +189,6 @@ function FieldInput({ field, value, disabled, onChange }: { field: SettingsField
   }
 }
 
-/** Keeps its own text so typing commas/newlines isn't fought by re-serialisation. */
 function ListInput({ id, kind, value, disabled, onChange }: { id: string; kind: "list" | "codes" | "numbers"; value: unknown[]; disabled: boolean; onChange: (v: unknown) => void }) {
   const joined = value.join("\n");
   const [text, setText] = useState(joined);
@@ -211,7 +209,6 @@ function parse(text: string, kind: "list" | "codes" | "numbers"): unknown[] {
   return items;
 }
 
-/** CODE=points per line; keeps its own text like ListInput. */
 function MapInput({ id, upper, value, disabled, onChange }: { id: string; upper: boolean; value: Record<string, number>; disabled: boolean; onChange: (v: unknown) => void }) {
   const joined = Object.entries(value).map(([k, v]) => `${k}=${v}`).join("\n");
   const [text, setText] = useState(joined);
@@ -236,7 +233,6 @@ function parseMap(text: string, upper: boolean): Record<string, number> {
 
 const serialize = (m: Record<string, number>) => Object.entries(m).map(([k, v]) => `${k}=${v}`).join("\n");
 
-/** resource=a,b per line. */
 function MapListInput({ id, value, disabled, onChange }: { id: string; value: Record<string, string[]>; disabled: boolean; onChange: (v: unknown) => void }) {
   const joined = serializeList(value);
   const [text, setText] = useState(joined);

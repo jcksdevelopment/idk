@@ -2,7 +2,6 @@ import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { STATE_COOKIE } from "@/lib/auth";
 
-/** Step 1: create a CSRF state and "redirect to Discord" (our mock consent page). */
 export async function GET(req: Request) {
   const state = randomBytes(16).toString("hex");
   const url = new URL("/login/authorize", req.url);

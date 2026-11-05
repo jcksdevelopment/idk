@@ -1,12 +1,3 @@
--- Screenshot capture for the AI vision evaluator.
---
--- A game-frame capture needs the CfxTexture → WebGL path that `screenshot-basic` implements. Rewriting
--- it here would duplicate a large, version-sensitive NUI renderer, so this is the one optional
--- dependency: if `screenshot-basic` isn't running, capture is skipped and the server is told why.
---
--- The image is sent as base64 chunks over a latent event (bandwidth-limited, so it doesn't stall
--- the normal event channel) on a per-boot random event name supplied in the init payload.
-
 local S = JcksAC
 
 local CHUNK = 24 * 1024

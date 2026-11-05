@@ -1,5 +1,3 @@
-# Windows equivalent of scripts/package.sh. Run from any folder:
-#   powershell -ExecutionPolicy Bypass -File scripts\package.ps1
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 

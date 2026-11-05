@@ -1,9 +1,5 @@
--- Player-state detections: godmode, proofs, health/armour regen, no-ragdoll, superjump,
--- on-foot speedhack, infinite stamina, thermal/night vision, invisibility.
-
 local S = JcksAC
 
--- Godmode / proofs / invisibility: cheap state reads, every 2 s.
 S.register("player.state", 2000, function()
   local ped, pid = PlayerPedId(), PlayerId()
   if S.allowed("godmode") then return end
@@ -36,7 +32,6 @@ S.register("player.state", 2000, function()
   end
 end)
 
--- Tiny ped: the "shrink" ped config flag (223) that menus set to make the player tiny.
 S.register("player.tiny", 5000, function()
   if S.allowed("tiny") then return end
   if GetPedConfigFlag(PlayerPedId(), 223, true) then
@@ -44,7 +39,6 @@ S.register("player.tiny", 5000, function()
   end
 end)
 
--- Spectating other players (menus' "spectate player" option) without an admin grant.
 S.register("player.spectate", 3000, function()
   if S.allowed("spectate") or S.allowed("noclip") then return end
   if NetworkIsInSpectatorMode() then
@@ -52,10 +46,8 @@ S.register("player.spectate", 3000, function()
   end
 end)
 
--- Health / armour regeneration: sample every 500 ms, compare against natural regen.
 do
   local lastHealth, lastArmor
-  -- GTA natural regen tops out around 1 hp per ~1-2 s, and only up to half health.
   local HEALTH_JUMP = 25
   local ARMOR_JUMP = 10
 
@@ -72,7 +64,6 @@ do
   end)
 end
 
--- No ragdoll: every 3 s.
 S.register("player.ragdoll", 3000, function()
   local ped = PlayerPedId()
   if S.allowed("ragdoll") or IsPedInAnyVehicle(ped, false) then return end
@@ -81,7 +72,6 @@ S.register("player.ragdoll", 3000, function()
   end
 end)
 
--- Superjump + on-foot speed, sampled every 250 ms while on foot.
 do
   local jumpPeak, jumpActive = 0.0, false
   S.register("player.motion", 250, function()
@@ -114,13 +104,11 @@ do
   end)
 end
 
--- Infinite stamina: sprinting continuously with stamina pinned at 100.
 do
   local sprintStart
   S.register("player.stamina", 1000, function()
     local ped, pid = PlayerPedId(), PlayerId()
     if IsPedSprinting(ped) and GetPlayerSprintStaminaRemaining(pid) <= 0.0 then
-      -- GetPlayerSprintStaminaRemaining is "stamina used"; 0 means full tank.
       sprintStart = sprintStart or GetGameTimer()
       if GetGameTimer() - sprintStart > 25000 then
         S.flag("PLY_STAMINA", { ms = GetGameTimer() - sprintStart })

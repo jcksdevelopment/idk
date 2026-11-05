@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Builds the server DLLs, runs the tests, and produces a drop-in resource:
-#   dist/jcks_anticheat/        -> copy into your FiveM server's resources/ folder
-#   dist/jcks_anticheat-<ver>.zip
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -28,10 +25,22 @@ rm -rf dist && mkdir -p dist/jcks_anticheat/server
 cp -r resource/jcks_anticheat/{fxmanifest.lua,config.json,settings.schema.json,integrations.presets.json,client,shared,shield,html} dist/jcks_anticheat/
 cp resource/jcks_anticheat/server/JcksAnticheat.Core.net.dll resource/jcks_anticheat/server/JcksAnticheat.Server.net.dll dist/jcks_anticheat/server/
 
-echo "==> Check every file the manifest needs is packaged"
-for f in settings.schema.json integrations.presets.json shield/shield.lua html/index.html html/panel.js html/panel.css server/JcksAnticheat.Core.net.dll server/JcksAnticheat.Server.net.dll; do
-  [ -f "dist/jcks_anticheat/$f" ] || { echo "missing from package: $f" >&2; exit 1; }
-done
+echo "==> Check every file the manifest references is packaged"
+python3 - "dist/jcks_anticheat" <<'PY'
+import glob, os, re, sys
+root = sys.argv[1]
+manifest = open(os.path.join(root, "fxmanifest.lua")).read()
+missing = []
+for ref in re.findall(r'"([^"@]+\.(?:lua|dll|html|js|css|json))"', manifest):
+    if not glob.glob(os.path.join(root, ref)):
+        missing.append(ref)
+for extra in ("config.json", "settings.schema.json", "integrations.presets.json"):
+    if not os.path.exists(os.path.join(root, extra)):
+        missing.append(extra)
+if missing:
+    print("missing from package: " + ", ".join(missing), file=sys.stderr)
+    sys.exit(1)
+PY
 
 if [ "${NO_OBFUSCATE:-0}" != "1" ]; then
   echo "==> Obfuscate client Lua (strip comments, randomise global names)"

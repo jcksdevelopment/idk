@@ -24,7 +24,7 @@ public class ValidatorTests
     {
         var mv = new MovementValidator(new MovementLimits());
         Assert.Empty(mv.Evaluate(1, new MovementSample(new Vec3(0, 0, 0), default, MovementMode.LandVehicle, T0)));
-        Assert.Empty(mv.Evaluate(1, new MovementSample(new Vec3(60, 0, 0), default, MovementMode.LandVehicle, T0.AddSeconds(1)))); // 216 km/h
+        Assert.Empty(mv.Evaluate(1, new MovementSample(new Vec3(60, 0, 0), default, MovementMode.LandVehicle, T0.AddSeconds(1))));
         var tp = mv.Evaluate(1, new MovementSample(new Vec3(2000, 0, 0), default, MovementMode.LandVehicle, T0.AddSeconds(2)));
         Assert.Contains(tp, v => v.Code == "MOV_TELEPORT");
     }
@@ -63,7 +63,6 @@ public class ValidatorTests
         var dv = new DamageValidator(new DamageLimits());
         Assert.Contains(dv.Evaluate(Hit(damage: 120)), v => v.Code == "WPN_DMG_MODIFIER");
         Assert.Contains(dv.Evaluate(Hit(victimY: 400, at: T0.AddSeconds(5))), v => v.Code == "WPN_RANGE");
-        // Heading 180 faces -Y; the victim is at +Y, directly behind the shooter.
         Assert.Contains(dv.Evaluate(Hit(heading: 180, at: T0.AddSeconds(10))), v => v.Code == "WPN_AIM_ANGLE");
     }
 
@@ -147,7 +146,7 @@ public class ValidatorTests
         Assert.False(rl.TryConsume(1, "x", rule));
         ticks += System.Diagnostics.Stopwatch.Frequency * 2;
         Assert.True(rl.TryConsume(1, "x", rule));
-        Assert.True(rl.TryConsume(2, "x", rule)); // other players unaffected
+        Assert.True(rl.TryConsume(2, "x", rule));
     }
 
     [Fact]
@@ -180,7 +179,7 @@ public class ValidatorTests
             var store = new BanStore(path);
             var ban = store.Add(new Ban { Name = "x", Identifiers = { "license:abc", "discord:1", "ip:1.2.3.4" }, Reason = "r" });
             Assert.NotNull(store.Find(new[] { "discord:1" }));
-            Assert.Null(store.Find(new[] { "ip:1.2.3.4" })); // IPs never key bans
+            Assert.Null(store.Find(new[] { "ip:1.2.3.4" }));
 
             var reloaded = new BanStore(path);
             Assert.Equal(ban.Id, reloaded.Find(new[] { "license:abc" })!.Id);
@@ -287,7 +286,6 @@ public class StateConsistencyTests
     public void HookedHealthIsReportedAfterAStreak()
     {
         var sc = new StateConsistencyValidator();
-        // Client claims full health, server sees 120: a hooked GetEntityHealth hiding damage.
         Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
         Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
         var v = sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
@@ -300,7 +298,7 @@ public class StateConsistencyTests
         var sc = new StateConsistencyValidator();
         sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
         sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false);
-        Assert.Null(sc.Evaluate(1, 200, 0, Here, 200, 0, Here, 0, false)); // caught up
+        Assert.Null(sc.Evaluate(1, 200, 0, Here, 200, 0, Here, 0, false));
         Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
     }
 
@@ -308,7 +306,7 @@ public class StateConsistencyTests
     public void FastVehiclesGetPositionTolerance()
     {
         var sc = new StateConsistencyValidator();
-        var server = new Vec3(160, 200, 30); // 60 m apart, but doing 50 m/s
+        var server = new Vec3(160, 200, 30);
         for (int i = 0; i < 5; i++) Assert.Null(sc.Evaluate(1, 200, 0, Here, 200, 0, server, 50, false));
         var spoofed = new Vec3(2000, 200, 30);
         Violation? v = null;
@@ -336,22 +334,19 @@ public class LedgerPersistenceTests
     {
         var ledger = new ViolationLedger(new ScoringPolicy { HalfLifeMinutes = 10 });
         ledger.Record(new Violation(7, "MOV_TELEPORT", ViolationSource.Server), T0);
-        ledger.Record(new Violation(7, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0); // 90 → kicked
+        ledger.Record(new Violation(7, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0);
 
         ledger.Park(7, "license:abc", T0);
         Assert.Equal(0, ledger.ScoreOf(7, T0));
 
-        // Rejoins a minute later in another slot: score is back, slightly decayed.
         ledger.Restore(12, "license:abc", T0.AddMinutes(1));
         Assert.InRange(ledger.ScoreOf(12, T0.AddMinutes(1)), 80, 90);
 
-        // Two more offences now cross the ban line (84 + 50 + 40 ≥ 140)...
         ledger.Record(new Violation(12, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0.AddMinutes(1));
         var v = new Violation(12, "MOV_TELEPORT", ViolationSource.Server);
         ledger.Record(v, T0.AddMinutes(1));
         Assert.Equal(EnforcementAction.Ban, v.Action);
 
-        // ...whereas a fresh player with the same two offences only reaches a kick (90).
         var fresh = new ViolationLedger(new ScoringPolicy { HalfLifeMinutes = 10 });
         fresh.Record(new Violation(20, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0);
         var f = new Violation(20, "MOV_TELEPORT", ViolationSource.Server);
@@ -417,7 +412,6 @@ public class LiveSettingsTests
         Assert.Same(movementRef, live.Movement);
         Assert.True(live.DryRun);
         Assert.Equal(20f, movementRef.OnFootMaxSpeed);
-        // The ledger built before the reload sees the new thresholds.
         var v = new Violation(1, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server);
         ledger.Record(v, DateTime.UtcNow);
         ledger.Record(v = new Violation(1, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), DateTime.UtcNow);
@@ -473,7 +467,7 @@ public class GameEventTests
     {
         var val = V();
         Assert.Contains(val.Fire(new FireInfo { Source = 1, TargetPlayer = 2, At = T0 }).violations, x => x.Code == "WPN_FIRE_PLAYER");
-        Assert.Empty(val.Fire(new FireInfo { Source = 4, TargetPlayer = 4, At = T0 }).violations); // own ped (molotov mishap)
+        Assert.Empty(val.Fire(new FireInfo { Source = 4, TargetPlayer = 4, At = T0 }).violations);
         Assert.Contains(val.Fire(new FireInfo { Source = 5, Count = 12, At = T0 }).violations, x => x.Code == "WPN_FIRE_SPAM");
     }
 
@@ -497,12 +491,12 @@ public class VehicleOwnershipTests
     {
         var v = new VehicleOwnership();
         v.Track(100, creatorPlayer: 1);
-        Assert.Null(v.CheckDriver(1, 100, 2, true, false));                 // owner driving their own car
-        Assert.Null(v.CheckDriver(2, 100, 1, true, false));                 // unlocked (lockpicked / keys given)
-        Assert.Null(v.CheckDriver(2, 100, 2, true, true));                  // garage/job grace
-        Assert.Null(v.CheckDriver(2, 100, 2, false, false));                // owner offline: abandoned car
+        Assert.Null(v.CheckDriver(1, 100, 2, true, false));
+        Assert.Null(v.CheckDriver(2, 100, 1, true, false));
+        Assert.Null(v.CheckDriver(2, 100, 2, true, true));
+        Assert.Null(v.CheckDriver(2, 100, 2, false, false));
         Assert.Equal("VEH_HIJACK", v.CheckDriver(2, 100, 2, true, false)!.Code);
-        Assert.Null(v.CheckDriver(2, 100, 2, true, false));                 // reported once
+        Assert.Null(v.CheckDriver(2, 100, 2, true, false));
     }
 
     [Fact]
@@ -540,7 +534,6 @@ public class ExplosionBlameTests
 
     [Fact]
     public void DestroyedVehicleExplosionCreditingTheAttackerIsNotBlame()
-        // Player 8 owns the car player 9 shot; 8's client sends the car explosion with 9 as owner.
         => Assert.Empty(new ExplosionValidator(new ExplosionPolicy()).Evaluate(
             new ExplosionInfo { Source = 8, ExplosionType = 7, DamageScale = 1, CameraShake = 1, OwnerPlayer = 9 }).violations);
 }

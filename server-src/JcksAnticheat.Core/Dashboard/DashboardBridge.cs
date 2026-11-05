@@ -13,26 +13,17 @@ namespace JcksAnticheat.Core.Dashboard
     public sealed class DashboardCommand
     {
         public string Id { get; set; } = "";
-        /// <summary>ban | unban | kick | screenshot</summary>
         public string Type { get; set; } = "";
         public int Player { get; set; }
         public string? BanId { get; set; }
         public string? Reason { get; set; }
         public double? DurationHours { get; set; }
         public string? Actor { get; set; }
-        /// <summary>For bans of players who already left: the identifiers the dashboard last saw.</summary>
         public List<string> Identifiers { get; set; } = new List<string>();
         public string? Name { get; set; }
-        /// <summary>For "config": the full settings JSON to validate, apply and save.</summary>
         public string? Config { get; set; }
     }
 
-    /// <summary>
-    /// Pushes detections, player snapshots, bans and vision verdicts to the Next.js dashboard, and pulls
-    /// moderator commands back. Outbound-only HTTP from the game server, so the dashboard can live
-    /// anywhere and the game server needs no open port. All network I/O runs off the main thread;
-    /// the game script only enqueues and drains.
-    /// </summary>
     public sealed class DashboardBridge : IDisposable
     {
         private readonly DashboardConfig _config;
@@ -70,7 +61,6 @@ namespace JcksAnticheat.Core.Dashboard
             return ok;
         }
 
-        /// <summary>Fire-and-forget from the tick. Overlapping calls are skipped, not queued.</summary>
         public Task FlushAsync()
         {
             if (!Enabled || _outbox.IsEmpty || System.Threading.Interlocked.Exchange(ref _flushing, 1) == 1) return Task.CompletedTask;

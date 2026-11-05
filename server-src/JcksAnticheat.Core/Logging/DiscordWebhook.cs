@@ -14,17 +14,11 @@ namespace JcksAnticheat.Core.Logging
     public sealed class DiscordConfig
     {
         public bool Enabled { get; set; }
-        /// <summary>Environment variable holding the webhook URL (it's a secret; never in config.json).</summary>
         public string WebhookEnv { get; set; } = "JCKS_AC_DISCORD_WEBHOOK";
-        /// <summary>Lowest action posted: log, screenshot, kick or ban. Bans are always posted.</summary>
         public string MinAction { get; set; } = "kick";
         public string Username { get; set; } = "JCKS Anticheat";
     }
 
-    /// <summary>
-    /// Posts detections, kicks and bans to a Discord webhook as embeds. Batches up to 10 embeds per
-    /// message and sends from a background task, so the game thread only enqueues.
-    /// </summary>
     public sealed class DiscordWebhook : IDisposable
     {
         private readonly DiscordConfig _config;
@@ -87,7 +81,7 @@ namespace JcksAnticheat.Core.Logging
 
         private void Enqueue(string title, string? description, int color, List<object?> fields)
         {
-            if (_queue.Count > 500) return; // Discord is down or rate-limiting; don't grow without bound
+            if (_queue.Count > 500) return;
             var embed = new Dictionary<string, object?>
             {
                 ["title"] = Trim(title, 256),
@@ -99,7 +93,6 @@ namespace JcksAnticheat.Core.Logging
             _queue.Enqueue(embed);
         }
 
-        /// <summary>Sends up to 10 queued embeds. Overlapping calls are skipped.</summary>
         public Task FlushAsync()
         {
             if (_queue.IsEmpty || !Enabled || Interlocked.Exchange(ref _sending, 1) == 1) return Task.CompletedTask;

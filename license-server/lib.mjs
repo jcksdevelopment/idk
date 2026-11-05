@@ -42,10 +42,6 @@ export class Store {
   }
 }
 
-/**
- * Binds a license to the first server that activates it (public IP + install fingerprint).
- * Returns { ok, reason?, license }.
- */
 export function activate(store, { key, fingerprint, ip, now = new Date() }) {
   const lic = store.get(key);
   if (!lic) return { ok: false, reason: "unknown license key" };
@@ -72,7 +68,6 @@ export function resetBinding(store, id) {
   return { ok: true };
 }
 
-/** token = base64url(payload JSON) "." base64url(RSA-SHA256 PKCS#1 v1.5 signature over the first part). */
 export function signToken(privateKeyPem, payload) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const sig = sign("sha256", Buffer.from(body), createPrivateKey(privateKeyPem)).toString("base64url");

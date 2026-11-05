@@ -1,6 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- netstandard2.0: FiveM's server runtime is Mono and loads netstandard2.0 assemblies.
-       It cannot load net10.0 assemblies, so the SDK is .NET 10 but the target stays netstandard2.0. -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>JcksAnticheat.Core.net</AssemblyName>

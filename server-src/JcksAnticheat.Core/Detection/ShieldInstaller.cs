@@ -3,11 +3,6 @@ using System.Text.RegularExpressions;
 
 namespace JcksAnticheat.Core.Detection
 {
-    /// <summary>
-    /// Adds or removes the shield include in a resource manifest. The include goes on the first line,
-    /// ahead of every other client script, so the shield wraps natives before the resource's own
-    /// code (or anything injected into it) runs.
-    /// </summary>
     public static class ShieldInstaller
     {
         public const string Marker = "-- jcks_anticheat:shield";
@@ -17,7 +12,6 @@ namespace JcksAnticheat.Core.Detection
 
         public static bool IsInstalled(string manifest) => manifest.Contains(Marker);
 
-        /// <summary>Only resources that run client code need the shield.</summary>
         public static bool HasClientCode(string manifest) => ClientCode.IsMatch(manifest);
 
         public static (string manifest, bool changed) Install(string manifest)

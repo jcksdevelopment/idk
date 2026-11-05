@@ -7,13 +7,8 @@ using Xunit;
 
 namespace JcksAnticheat.Core.Tests;
 
-/// <summary>
-/// End-to-end: the real client Lua (crypto.lua, main.lua, heartbeat.lua) runs under lua5.4 with
-/// stubbed natives and produces heartbeats; the C# HeartbeatManager verifies them.
-/// </summary>
 public class HeartbeatInteropTests
 {
-    /// <summary>JCKS_AC_RESOURCE_ROOT points the tests at another build, e.g. the obfuscated dist/jcks_anticheat.</summary>
     private static string ResourceRoot()
     {
         var overrideRoot = Environment.GetEnvironmentVariable("JCKS_AC_RESOURCE_ROOT");
@@ -31,7 +26,6 @@ public class HeartbeatInteropTests
         return null;
     }
 
-    /// <summary>lua5.4 is required unless JCKS_AC_SKIP_LUA=1 is set explicitly.</summary>
     private static string? RequireLua()
     {
         var lua = LuaBinary();
@@ -117,7 +111,7 @@ public class HeartbeatInteropTests
         var (key, challenge) = mgr.Begin(9);
         using var client = new LuaClient(lua, 2);
         client.Send(InitPayload(key, challenge));
-        client.Read(); // hello
+        client.Read();
 
         var args = (List<object?>)client.Read()["args"]!;
         var ct = (string)args[2]!;
@@ -126,10 +120,8 @@ public class HeartbeatInteropTests
 
         var ok = mgr.Verify(9, args[0], (string)args[1]!, ct, (string)args[3]!);
         Assert.True(ok.Ok);
-        // Same packet again: sequence replay.
         Assert.Equal(HeartbeatStatus.Replay, mgr.Verify(9, args[0], (string)args[1]!, ct, (string)args[3]!).Status);
 
-        // A forger who knows the original key but missed the ratchet produces a bad MAC.
         var keyBytes = AcCrypto.FromHex(key)!;
         var nonce = new byte[16];
         var plain = System.Text.Encoding.UTF8.GetBytes("{\"s\":2,\"c\":\"" + ok.NextChallenge + "\",\"f\":[]}");
@@ -154,7 +146,6 @@ public class HeartbeatInteropTests
     [Fact]
     public void CryptoMatchesLuaVectors()
     {
-        // Vectors produced by resource/jcks_anticheat/shared/crypto.lua (see README "Verifying the crypto").
         var key = AcCrypto.Sha256(System.Text.Encoding.UTF8.GetBytes("k"));
         var ct = AcCrypto.Ctr(key, System.Text.Encoding.UTF8.GetBytes("nonce1234567890a"),
             System.Text.Encoding.UTF8.GetBytes("hello world, this is longer than thirty-two bytes!!"));
@@ -187,7 +178,6 @@ public class HandshakeTimeoutTests
         var t0 = DateTime.UtcNow;
         mgr.ExpectHandshake(5, t0);
         mgr.Begin(5, t0.AddSeconds(10));
-        // Only the session's own first-heartbeat grace (90 s from Begin) applies now.
         Assert.Empty(mgr.FindMissing(t0.AddSeconds(160 - 70)));
     }
 

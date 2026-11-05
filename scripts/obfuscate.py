@@ -1,34 +1,19 @@
 #!/usr/bin/env python3
-"""
-Build-time hardening for the client Lua (used by scripts/package.sh on dist/ only; sources stay readable).
-
-1. Strips comments and blank lines, so the shipped files carry no explanations of what each check does.
-2. Renames the scanner's global tables (JcksAC, JcksCrypto) to random identifiers chosen per
-   build, so an executor can't find them by a well-known name and patch e.g. JcksAC.flag.
-
-A real tokenizer handles '...', "...", long strings [[ ]] / [==[ ]==] and long comments, so code
-inside strings is never touched. This is light obfuscation, not protection: a determined attacker
-can still read the logic. The heartbeat and server-side checks are what carry the security.
-
-Usage: obfuscate.py <dir> [--seed N]   (rewrites every .lua under <dir> in place)
-"""
 import os
 import random
 import re
 import string
 import sys
 
-RENAME = ["JcksCrypto", "JcksAC"]  # longest first is irrelevant: we match whole identifiers
+RENAME = ["JcksCrypto", "JcksAC"]
 
 
 def long_bracket_level(src, i):
-    """If src[i:] starts a long bracket like [[ or [==[, return its level, else -1."""
     m = re.match(r"\[(=*)\[", src[i:])
     return len(m.group(1)) if m else -1
 
 
 def tokens(src):
-    """Yield (kind, text) with kind in {code, string, comment}."""
     i, n, start = 0, len(src), 0
     while i < n:
         c = src[i]
@@ -72,7 +57,6 @@ def transform(src, names):
     out = []
     for kind, text in tokens(src):
         if kind == "comment":
-            # Keep a line break where a line comment ended so statements stay separated.
             out.append(" ")
             continue
         if kind == "code":

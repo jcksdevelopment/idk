@@ -10,7 +10,6 @@ const obj = (v: unknown): Obj => (v && typeof v === "object" && !Array.isArray(v
 const SOURCES = new Set(["client", "server", "heartbeat", "vision"]);
 const ACTIONS = new Set(["none", "log", "screenshot", "kick", "ban"]);
 
-/** Applies one event pushed by JcksAnticheat.Core.Dashboard.DashboardBridge. Unknown types are ignored. */
 export function applyEvent(serverId: string, ev: Obj) {
   const type = str(ev.type);
   const at = str(ev.at, new Date().toISOString());

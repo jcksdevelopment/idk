@@ -1,16 +1,3 @@
--- JCKS Anticheat shield. Installed into every resource's fxmanifest as the first client script
--- (`/jac shield install`), so it runs inside each resource's own Lua state: the place a Lua executor
--- injects menu code into.
---
--- Every chunk FiveM loads from a resource file is named "@@<resource>/<path>". Code an executor
--- pushes into the state has no such file behind it. The shield wraps the functions menus need
--- (server events, spawning, weapons, teleport, godmode, explosions...) and walks the caller's
--- stack on each call; a frame from a chunk that isn't a resource file means injected code is
--- driving it. It also watches for new global functions defined by such chunks and for its own
--- wrappers being swapped back out.
---
--- Plain Lua 5.3/5.4 compatible, no globals of its own. Reports go to the scanner as a local event.
-
 local RES = GetCurrentResourceName()
 local REPORT = "jcks_anticheat:shield"
 local getinfo = debug and debug.getinfo
@@ -18,7 +5,6 @@ if not getinfo then return end
 
 local sourceCache = {}
 
--- Is this chunk name a real script (a resource file or a citizen runtime script)?
 local function legitSource(src)
   local cached = sourceCache[src]
   if cached ~= nil then return cached end
@@ -44,7 +30,6 @@ local function report(kind, detail)
   TriggerEvent(REPORT, RES, kind, detail)
 end
 
--- Walk the stack above the wrapper; any frame from a non-file chunk means injected code.
 local function injectedCaller()
   for level = 3, 24 do
     local info = getinfo(level, "S")
@@ -57,8 +42,6 @@ local function injectedCaller()
   return nil
 end
 
--- What a legitimate call means for the anticheat. When a trusted resource (integrations in the
--- settings) heals, teleports, etc. the local player, the scanner grants grace for that behaviour.
 local KIND = {
   SetEntityHealth = "heal", NetworkResurrectLocalPlayer = "heal", SetPedArmour = "armor",
   SetEntityInvincible = "godmode", SetPlayerInvincible = "godmode", SetEntityProofs = "godmode", SetEntityCanBeDamaged = "godmode",
@@ -107,7 +90,6 @@ local function guard(name)
   _G[name] = wrapper
 end
 
--- What Lua menus call. Natives are resolved lazily in FiveM; reading _G[name] resolves them.
 local GUARDED = {
   "TriggerServerEvent", "TriggerLatentServerEvent", "ExecuteCommand", "RegisterCommand",
   "CreateVehicle", "CreatePed", "CreateObject", "CreateObjectNoOffset",
@@ -134,7 +116,6 @@ if Citizen and type(Citizen.InvokeNative) == "function" then
   wrappers["Citizen.InvokeNative"] = wrapped
 end
 
--- Watch globals: new functions from non-file chunks, and wrappers being replaced.
 local known = {}
 local function scanGlobals()
   for name, value in pairs(_G) do
@@ -155,7 +136,6 @@ local function scanGlobals()
 end
 
 CreateThread(function()
-  -- Let the resource's own scripts define their globals first.
   Wait(15000)
   for name in pairs(_G) do known[name] = true end
   TriggerEvent(REPORT, RES, "hello", { fn = "", src = "" })

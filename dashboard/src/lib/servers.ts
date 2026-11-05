@@ -7,7 +7,6 @@ export function markServerSeen(serverId: string) {
   seen.set(serverId, Date.now());
 }
 
-/** A game server counts as connected if it pushed or polled in the last 30 seconds. */
 export function isServerConnected(serverId: string) {
   return Date.now() - (seen.get(serverId) ?? 0) < 30_000;
 }

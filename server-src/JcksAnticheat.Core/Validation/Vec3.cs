@@ -2,7 +2,6 @@ using System;
 
 namespace JcksAnticheat.Core.Validation
 {
-    /// <summary>Minimal vector type so the core library has no CitizenFX dependency.</summary>
     public readonly struct Vec3
     {
         public Vec3(float x, float y, float z) { X = x; Y = y; Z = z; }
@@ -22,14 +21,12 @@ namespace JcksAnticheat.Core.Validation
             return l < 1e-6f ? new Vec3(0, 0, 0) : new Vec3(X / l, Y / l, Z / l);
         }
 
-        /// <summary>Forward unit vector on the XY plane for a GTA heading (degrees, 0 = north/+Y, counter-clockwise).</summary>
         public static Vec3 FromHeading(float headingDegrees)
         {
             double r = headingDegrees * Math.PI / 180.0;
             return new Vec3((float)-Math.Sin(r), (float)Math.Cos(r), 0);
         }
 
-        /// <summary>Angle in degrees between two vectors (XY plane only).</summary>
         public static float Angle2D(Vec3 a, Vec3 b)
         {
             var la = a.Length2D; var lb = b.Length2D;

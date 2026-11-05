@@ -8,12 +8,9 @@ namespace JcksAnticheat.Core.Config
 {
     public sealed class IntegrationsConfig
     {
-        /// <summary>Merge integrations.presets.json for resources that exist on this server.</summary>
         public bool UsePresets { get; set; } = true;
-        /// <summary>Record which resources do what, so 'jac integrations suggest' can propose rules.</summary>
         public bool Learning { get; set; }
         public int GraceMs { get; set; } = 5000;
-        /// <summary>resource → behaviours it may trigger (heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, or *).</summary>
         public Dictionary<string, List<string>> Resources { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -23,7 +20,6 @@ namespace JcksAnticheat.Core.Config
         public static bool IsKnown(string b) => b == "*" || All.Contains(b);
     }
 
-    /// <summary>Effective resource → behaviour rules: presets for running resources, then the server's own rules on top.</summary>
     public sealed class IntegrationPolicy
     {
         private readonly Dictionary<string, HashSet<string>> _rules = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
@@ -58,7 +54,6 @@ namespace JcksAnticheat.Core.Config
         }
     }
 
-    /// <summary>Learning mode: counts behaviour per resource (allowed or not) across players.</summary>
     public sealed class IntegrationLearning
     {
         private readonly ConcurrentDictionary<string, int> _counts = new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -69,7 +64,6 @@ namespace JcksAnticheat.Core.Config
             _counts.AddOrUpdate(resource + "|" + behaviour, 1, (_, n) => n + 1);
         }
 
-        /// <summary>Behaviours seen at least minCount times that the policy doesn't allow yet.</summary>
         public Dictionary<string, List<string>> Suggest(IntegrationPolicy policy, int minCount = 3)
         {
             var result = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);

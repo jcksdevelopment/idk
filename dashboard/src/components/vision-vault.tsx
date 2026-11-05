@@ -145,12 +145,10 @@ export function VisionVault() {
   );
 }
 
-/** Capture image with a fallback: client-supplied JPEGs can be truncated or corrupt. */
 function Capture({ id, name, className }: { id: string; name: string; className?: string }) {
   const [failed, setFailed] = useState(false);
   if (failed) {
     return <div className="grid aspect-video w-full place-items-center text-xs text-subtle">Image unavailable</div>;
   }
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={`/api/vision/${id}/image`} alt={`Capture of ${name}`} loading="lazy" onError={() => setFailed(true)} className={className} />;
 }

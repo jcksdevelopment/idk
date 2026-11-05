@@ -85,7 +85,6 @@ namespace JcksAnticheat.Core.Licensing
             return new LicenseResult { Ok = true, Token = token, ValidUntil = until, Offline = allowOfflineGrace && now > exp };
         }
 
-        /// <summary>Activates online; on a network failure falls back to the cached token within the offline grace.</summary>
         public static async Task<LicenseResult> ActivateAsync(HttpClient http, string url, string licenseKey, RSAParameters key, string fingerprint, string version, string? cachedToken)
         {
             var nonce = Guid.NewGuid().ToString("N");

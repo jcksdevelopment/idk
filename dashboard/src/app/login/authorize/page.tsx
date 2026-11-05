@@ -1,7 +1,6 @@
 import { MOCK_DISCORD_USERS } from "@/lib/auth";
 import { DiscordIcon, ShieldIcon } from "@/components/icons";
 
-/** Stand-in for discord.com/oauth2/authorize. */
 export default async function AuthorizePage({ searchParams }: { searchParams: Promise<{ state?: string; scope?: string }> }) {
   const { state = "", scope = "identify" } = await searchParams;
   const scopes = scope.split(" ").filter(Boolean);

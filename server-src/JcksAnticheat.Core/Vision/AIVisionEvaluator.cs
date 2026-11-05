@@ -38,19 +38,6 @@ namespace JcksAnticheat.Core.Vision
         };
     }
 
-    /// <summary>
-    /// Sends a captured game frame to a vision LLM and returns a structured verdict.
-    ///
-    /// Providers:
-    ///  - "anthropic": Claude Messages API over raw HTTP. The official C# SDK targets modern .NET and
-    ///    can't load in FiveM's Mono runtime, so the request is built by hand. It uses structured
-    ///    outputs (output_config.format = json_schema), so the reply is schema-valid JSON, plus
-    ///    server-side refusal fallbacks.
-    ///  - "openai-compatible": DeepSeek or any OpenAI-style chat endpoint that accepts image_url parts,
-    ///    with response_format json_object.
-    ///
-    /// Verdicts only feed the human review queue (Vision Vault). They never ban on their own.
-    /// </summary>
     public sealed class AIVisionEvaluator : IDisposable
     {
         public const string AnthropicVersion = "2026-10-21";
@@ -171,7 +158,6 @@ namespace JcksAnticheat.Core.Vision
                     ["effort"] = _config.Effort,
                     ["format"] = new Dictionary<string, object?> { ["type"] = "json_schema", ["schema"] = VerdictSchema },
                 },
-                // If a safety classifier declines, the API retries on a fallback model chosen by refusal category.
                 ["fallbacks"] = "default",
             };
 
@@ -235,7 +221,6 @@ namespace JcksAnticheat.Core.Vision
             if (stop == "max_tokens")
                 return new VisionVerdict { Verdict = VisionVerdictKind.Error, Error = "response truncated (max_tokens)", Model = model };
 
-            // Thinking blocks may precede the answer; the verdict is the concatenated text blocks.
             var text = string.Concat((root.Arr("content") ?? new List<object?>())
                 .OfType<Dictionary<string, object?>>()
                 .Where(b => b.Str("type") == "text")
@@ -258,7 +243,6 @@ namespace JcksAnticheat.Core.Vision
         internal static VisionVerdict ParseVerdictJson(string text)
         {
             text = text.Trim();
-            // OpenAI-style providers sometimes wrap JSON in a fence even in JSON mode.
             if (text.StartsWith("```", StringComparison.Ordinal))
             {
                 int start = text.IndexOf('{'); int end = text.LastIndexOf('}');

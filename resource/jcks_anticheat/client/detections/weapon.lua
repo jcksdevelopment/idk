@@ -1,7 +1,3 @@
--- Weapon detections: blacklisted weapons, damage modifiers, aim snapping, triggerbot, infinite ammo.
--- Range, silent aim, rapid fire, headshot ratio and explosive ammo are judged on the server from
--- weaponDamageEvent / explosionEvent, which the client can't rewrite after the fact.
-
 local S = JcksAC
 
 S.register("weapon.inventory", 2500, function()
@@ -22,13 +18,10 @@ S.register("weapon.inventory", 2500, function()
     S.flag("WPN_DMG_MODIFIER", { d = dmg, m = melee })
   end
   if defense < 0.95 and not S.allowed("godmode") then
-    -- A lowered defense modifier means incoming damage is scaled down: a semi-godmode.
     S.flag("PLY_GODMODE_PROOFS", { def = defense })
   end
 end)
 
--- "Give all weapons": far more weapons at once than any loadout. Checked against the stock weapon
--- list; servers with big legitimate loadouts raise maxWeapons in the settings.
 local ALL_WEAPONS = {
   "WEAPON_KNIFE", "WEAPON_NIGHTSTICK", "WEAPON_HAMMER", "WEAPON_BAT", "WEAPON_GOLFCLUB", "WEAPON_CROWBAR", "WEAPON_BOTTLE",
   "WEAPON_DAGGER", "WEAPON_HATCHET", "WEAPON_KNUCKLE", "WEAPON_MACHETE", "WEAPON_SWITCHBLADE", "WEAPON_WRENCH", "WEAPON_BATTLEAXE",
@@ -61,8 +54,6 @@ S.register("weapon.count", 5000, function()
   end
 end)
 
--- Per-frame sampling, only while the player is armed and aiming or shooting. Otherwise this thread
--- sleeps 250 ms, so the idle cost is effectively zero.
 CreateThread(function()
   while not S.ready do Wait(500) end
 
@@ -87,7 +78,6 @@ CreateThread(function()
     else
       local now = GetGameTimer()
 
-      -- Aim snap: huge camera rotation in one frame, followed by a shot within 150 ms.
       local rot = GetGameplayCamRot(2)
       if lastRot then
         local delta = math.max(angleDelta(rot.z, lastRot.z), angleDelta(rot.x, lastRot.x))
@@ -99,7 +89,6 @@ CreateThread(function()
         lastSnapAt = -100000
       end
 
-      -- Triggerbot: a shot fired < 60 ms after the crosshair lands on a ped, repeatedly.
       local hasTarget, target = GetEntityPlayerIsFreeAimingAt(pid)
       if hasTarget and target ~= 0 and IsEntityAPed(target) then
         acquiredAt = acquiredAt or now
@@ -118,7 +107,6 @@ CreateThread(function()
         fastReactions = 0
       end
 
-      -- Infinite ammo: >= 10 shots with an unchanging clip count.
       local weapon = GetSelectedPedWeapon(ped)
       local _, clip = GetAmmoInClip(ped, weapon)
       if weapon ~= ammoWeapon or clip ~= ammoClip then

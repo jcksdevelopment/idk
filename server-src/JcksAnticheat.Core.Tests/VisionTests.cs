@@ -99,7 +99,7 @@ public class VisionTests
         var parts = Enumerable.Range(0, 3).Select(i => b64.Substring(i * b64.Length / 3, (i == 2 ? b64.Length : (i + 1) * b64.Length / 3) - i * b64.Length / 3)).ToList();
 
         Assert.Equal(ScreenshotAssembler.ChunkResult.Unknown, asm.AddChunk(1, "forged", 1, 3, parts[0], out _));
-        Assert.Equal(ScreenshotAssembler.ChunkResult.Unknown, asm.AddChunk(2, id, 1, 3, parts[0], out _)); // wrong player
+        Assert.Equal(ScreenshotAssembler.ChunkResult.Unknown, asm.AddChunk(2, id, 1, 3, parts[0], out _));
         Assert.Equal(ScreenshotAssembler.ChunkResult.Accepted, asm.AddChunk(1, id, 3, 3, parts[2], out _));
         Assert.Equal(ScreenshotAssembler.ChunkResult.Accepted, asm.AddChunk(1, id, 1, 3, parts[0], out _));
         Assert.Equal(ScreenshotAssembler.ChunkResult.Complete, asm.AddChunk(1, id, 2, 3, parts[1], out var done));

@@ -1,8 +1,3 @@
--- Pure Lua 5.4 SHA-256, HMAC-SHA256 and a SHA-256-CTR stream cipher.
--- No dependencies. Lua 5.4 has 64-bit integers and native bitwise operators, so every
--- 32-bit value is kept in range with `& M32`.
--- Byte-for-byte compatible with JcksAC.Core.Crypto.JcksCrypto on the server.
-
 local M32 = 0xffffffff
 local spack, sunpack, schar, sbyte, srep, sformat = string.pack, string.unpack, string.char, string.byte, string.rep, string.format
 
@@ -51,7 +46,6 @@ local function compress(H, block, off)
   H[7] = (H[7] + g) & M32; H[8] = (H[8] + h) & M32
 end
 
---- SHA-256 of a binary string; returns 32 raw bytes.
 local function sha256(msg)
   local H = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 }
   local len = #msg
@@ -72,14 +66,12 @@ local function xorPad(key, byte)
   return table.concat(out)
 end
 
---- HMAC-SHA256(key, msg); returns 32 raw bytes.
 local function hmac(key, msg)
   if #key > 64 then key = sha256(key) end
   key = key .. srep("\0", 64 - #key)
   return sha256(xorPad(key, 0x5c) .. sha256(xorPad(key, 0x36) .. msg))
 end
 
---- SHA-256-CTR: keystream block i = SHA256(key || nonce || uint32_be(i)). Encrypt == decrypt.
 local function ctr(key, nonce, data)
   local out, n, counter = {}, #data, 0
   local pos = 1
@@ -103,7 +95,6 @@ local function fromHex(h)
   return (h:gsub("%x%x", function(x) return schar(tonumber(x, 16)) end))
 end
 
---- Constant-time-ish comparison (the server is the real verifier; this is only used for acks).
 local function equals(a, b)
   if #a ~= #b then return false end
   local acc = 0

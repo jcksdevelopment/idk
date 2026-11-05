@@ -1,14 +1,3 @@
--- Encrypted, ratcheting heartbeat.
---
--- Handshake: client fires `jcks_anticheat:hello` once; the server answers on `jcks_anticheat:init` with a
--- per-session 32-byte key, a challenge, and two event names randomised per server boot (one the
--- server listens on, one the client listens on). After that nothing uses a fixed event name.
---
--- Every 5 s the client sends:
---   seq, nonce, ciphertext = CTR(key, nonce, json{s,c,t,f,st}), mac = HMAC(key, seq|nonce|ciphertext)
--- Then both sides ratchet: key = SHA256(key || mac). A replayed, reordered or forged packet fails
--- MAC verification, and a stopped scanner shows up as a missing heartbeat on the server.
-
 local S = JcksAC
 local C = JcksCrypto
 
@@ -24,7 +13,6 @@ local session = {
 local nonceCounter = 0
 local function makeNonce()
   nonceCounter = nonceCounter + 1
-  -- 16 bytes. Uniqueness matters for CTR, unpredictability doesn't: seq + timer + counter.
   return string.pack(">I4I4I4I4", session.seq & 0xffffffff, GetGameTimer() & 0xffffffff,
     nonceCounter & 0xffffffff, math.random(0, 0x7fffffff))
 end
@@ -61,11 +49,9 @@ local function sendHeartbeat()
 
   TriggerServerEvent(session.hbEvent, session.seq, C.toHex(nonce), C.toHex(ct), C.toHex(mac))
 
-  -- Ratchet forward. The server does the same after verifying, so both keys stay in lockstep.
   session.key = C.sha256(session.key .. mac)
 end
 
---- Settings the server can change live (/jac reload, in-game panel, web dashboard).
 local function applySettings(data)
   S.server.weaponBlacklist = {}
   for _, name in ipairs(data.wb or {}) do
@@ -93,7 +79,7 @@ local function applySettings(data)
 end
 
 RegisterNetEvent("jcks_anticheat:init", function(payload)
-  if S.ready then return end -- the handshake happens exactly once per session
+  if S.ready then return end
   local data = json.decode(payload)
   if type(data) ~= "table" or type(data.k) ~= "string" then return end
 
@@ -117,19 +103,16 @@ RegisterNetEvent("jcks_anticheat:init", function(payload)
     end)
   end
 
-  -- Resources the server starts after we joined; integrity.lua waits for these before flagging.
   if data.ru then
     RegisterNetEvent(data.ru, function(name)
       if type(name) == "string" then S.server.resources[#S.server.resources + 1] = name end
     end)
   end
 
-  -- Server → client acks carry the next challenge.
   RegisterNetEvent(session.ackEvent, function(nextChallenge)
     if type(nextChallenge) == "string" then session.challenge = nextChallenge end
   end)
 
-  -- Server-authorised grace (heals from a server-side hospital script, admin noclip, etc.).
   if S.server.graceEvent then
     RegisterNetEvent(S.server.graceEvent, function(kind, ms)
       if type(kind) == "string" then S.grant(kind, tonumber(ms) or 5000) end

@@ -6,12 +6,6 @@ using System.Text;
 
 namespace JcksAnticheat.Core.Json
 {
-    /// <summary>
-    /// Small JSON reader/writer so the resource ships with zero third-party DLLs (FiveM's Mono runtime
-    /// bundles a Newtonsoft version we don't control). Objects parse to Dictionary&lt;string, object?&gt;,
-    /// arrays to List&lt;object?&gt;, numbers to double. Depth and length are bounded because heartbeat
-    /// payloads come from untrusted clients.
-    /// </summary>
     public static class MiniJson
     {
         public const int MaxDepth = 32;
@@ -245,7 +239,6 @@ namespace JcksAnticheat.Core.Json
         object ToJson();
     }
 
-    /// <summary>Typed accessors for parsed JSON objects.</summary>
     public static class JsonAccess
     {
         public static Dictionary<string, object?>? Obj(this object? o, string key) =>

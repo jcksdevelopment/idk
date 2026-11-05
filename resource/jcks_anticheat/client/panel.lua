@@ -1,6 +1,3 @@
--- In-game settings panel for admins (/jac panel). The server only sends the panel payload to players
--- with the jcks_anticheat.admin ACE and re-checks that ACE on every save, so this file holds no secrets.
-
 local S = JcksAC
 local actionEvent
 

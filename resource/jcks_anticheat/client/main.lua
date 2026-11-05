@@ -1,15 +1,11 @@
--- JcksAC client core: check scheduler, flag queue, grace windows.
--- Detections never call a "ban" event. They push flags into a queue that heartbeat.lua drains into
--- the next encrypted, MAC'd heartbeat. The server decides what a flag is worth.
-
 JcksAC = JcksAC or {}
 local S = JcksAC
 
-S.ready = false          -- set once the server's init payload arrives
-S.flags = {}             -- pending flags for the next heartbeat
-S.lastFlagAt = {}        -- code -> GetGameTimer() of last report (per-code cooldown)
-S.grace = {}             -- kind -> GetGameTimer() until which that behaviour is authorised
-S.server = {             -- filled from server init
+S.ready = false
+S.flags = {}
+S.lastFlagAt = {}
+S.grace = {}
+S.server = {
   weaponBlacklist = {},
   resources = {},
   commands = {},
@@ -18,12 +14,10 @@ S.server = {             -- filled from server init
 
 local checks = {}
 
---- Register a periodic check. fn() is called every intervalMs from one shared scheduler thread.
 function S.register(name, intervalMs, fn)
   checks[#checks + 1] = { name = name, interval = intervalMs, fn = fn, nextAt = 0 }
 end
 
---- Is behaviour `kind` currently authorised (heal, armor, godmode, invisible, noclip, teleport, vision, ragdoll)?
 function S.allowed(kind)
   local untilAt = S.grace[kind]
   return untilAt ~= nil and GetGameTimer() < untilAt
@@ -41,7 +35,6 @@ end
 local FLAG_COOLDOWN = 10000
 local MAX_PENDING = 32
 
---- Queue a detection for the next heartbeat. `data` is a small table of evidence.
 function S.flag(code, data)
   if S.server.ignore and S.server.ignore[code] then return end
   if S.counter then S.counter(code, data or {}) end
@@ -53,8 +46,6 @@ function S.flag(code, data)
   S.flags[#S.flags + 1] = { c = code, t = now, d = data }
 end
 
--- Behaviour granted (or merely observed, in learning mode) from trusted resources; sent with the
--- next heartbeat so the server can grant the same grace on its side.
 S.uses = {}
 function S.queueUse(resource, kind, allowed)
   if not allowed and not S.server.integrationLearning then return end
@@ -78,17 +69,14 @@ function S.drainFlags()
   return out
 end
 
--- Grace windows shared by the whole session (loading screens, spawning, respawn).
 local function isTransitioning()
   return IsPlayerSwitchInProgress() or IsScreenFadedOut() or IsScreenFadingIn()
     or GetIsLoadingScreenActive() or IsPedDeadOrDying(PlayerPedId(), true)
 end
 S.isTransitioning = isTransitioning
 
--- Single scheduler thread: wakes at the next due check, never per-frame.
 CreateThread(function()
   while not S.ready do Wait(500) end
-  -- Spawn grace: the first 15 seconds after init are noisy (model load, teleport to spawn).
   S.grant("teleport", 15000); S.grant("heal", 15000); S.grant("armor", 15000)
 
   while true do
@@ -101,7 +89,6 @@ CreateThread(function()
           c.nextAt = now + c.interval
           local ok, err = pcall(c.fn)
           if not ok then
-            -- A check that throws is either a bug or tampering; report once, keep running.
             S.flag("CHK_ERROR", { n = c.name, e = tostring(err):sub(1, 120) })
           end
         end
@@ -112,7 +99,5 @@ CreateThread(function()
   end
 end)
 
--- Exports for other client resources (hospital, admin menu, item scripts) to mark behaviour as legit.
--- These are client-side and therefore advisory: the server keeps its own grace via the server export.
 exports("GrantGrace", function(kind, ms) S.grant(kind, ms) end)
 exports("RevokeGrace", function(kind) S.revoke(kind) end)

@@ -11,7 +11,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     headers: {
       "Content-Type": img.type,
       "Cache-Control": "private, max-age=3600",
-      // Captures are untrusted client data: never let an SVG/JPEG run script in our origin.
       "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
       "X-Content-Type-Options": "nosniff",
     },

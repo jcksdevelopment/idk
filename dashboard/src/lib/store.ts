@@ -6,18 +6,12 @@ import { randomUUID } from "node:crypto";
 import type { Ban, Command, Detection, LogLevel, LogLine, Page, Player, ServerSettings, SettingsSchema, VisionCapture } from "./types";
 import { seedDemo, startDemoFeed } from "./demo";
 
-/**
- * In-process store. The game server pushes events into it (POST /api/ingest) and the UI reads from it.
- * State is persisted to .data/state.json (debounced) and screenshots to .data/vision/*.
- * One dashboard instance per deployment: this is a moderation tool, not a multi-region service.
- */
 
 const DATA_DIR = process.env.JCKS_AC_DATA_DIR ?? join(process.cwd(), ".data");
 const STATE_FILE = join(DATA_DIR, "state.json");
 const VISION_DIR = join(DATA_DIR, "vision");
 const MAX_DETECTIONS = 5000;
 const MAX_LOG = 1000;
-/** Captures kept on disk. Beyond this, dismissed/clean ones go first; confirmed evidence goes last. */
 const MAX_VISION = Number(process.env.JCKS_AC_MAX_CAPTURES ?? 1000);
 
 interface State {
@@ -55,7 +49,6 @@ class Store {
     if (this.demo) startDemoFeed(this);
   }
 
-  // ── Writes (ingest + dashboard actions) ────────────────────────────────────────
 
   upsertPlayer(serverId: string, p: Partial<Player> & { id: number; name: string }, online = true) {
     const key = `${serverId}:${p.id}`;
@@ -87,7 +80,6 @@ class Store {
     }
   }
 
-  /** Marks every player of a server offline except those in the latest snapshot. */
   syncOnline(serverId: string, onlineIds: Set<number>) {
     for (const p of Object.values(this.state.players)) {
       if (p.serverId === serverId && p.online && !onlineIds.has(p.id)) p.online = false;
@@ -157,7 +149,6 @@ class Store {
   private enforceVisionRetention() {
     const excess = this.state.vision.length - MAX_VISION;
     if (excess <= 0) return;
-    // Removal order: dismissed, then clean/error verdicts, then pending, then confirmed; oldest first within each.
     const rank = (c: VisionCapture) =>
       c.review === "dismissed" ? 0 : c.verdict.verdict === "clean" || c.verdict.verdict === "error" ? 1 : c.review === "pending" ? 2 : 3;
     const victims = [...this.state.vision]
@@ -192,12 +183,10 @@ class Store {
     return c;
   }
 
-  /** Hands undelivered commands to the game server and marks them delivered. */
   takeCommands(serverId: string): Command[] {
     const now = new Date().toISOString();
     const out = this.state.commands.filter((c) => c.serverId === serverId && !c.deliveredAt);
     for (const c of out) c.deliveredAt = now;
-    // Keep a short history only.
     this.state.commands = this.state.commands.filter((c) => !c.deliveredAt || Date.now() - Date.parse(c.deliveredAt) < 86_400_000);
     if (out.length) this.scheduleSave();
     return out;
@@ -210,7 +199,6 @@ class Store {
     this.bus.emit("log", l);
   }
 
-  // ── Live settings ───────────────────────────────────────────────────────────────
 
   setSettings(serverId: string, config: Record<string, unknown>, schema: SettingsSchema | null) {
     const prev = this.state.settings[serverId];
@@ -227,7 +215,6 @@ class Store {
     return this.state.settings[serverId] ?? null;
   }
 
-  /** Demo mode: start from the resource's shipped config.json + schema when the repo layout is present. */
   private seedSettingsFromResource() {
     const dir = join(process.cwd(), "..", "resource", "jcks_anticheat");
     try {
@@ -235,11 +222,9 @@ class Store {
       const schema = JSON.parse(readFileSync(join(dir, "settings.schema.json"), "utf8"));
       this.state.settings.main = { serverId: "main", config, schema, updatedAt: new Date().toISOString() };
     } catch {
-      // Not running from the repository; settings appear once a game server pushes them.
     }
   }
 
-  // ── Reads ───────────────────────────────────────────────────────────────────────
 
   recentLog(limit = 200): LogLine[] {
     return [...this.log].sort((a, b) => a.at.localeCompare(b.at)).slice(-limit);
@@ -333,7 +318,6 @@ function summarise(evidence: Record<string, unknown>) {
   return parts.length ? `{${parts.join(" ")}}` : "";
 }
 
-// Survive Next.js dev hot reloads: one store per process.
 const g = globalThis as unknown as { __jacStore?: Store };
 export const store: Store = g.__jacStore ?? (g.__jacStore = new Store());
 export type { Store };

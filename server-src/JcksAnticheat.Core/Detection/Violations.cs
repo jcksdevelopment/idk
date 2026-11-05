@@ -31,7 +31,6 @@ namespace JcksAnticheat.Core.Detection
         public override string ToString() => $"[{Code}] player={Player} sev={Severity} score={ScoreAfter:F0} action={Action}";
     }
 
-    /// <summary>Per-code severity. Mirrors docs/THREAT_MATRIX.md; config.json can override any entry.</summary>
     public static class ViolationCatalog
     {
         public static readonly IReadOnlyDictionary<string, int> DefaultSeverity = new Dictionary<string, int>(StringComparer.Ordinal)
@@ -58,7 +57,6 @@ namespace JcksAnticheat.Core.Detection
             ["EXE_GLOBAL_TAMPER"] = 50, ["EXE_LUA_INJECT"] = 60, ["EXE_SHIELD_TAMPER"] = 60, ["NUI_DEVTOOLS"] = 40, ["NUI_FRAME_INJECT"] = 40,
             ["CHK_ERROR"] = 5,
 
-            // Vision verdicts go to a human review queue; they never push a player over the ban line alone.
             ["VIS_AI_FLAG"] = 0,
         };
     }
@@ -68,25 +66,13 @@ namespace JcksAnticheat.Core.Detection
         public double ScreenshotAt { get; set; } = 40;
         public double KickAt { get; set; } = 80;
         public double BanAt { get; set; } = 140;
-        /// <summary>Score halves every N minutes, so one-off false positives fade.</summary>
         public double HalfLifeMinutes { get; set; } = 10;
         public Dictionary<string, int> SeverityOverrides { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
-        /// <summary>
-        /// Codes switched off entirely for this server (e.g. VEH_HANDLING where tuning scripts edit
-        /// handling legitimately). Not scored, logged or sent to the dashboard; the client stops sending them.
-        /// </summary>
         public HashSet<string> Ignore { get; set; } = new HashSet<string>(StringComparer.Ordinal);
-        /// <summary>Codes that may only ever log (for tuning a noisy detection on a live server).</summary>
         public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal);
-        /// <summary>Codes that disconnect the player at once, whatever the score (still never a ban by themselves).</summary>
         public HashSet<string> DropImmediately { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "HB_INVALID", "HB_MISSING", "NET_FLOOD" };
     }
 
-    /// <summary>
-    /// Thread-safe per-player suspicion score with exponential decay. Each violation adds its severity
-    /// to the decayed score and the policy maps the new total to an action. Client-only codes are
-    /// capped below the ban threshold: a ban always needs a server-observed or heartbeat signal.
-    /// </summary>
     public sealed class ViolationLedger
     {
         private sealed class Entry
@@ -126,7 +112,6 @@ namespace JcksAnticheat.Core.Detection
 
                 if (!entry.HasServerSignal && score >= _policy.BanAt)
                 {
-                    // Client-only evidence can kick, never ban.
                     score = Math.Max(_policy.KickAt, _policy.BanAt - 1);
                 }
 
@@ -146,23 +131,17 @@ namespace JcksAnticheat.Core.Detection
 
         private readonly ConcurrentDictionary<string, Entry> _parked = new ConcurrentDictionary<string, Entry>(StringComparer.Ordinal);
 
-        /// <summary>
-        /// On disconnect: keep the player's score under a stable identifier (license) instead of
-        /// discarding it, so reconnecting doesn't wipe the slate. A cheater kicked repeatedly keeps
-        /// accumulating toward the ban threshold; the score still decays while they're away.
-        /// </summary>
         public void Park(int player, string? key, DateTime? now = null)
         {
             if (!_entries.TryRemove(player, out var e) || string.IsNullOrEmpty(key)) return;
             lock (e)
             {
-                if (Decay(e, now ?? DateTime.UtcNow) < 1) return; // nothing worth remembering
+                if (Decay(e, now ?? DateTime.UtcNow) < 1) return;
             }
             _parked[key!] = e;
             if (_parked.Count > 10000) Prune(now ?? DateTime.UtcNow);
         }
 
-        /// <summary>On (re)join: bring back a parked score for this identifier, decayed for the time away.</summary>
         public void Restore(int player, string? key, DateTime? now = null)
         {
             if (string.IsNullOrEmpty(key) || !_parked.TryRemove(key!, out var e)) return;

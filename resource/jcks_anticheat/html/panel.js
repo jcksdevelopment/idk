@@ -1,6 +1,3 @@
-// JCKS Anticheat in-game settings panel. Built with DOM APIs only (no innerHTML from data), so
-// nothing the server sends can inject markup, and it never adds <script>/<iframe> nodes (the
-// sensor in index.html would flag those).
 (() => {
   const resource = typeof GetParentResourceName === "function" ? GetParentResourceName() : "jcks_anticheat";
   const post = (name, body) =>
@@ -81,7 +78,6 @@
         return t;
       }
       case "map": {
-        // CODE=points per line.
         const t = el("textarea", { spellcheck: "false", placeholder: "key=value, one per line" });
         t.value = Object.entries(value || {}).map(([k, v]) => `${k}=${v}`).join("\n");
         t.addEventListener("input", () => {

@@ -4,11 +4,6 @@ using System.Diagnostics;
 
 namespace JcksAnticheat.Core.Detection
 {
-    /// <summary>
-    /// Token-bucket rate limiter keyed by (player, bucket). Lock-free lookup via ConcurrentDictionary,
-    /// a tiny per-bucket lock for the refill/consume step. No timers: buckets refill lazily on access,
-    /// so an idle server does zero work here.
-    /// </summary>
     public sealed class RateLimiter
     {
         public readonly struct Key : IEquatable<Key>
@@ -43,7 +38,6 @@ namespace JcksAnticheat.Core.Detection
             _clock = clock ?? Stopwatch.GetTimestamp;
         }
 
-        /// <summary>Returns true if the action is allowed (a token was consumed).</summary>
         public bool TryConsume(int player, string bucket, Rule rule, double cost = 1)
         {
             long now = _clock();
@@ -71,7 +65,6 @@ namespace JcksAnticheat.Core.Detection
         public int Count => _buckets.Count;
     }
 
-    /// <summary>Counts events in a sliding window per key. Used for spawn floods and rapid-fire.</summary>
     public sealed class SlidingCounter
     {
         private readonly ConcurrentDictionary<string, ConcurrentQueue<DateTime>> _events =

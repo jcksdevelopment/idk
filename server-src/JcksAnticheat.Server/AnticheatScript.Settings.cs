@@ -11,19 +11,12 @@ using static CitizenFX.Core.Native.API;
 
 namespace JcksAnticheat.Server
 {
-    /// <summary>
-    /// Live settings: edit, save and reload config.json without restarting the resource, from the
-    /// console (/jac), the in-game admin panel (/jac panel) or the web dashboard.
-    /// </summary>
     public sealed partial class AnticheatScript
     {
         public const string AdminAce = "jcks_anticheat.admin";
 
-        // server → client: settings the client scanner uses (blacklists, ignore list, interval...)
         private readonly string _settingsEvent = HeartbeatManager.RandomEventName();
-        // server → admin client: open the panel / result of a panel action
         private readonly string _panelOpenEvent = HeartbeatManager.RandomEventName();
-        // admin client → server: panel actions (save / reload). Only sent to admins with the panel payload.
         private readonly string _panelActionEvent = HeartbeatManager.RandomEventName();
 
         private string _schemaJson = "{}";
@@ -90,11 +83,6 @@ namespace JcksAnticheat.Server
             }
         }
 
-        /// <summary>
-        /// jac shield install|uninstall|status: puts the shield include at the top of every other
-        /// resource's manifest (backup saved as fxmanifest.lua.jac-backup), or takes it out again.
-        /// Resources must be restarted (or the server) for the change to load.
-        /// </summary>
         private string ShieldCommand(string action)
         {
             int installed = 0, changed = 0, skipped = 0;
@@ -163,7 +151,6 @@ namespace JcksAnticheat.Server
             }
         }
 
-        /// <summary>Re-reads config.json (e.g. after editing it by hand) and applies it.</summary>
         private string ReloadFromDisk(string actor)
         {
             var raw = LoadResourceFile(_resource, "config.json");
@@ -172,7 +159,6 @@ namespace JcksAnticheat.Server
             catch (FormatException ex) { return "config.json rejected, nothing changed: " + ex.Message; }
         }
 
-        /// <summary>Validates and applies JSON from the panel or dashboard, then writes it to config.json.</summary>
         private string SaveFromJson(string? json, string actor)
         {
             if (string.IsNullOrWhiteSpace(json) || json!.Length > 256 * 1024) return "Empty or oversized settings; nothing changed.";
@@ -184,7 +170,6 @@ namespace JcksAnticheat.Server
         {
             _cfg.CopyFrom(next);
 
-            // Derived state that isn't read straight from the config objects.
             _eventRule = new RateLimiter.Rule(_cfg.EventBurst, _cfg.EventRefillPerSecond);
             _weaponBlacklist = new HashSet<uint>(_cfg.WeaponBlacklist.Select(Joaat.Hash));
             _heartbeats.MissingAfter = TimeSpan.FromSeconds(_cfg.HeartbeatMissingSeconds);
@@ -208,7 +193,6 @@ namespace JcksAnticheat.Server
             return msg;
         }
 
-        /// <summary>The subset of settings the client scanner needs; also part of the init payload.</summary>
         private Dictionary<string, object?> ClientSettings() => new Dictionary<string, object?>
         {
             ["wb"] = _cfg.WeaponBlacklist, ["mh"] = _cfg.MaxHealth, ["dm"] = _cfg.ExpectedDamageModifier,
@@ -245,7 +229,6 @@ namespace JcksAnticheat.Server
             if (!Guard(id, "panel")) return;
             if (!IsAdmin(id))
             {
-                // Only admins ever receive this event name; anyone else calling it is replaying dumped events.
                 Punish(new Violation(id, "NET_HONEYPOT", ViolationSource.Server, new Dictionary<string, object?> { ["event"] = "settings panel" }));
                 return;
             }

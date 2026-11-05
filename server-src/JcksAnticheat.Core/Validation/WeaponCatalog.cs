@@ -19,15 +19,9 @@ namespace JcksAnticheat.Core.Validation
         public float BaseDamage { get; }
         public float Range { get; }
         public float RoundsPerMinute { get; }
-        /// <summary>Shotguns produce one damage event per pellet hit.</summary>
         public int Pellets { get; }
     }
 
-    /// <summary>
-    /// Baseline weapon stats (approximate stock weapons.meta values). Used only as an upper bound,
-    /// with generous multipliers, so modest inaccuracy here produces no false positives.
-    /// Servers with weapon-balance mods should override entries in config.json.
-    /// </summary>
     public static class WeaponCatalog
     {
         private static readonly Dictionary<uint, WeaponSpec> ByHash = new Dictionary<uint, WeaponSpec>();
@@ -93,7 +87,6 @@ namespace JcksAnticheat.Core.Validation
         public static IEnumerable<WeaponSpec> All => ByHash.Values;
     }
 
-    /// <summary>GTA's Jenkins one-at-a-time hash (GetHashKey), lowercase-normalised.</summary>
     public static class Joaat
     {
         public static uint Hash(string input)
@@ -111,7 +104,6 @@ namespace JcksAnticheat.Core.Validation
             return h;
         }
 
-        /// <summary>Natives return hashes as signed ints; normalise.</summary>
         public static uint FromSigned(long v) => unchecked((uint)v);
     }
 }

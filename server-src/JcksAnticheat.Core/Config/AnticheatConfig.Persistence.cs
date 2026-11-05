@@ -8,10 +8,8 @@ using JcksAnticheat.Core.Json;
 
 namespace JcksAnticheat.Core.Config
 {
-    /// <summary>Live settings support: serialise back to config.json, copy in place, validate.</summary>
     public sealed partial class AnticheatConfig
     {
-        /// <summary>The config as a JSON object, in exactly the shape Parse reads.</summary>
         public Dictionary<string, object?> ToJson() => new Dictionary<string, object?>
         {
             ["dryRun"] = DryRun,
@@ -113,14 +111,8 @@ namespace JcksAnticheat.Core.Config
             },
         };
 
-        /// <summary>Human-editable JSON (2-space indent), as written to config.json.</summary>
         public string ToPrettyJson() => Pretty(MiniJson.Serialize(ToJson()));
 
-        /// <summary>
-        /// Overwrites this instance's values with <paramref name="other"/>'s, recursing into the nested
-        /// policy objects instead of replacing them. Validators hold references to those objects, so a
-        /// reload takes effect immediately without rebuilding them (and without losing their state).
-        /// </summary>
         public void CopyFrom(AnticheatConfig other) => CopyInto(this, other);
 
         private static void CopyInto(object target, object source)
@@ -137,7 +129,6 @@ namespace JcksAnticheat.Core.Config
             }
         }
 
-        /// <summary>Problems that make a config unsafe to apply. Empty when valid.</summary>
         public List<string> Validate()
         {
             var errors = new List<string>();
@@ -187,7 +178,6 @@ namespace JcksAnticheat.Core.Config
             return errors;
         }
 
-        /// <summary>Parses and validates; throws FormatException with every problem listed.</summary>
         public static AnticheatConfig ParseValidated(string json)
         {
             var cfg = Parse(json);

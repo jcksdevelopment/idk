@@ -7,7 +7,6 @@ namespace JcksAnticheat.Core.Validation
 {
     public enum MovementMode { OnFoot, LandVehicle, Boat, Aircraft, Dead }
 
-    /// <summary>One server-side observation of a player's ped (OneSync state, not client claims).</summary>
     public readonly struct MovementSample
     {
         public MovementSample(Vec3 position, Vec3 velocity, MovementMode mode, DateTime at, float heightAboveGround = 0)
@@ -23,34 +22,27 @@ namespace JcksAnticheat.Core.Validation
 
     public sealed class MovementLimits
     {
-        public float OnFootMaxSpeed { get; set; } = 12f;      // sprint ~7.5 m/s, slack for slopes and ragdolls
-        public float LandMaxSpeed { get; set; } = 110f;       // ~400 km/h covers every stock car with headroom
+        public float OnFootMaxSpeed { get; set; } = 12f;
+        public float LandMaxSpeed { get; set; } = 110f;
         public float BoatMaxSpeed { get; set; } = 60f;
         public float AirMaxSpeed { get; set; } = 160f;
-        public float FallSpeed { get; set; } = 70f;           // terminal velocity; falls are always allowed downward
-        public float TeleportMinDistance { get; set; } = 60f;  // ignore small jitter / network corrections
-        public float SpeedSlack { get; set; } = 1.35f;        // multiplier on top of class max for lag
-        public float OnFootMaxRise { get; set; } = 15f;       // m/s upward on foot
+        public float FallSpeed { get; set; } = 70f;
+        public float TeleportMinDistance { get; set; } = 60f;
+        public float SpeedSlack { get; set; } = 1.35f;
+        public float OnFootMaxRise { get; set; } = 15f;
     }
 
-    /// <summary>
-    /// Server-side movement physics. Compares consecutive OneSync positions: if covering the distance
-    /// needs a speed above the class maximum, the player teleported or speedhacked. Runs once per
-    /// second per player from the server tick; nothing runs while nobody is online.
-    /// </summary>
     public sealed class MovementValidator
     {
         private readonly ConcurrentDictionary<int, MovementSample> _last = new ConcurrentDictionary<int, MovementSample>();
         private readonly ConcurrentDictionary<int, DateTime> _grace = new ConcurrentDictionary<int, DateTime>();
         private readonly ConcurrentDictionary<int, Vec3> _lastGood = new ConcurrentDictionary<int, Vec3>();
 
-        /// <summary>Last position that passed every check: where a countermeasure puts the player back.</summary>
         public Vec3? LastGood(int player) => _lastGood.TryGetValue(player, out var p) ? p : (Vec3?)null;
         private readonly MovementLimits _limits;
 
         public MovementValidator(MovementLimits limits) { _limits = limits; }
 
-        /// <summary>Authorise legitimate teleports (spawn, admin goto, apartments) for a window.</summary>
         public void GrantGrace(int player, TimeSpan duration, DateTime? now = null)
         {
             var until = (now ?? DateTime.UtcNow) + duration;
@@ -89,11 +81,9 @@ namespace JcksAnticheat.Core.Validation
                 {
                     var delta = sample.Position - prev.Position;
                     float horizontal = delta.Length2D;
-                    // Falling is free: only horizontal travel and upward travel count against the limit.
                     float up = Math.Max(0, delta.Z);
                     float distance = (float)Math.Sqrt(horizontal * horizontal + up * up);
                     float speed = (float)(distance / dt);
-                    // The faster of the two modes, so entering/leaving a vehicle mid-sample is not punished.
                     float allowed = Math.Max(MaxSpeed(prev.Mode), MaxSpeed(sample.Mode)) * _limits.SpeedSlack;
 
                     if (speed > allowed && distance >= _limits.TeleportMinDistance)

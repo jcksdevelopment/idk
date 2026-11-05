@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace JcksAnticheat.Core.Vision
 {
-    /// <summary>Keeps the newest N capture files in a directory and deletes the rest.</summary>
     public static class CaptureRetention
     {
         public static int Enforce(string directory, int keep, string pattern = "*.jpg")

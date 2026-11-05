@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <style>html,body{margin:0;background:transparent;pointer-events:none}</style>
 <link rel="stylesheet" href="panel.css">
-<!-- Static scripts sit before the sensor so they are part of its baseline. -->
 <script src="panel.js"></script>
 </head>
 <body>
@@ -24,20 +23,16 @@
     }).catch(() => {});
   };
 
-  // 1. Devtools: a getter on a logged object only runs when a console is open to render it.
   const bait = new Image();
   Object.defineProperty(bait, "id", { get() { report({ kind: "devtools", how: "console-getter" }); return ""; } });
   setInterval(() => { console.debug("%c", bait); console.clear && console.clear(); }, 4000);
 
-  // 2. Devtools: with devtools open and "pause on debugger" active, this takes far longer than 1 ms.
   setInterval(() => {
     const t = performance.now();
-    // eslint-disable-next-line no-debugger
     debugger;
     if (performance.now() - t > 100) report({ kind: "devtools", how: "debugger-timing" });
   }, 5000);
 
-  // 3. Injected frames/scripts: this page owns no iframes and only this inline script.
   const baseline = new Set(document.querySelectorAll("script, iframe"));
   new MutationObserver((mutations) => {
     for (const m of mutations) {

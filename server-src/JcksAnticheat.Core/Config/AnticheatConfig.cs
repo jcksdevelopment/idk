@@ -10,17 +10,14 @@ namespace JcksAnticheat.Core.Config
     public sealed class VisionConfig
     {
         public bool Enabled { get; set; }
-        /// <summary>"anthropic" or "openai-compatible" (DeepSeek and other OpenAI-style vision endpoints).</summary>
         public string Provider { get; set; } = "anthropic";
         public string Endpoint { get; set; } = "https://api.anthropic.com/v1/messages";
         public string Model { get; set; } = "claude-opus-5-5";
-        /// <summary>Read from this environment variable, never from config.json.</summary>
         public string ApiKeyEnv { get; set; } = "JCKS_AC_VISION_API_KEY";
         public string Effort { get; set; } = "medium";
         public double FlagConfidence { get; set; } = 0.8;
         public int MaxImageBytes { get; set; } = 3 * 1024 * 1024;
         public int CooldownSeconds { get; set; } = 120;
-        /// <summary>Captures kept in resource/jcks_anticheat/data/vision; older files are deleted.</summary>
         public int MaxStoredCaptures { get; set; } = 500;
     }
 
@@ -28,7 +25,6 @@ namespace JcksAnticheat.Core.Config
     {
         public bool Enabled { get; set; }
         public string Url { get; set; } = "http://localhost:3000";
-        /// <summary>Shared secret env var for the dashboard ingest API.</summary>
         public string SecretEnv { get; set; } = "JCKS_AC_DASHBOARD_SECRET";
         public int FlushSeconds { get; set; } = 2;
         public int PollSeconds { get; set; } = 5;
@@ -38,15 +34,12 @@ namespace JcksAnticheat.Core.Config
     public sealed class AntiDumpConfig
     {
         public bool Enabled { get; set; }
-        /// <summary>resource → client files served at runtime instead of being downloaded ('jac antidump protect' fills this).</summary>
         public Dictionary<string, List<string>> Resources { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
     }
 
     public sealed class CountermeasuresConfig
     {
-        /// <summary>Undo a detected cheat's effect even when the punishment is only a log/warning.</summary>
         public bool Enabled { get; set; } = true;
-        /// <summary>Codes whose effect is left alone.</summary>
         public List<string> Skip { get; set; } = new List<string>();
     }
 
@@ -54,9 +47,7 @@ namespace JcksAnticheat.Core.Config
     {
         public bool Enabled { get; set; } = true;
         public bool ScanOnStart { get; set; } = true;
-        /// <summary>low | medium | high: lowest severity printed.</summary>
         public string MinSeverity { get; set; } = "medium";
-        /// <summary>none | remove | quarantine: applied automatically to findings at or above AutoActionMinSeverity.</summary>
         public string AutoAction { get; set; } = "none";
         public string AutoActionMinSeverity { get; set; } = "high";
         public List<string> IgnoreIds { get; set; } = new List<string>();
@@ -99,35 +90,25 @@ namespace JcksAnticheat.Core.Config
             "p_spinning_anus_s", "prop_fnclink_05crnr1", "xs_prop_hamburgher_wl", "prop_container_01a",
         };
 
-        /// <summary>Decoy net events. Real resources never fire these, so any trigger is a dumped-event replay.</summary>
         public List<string> HoneypotEvents { get; set; } = new List<string>
         {
             "esx:giveInventoryItem_admin", "bank:depositAll", "jcks_anticheat:adminGrant", "vrp:giveMoney", "qb-admin:server:setmoney",
         };
 
-        /// <summary>Allowed per-player net events per second (burst capacity, refill/sec).</summary>
         public double EventBurst { get; set; } = 60;
         public double EventRefillPerSecond { get; set; } = 25;
-        /// <summary>Rate-limited (denied) events within 10 s that turn NET_RATE into a NET_FLOOD disconnect.</summary>
         public int FloodDeniedPer10s { get; set; } = 40;
 
         public int HeartbeatIntervalMs { get; set; } = 5000;
         public int HeartbeatMissingSeconds { get; set; } = 20;
-        /// <summary>Seconds a player may be in the world (has a ped) without completing the handshake.</summary>
         public int HandshakeTimeoutSeconds { get; set; } = 120;
         public int MaxHealth { get; set; } = 200;
         public double ExpectedDamageModifier { get; set; } = 1.0;
         public bool DryRun { get; set; }
-        /// <summary>More weapons than this at once looks like a "give all weapons" menu option.</summary>
         public int MaxWeapons { get; set; } = 25;
-        /// <summary>Texture dictionaries only cheat menus load (operator-maintained; empty by default).</summary>
         public List<string> TextureBlacklist { get; set; } = new List<string>();
-        /// <summary>Server events to rate-limit per player: event name → max triggers per minute.</summary>
-        /// <summary>Refuse connections whose name contains HTML/script (chat and NUI injection).</summary>
         public bool BlockHtmlNames { get; set; } = true;
-        /// <summary>Case-insensitive words that may not appear in player names.</summary>
         public List<string> NameBlacklist { get; set; } = new List<string>();
-        /// <summary>Report chat messages whose author isn't the sender (_chat:messageEntered).</summary>
         public bool ChatSpoofCheck { get; set; } = true;
         public Dictionary<string, int> ProtectedEvents { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         public List<string> AdminAce { get; set; } = new List<string> { "jcks_anticheat.bypass" };

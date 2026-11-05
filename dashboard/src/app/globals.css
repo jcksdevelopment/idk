@@ -40,7 +40,6 @@ body {
   outline-offset: 2px;
 }
 
-/* Thin, quiet scrollbars for the log terminal and tables. */
 .scroll-quiet {
   scrollbar-width: thin;
   scrollbar-color: #2a2a30 transparent;

@@ -6,7 +6,6 @@ import { store } from "@/lib/store";
 import type { CommandType } from "@/lib/types";
 
 const TYPES = new Set<CommandType>(["ban", "unban", "kick", "screenshot"]);
-/** Support staff can kick and request screenshots; bans need Moderator or above. */
 const NEEDS_MOD = new Set<CommandType>(["ban", "unban"]);
 
 export const POST = withSession(async (session, req) => {
@@ -35,7 +34,6 @@ export const POST = withSession(async (session, req) => {
   });
   if (type === "unban" && banId) store.markPendingUnban(banId);
 
-  // Demo mode with no game server attached: play the server's part so the UI round-trips.
   if (store.demo && !isServerConnected(serverId)) simulate(serverId, cmd.type, { player, banId, reason, durationHours, actor });
 
   return NextResponse.json({ ok: true, command: cmd, delivered: isServerConnected(serverId) ? "queued" : store.demo ? "simulated" : "queued-offline" });

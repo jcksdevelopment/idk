@@ -1,11 +1,6 @@
 import type { Store } from "./store";
 import type { Action, Source, VisionCapture } from "./types";
 
-/**
- * Demo mode (default unless JCKS_AC_DEMO=0): seeds believable data and streams a detection every few
- * seconds, so the dashboard can be evaluated without a running FiveM server. Real ingest works
- * alongside it; set JCKS_AC_DEMO=0 in production.
- */
 
 const NAMES = [
   "Marcus Vane", "lilbrick", "Ava_Kowalski", "Tony Moretti", "xXSnipeGodXx", "Jules Okafor", "DeltaNine", "Rosa Delgado",
@@ -70,7 +65,6 @@ function emitDetection(store: Store, at = new Date()) {
   if (!players.length) return;
   const p = pick(players);
   const c = pick(CODES);
-  // Most players trip one check now and then; a few keep escalating. Mirrors the decaying ledger.
   const repeat = Math.random() < 0.25;
   const score = Math.min(200, (repeat ? p.score * 0.9 : p.score * 0.2) + c.sev * (repeat ? 1 : 0.6));
   const action: Action = score >= 140 ? "ban" : score >= 80 ? "kick" : score >= 40 ? "screenshot" : "log";
@@ -159,7 +153,6 @@ export function startDemoFeed(store: Store) {
 
 type FrameKind = "menu" | "esp" | "fov" | "clean";
 
-/** Stand-in "game frame" for demo captures: sky, skyline, road, HUD, plus the overlay being demonstrated. */
 function frameSvg(kind: FrameKind) {
   const skyline = Array.from({ length: 14 }, (_, i) => {
     const w = 60 + ((i * 37) % 50);

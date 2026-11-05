@@ -5,7 +5,6 @@ import type { LogLine } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-/** Server-Sent Events: replays the recent log, then streams new lines as they arrive. */
 export async function GET(req: Request) {
   if (!(await sessionFromRequest())) return unauthorized();
 

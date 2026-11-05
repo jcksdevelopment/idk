@@ -11,11 +11,9 @@ namespace JcksAnticheat.Server
 {
     public sealed partial class AnticheatScript
     {
-        /// <summary>Players already on their way out (kick scheduled or ban issued): no repeat actions.</summary>
         private readonly System.Collections.Concurrent.ConcurrentDictionary<int, (DateTime dropAt, string reason, bool banned)> _removing =
             new System.Collections.Concurrent.ConcurrentDictionary<int, (DateTime, string, bool)>();
 
-        /// <summary>Seconds a score-based kick waits so the requested screenshot can arrive first.</summary>
         private const int KickScreenshotDelaySeconds = 6;
 
         private void Punish(Violation v)
@@ -23,7 +21,7 @@ namespace JcksAnticheat.Server
             if (!_licensed || _cfg.Scoring.Ignore.Contains(v.Code)) return;
             var player = Players[v.Player];
             if (player == null) return;
-            if (_removing.TryGetValue(v.Player, out var leaving) && leaving.banned) return; // already banned
+            if (_removing.TryGetValue(v.Player, out var leaving) && leaving.banned) return;
 
             _ledger.Record(v);
             bool bypass = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace));
@@ -46,11 +44,8 @@ namespace JcksAnticheat.Server
                     if (_vision.IsConfigured) RequestScreenshot(v.Player, $"{v.Code} (score {v.ScoreAfter:F0})");
                     break;
                 case EnforcementAction.Kick:
-                    if (_removing.ContainsKey(v.Player)) break; // kick already scheduled
+                    if (_removing.ContainsKey(v.Player)) break;
                     var reason = $"[JCKS Anticheat] Disconnected: suspicious activity ({v.Code}).";
-                    // Heartbeat failures and floods leave at once: the scanner is dead or the client is
-                    // spamming, so a screenshot is pointless. Score-based kicks wait a few seconds so the
-                    // capture requested now can reach the server before the connection closes.
                     bool screenshot = _vision.IsConfigured && !_cfg.Scoring.DropImmediately.Contains(v.Code);
                     if (screenshot) RequestScreenshot(v.Player, $"{v.Code} before kick");
                     _removing[v.Player] = (DateTime.UtcNow.AddSeconds(screenshot ? KickScreenshotDelaySeconds : 0), reason, false);
@@ -66,7 +61,7 @@ namespace JcksAnticheat.Server
         {
             var player = Players[playerId];
             if (player == null) return;
-            if (_removing.TryGetValue(playerId, out var leaving) && leaving.banned) return; // one ban per player
+            if (_removing.TryGetValue(playerId, out var leaving) && leaving.banned) return;
             _removing[playerId] = (DateTime.UtcNow, reason, true);
             var ban = _bans.Add(new Ban
             {
@@ -82,10 +77,8 @@ namespace JcksAnticheat.Server
             DropPlayer(player.Handle, $"[JCKS Anticheat] Banned. Reason: {reason} | Ban ID: {ban.Id}");
         }
 
-        /// <summary>The player left before the moderator acted: ban the identifiers the dashboard recorded.</summary>
         private void BanOffline(DashboardCommand cmd)
         {
-            // The dashboard never sees tokens or IPs, so offline bans cover license/discord/fivem/steam only.
             var ban = _bans.Add(new Ban
             {
                 Name = cmd.Name ?? ("#" + cmd.Player),
@@ -98,7 +91,6 @@ namespace JcksAnticheat.Server
             _dashboard.Enqueue("ban", ban);
         }
 
-        /// <summary>Runs scheduled kicks whose screenshot window has passed. Called from the tick.</summary>
         private void ProcessScheduledDrops(DateTime now)
         {
             foreach (var kv in _removing)
@@ -106,7 +98,6 @@ namespace JcksAnticheat.Server
                 if (kv.Value.banned || kv.Value.dropAt > now) continue;
                 var p = Players[kv.Key];
                 if (p != null) DropPlayer(p.Handle, kv.Value.reason);
-                // Keep the entry until playerDropped so later violations don't schedule a second kick.
                 _removing[kv.Key] = (DateTime.MaxValue, kv.Value.reason, false);
             }
         }

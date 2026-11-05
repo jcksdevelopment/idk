@@ -1,6 +1,5 @@
 "use client";
 
-/** Small fetch helper for client components: JSON in, JSON out, error message on failure. */
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } });
   if (res.status === 401) {
