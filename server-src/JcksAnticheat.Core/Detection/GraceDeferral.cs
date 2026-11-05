@@ -36,6 +36,10 @@ namespace JcksAnticheat.Core.Detection
                     return "heal";
                 case "PLY_ARMOR_REGEN":
                     return "armor";
+                case "PLY_GODMODE_FLAG":
+                    return "godmode";
+                case "PLY_INVISIBLE":
+                    return "invisible";
                 default:
                     return null;
             }

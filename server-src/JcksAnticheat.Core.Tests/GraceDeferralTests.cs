@@ -56,5 +56,6 @@ public class GraceDeferralTests
         Assert.Empty(d.Resolve(T0.AddSeconds(3), p => p != 5));
         Assert.Equal("teleport", GraceDeferral.KindFor("PLY_SPEED_FOOT"));
         Assert.Null(GraceDeferral.KindFor("WPN_RANGE"));
+        Assert.Equal("godmode", GraceDeferral.KindFor("PLY_GODMODE_FLAG"));
     }
 }

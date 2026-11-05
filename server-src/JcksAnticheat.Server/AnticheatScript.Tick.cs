@@ -90,6 +90,12 @@ namespace JcksAnticheat.Server
 
             if (_tickCount % 3 == 0) _ = _discord.FlushAsync();
             if (_tickCount == 15 && _cfg.Backdoor.ScanOnStart) StartBackdoorScan("server start");
+            if (_tickCount == 20)
+            {
+                var (shielded, withClient) = ShieldCoverage();
+                if (withClient > 0 && shielded < withClient)
+                    Log($"shield is in {shielded}/{withClient} resources with client scripts. Injection detection, integrations and health/revive countermeasures need it: run 'jac shield install', then 'refresh' and restart.");
+            }
             if (!_scanResults.IsEmpty) DrainBackdoorResults();
 
             if (_dashboard.Enabled)
@@ -136,10 +142,10 @@ namespace JcksAnticheat.Server
             }
 
             if (!_state.HasGrace(id, "godmode", now) && GetPlayerInvincible(player.Handle))
-                Punish(new Violation(id, "PLY_GODMODE_FLAG", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }));
+                Defer(id, "godmode", now, new Violation(id, "PLY_GODMODE_FLAG", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }), null);
 
             if (!_state.HasGrace(id, "invisible", now) && veh == 0 && !dead && !IsEntityVisible(ped))
-                Punish(new Violation(id, "PLY_INVISIBLE", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }));
+                Defer(id, "invisible", now, new Violation(id, "PLY_INVISIBLE", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }), null);
 
             if (veh != 0 && GetPedInVehicleSeat(veh, -1) == ped)
             {

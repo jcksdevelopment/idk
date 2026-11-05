@@ -76,11 +76,31 @@ namespace JcksAnticheat.Server
                     break;
                 case "status":
                 default:
-                    Reply($"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
+                    var (shielded, withClient) = ShieldCoverage();
+                    Reply($"license={(_licenseRequired ? (_licensed ? "valid" : "INVALID") : "dev build")}, shield={shielded}/{withClient} resources, " +
+                          $"integrations={_integrations.Count} rules, countermeasures={(_cfg.Countermeasures.Enabled ? "on" : "off")}, backdoor findings={_lastFindings.Count}, " +
+                          $"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
                           $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status");
                     break;
             }
+        }
+
+        private (int shielded, int withClient) ShieldCoverage()
+        {
+            int shielded = 0, withClient = 0;
+            int n = GetNumResources();
+            for (int i = 0; i < n; i++)
+            {
+                var res = GetResourceByFindIndex(i);
+                if (string.IsNullOrEmpty(res) || res == _resource) continue;
+                var manifest = LoadResourceFile(res, "fxmanifest.lua");
+                if (string.IsNullOrEmpty(manifest)) manifest = LoadResourceFile(res, "__resource.lua");
+                if (string.IsNullOrEmpty(manifest) || !ShieldInstaller.HasClientCode(manifest)) continue;
+                withClient++;
+                if (ShieldInstaller.IsInstalled(manifest)) shielded++;
+            }
+            return (shielded, withClient);
         }
 
         private string ShieldCommand(string action)
