@@ -89,7 +89,7 @@ end)
 
 JcksAC.shielded = JcksAC.shielded or {}
 local lastUrgent = {}
-local URGENT = { teleport = true, noclip = true, heal = true, armor = true, godmode = true, invisible = true, vehicle = true }
+local URGENT = { teleport = true, noclip = true, heal = true, armor = true, godmode = true, invisible = true, vehicle = true, superjump = true, weapons = true }
 AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
   if type(resource) ~= "string" or type(kind) ~= "string" or type(detail) ~= "table" then return end
   if kind == "hello" then
