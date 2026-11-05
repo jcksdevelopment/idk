@@ -92,7 +92,14 @@ local function onBuyEgg(player: Player, eggKey: string)
 	while data.Pets[uid] do
 		uid = HttpService:GenerateGUID(false)
 	end
-	data.Pets[uid] = { Id = uid, PetId = def.Id, Equipped = equipped < Config.Pets.MaxEquipped, Stars = 0 }
+	data.Pets[uid] = {
+		Id = uid,
+		PetId = def.Id,
+		Equipped = equipped < Config.Pets.MaxEquipped,
+		Stars = 0,
+		Level = 1,
+		XP = 0,
+	}
 	data.Stats.PetsHatched += 1
 
 	SyncService.Notify(player, "petreveal", "N_PetHatched", { def.Id, "0" })
@@ -177,8 +184,29 @@ local function onFusePets(player: Player, uid: string)
 	data.Pets[candidates[1].Id] = nil
 	data.Pets[candidates[2].Id] = nil
 	base.Stars += 1
+	-- Keep the best level of the three so fusing never loses training.
+	base.Level = math.max(base.Level, candidates[1].Level, candidates[2].Level)
 	SyncService.Notify(player, "petreveal", "N_PetFused", { base.PetId, tostring(base.Stars) })
 	ProgressService.CheckAchievements(player, data)
+	SyncService.MarkDirty(player)
+end
+
+-- Equipped pets learn while you trade. Called by SellService (server only).
+function PetService.AddXP(player: Player, data: Types.PlayerData, amount: number)
+	local leveling = Config.Pets.Leveling
+	for _, pet in data.Pets do
+		if pet.Equipped and pet.Level < leveling.MaxLevel then
+			pet.XP += amount
+			while pet.Level < leveling.MaxLevel and pet.XP >= leveling.XPPerLevel * pet.Level do
+				pet.XP -= leveling.XPPerLevel * pet.Level
+				pet.Level += 1
+				SyncService.Notify(player, "success", "N_PetLevelUp", { "@pet:" .. pet.PetId, tostring(pet.Level) })
+			end
+			if pet.Level >= leveling.MaxLevel then
+				pet.XP = 0
+			end
+		end
+	end
 	SyncService.MarkDirty(player)
 end
 

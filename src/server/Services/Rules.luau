@@ -65,7 +65,8 @@ function Rules.PetBonus(data: Types.PlayerData, kind: string): number
 		if pet.Equipped then
 			local def = Pets.Get(pet.PetId)
 			if def and def.Bonus == kind then
-				total += def.Amount * (Config.Pets.StarMultipliers[pet.Stars or 0] or 1)
+				local levelMultiplier = 1 + Config.Pets.Leveling.BonusPerLevel * ((pet.Level or 1) - 1)
+				total += def.Amount * (Config.Pets.StarMultipliers[pet.Stars or 0] or 1) * levelMultiplier
 			end
 		end
 	end

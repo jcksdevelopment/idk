@@ -146,6 +146,7 @@ src/
 | 🏛️🚀🦖 New Start markets | Treasure Vault (after 1 New Start), Galaxy Junk (after 3) and Dino Dig (after 6, the post-10-hour goal), each with 6 high-value items, its own box, book section and trophy (`Config.Sets`). The Bazaar scrolls sideways when there are more than 4 boxes |
 | 🧑‍💼 Customer requests | Every few minutes a customer wants one specific item: sell it clean within 8 min for ×2 price (bar under the HUD, “WANTED” tag in the bag). Tune in `Config.Requests` |
 | 🎟️ Gift codes | Settings → type a code (e.g. `WELCOME`, `BAZAR`, `FLIPPER`; `SNOWDAY` only during Winter). Each works once per player. Add your own in `Config.Codes` |
+| 🐾 Pet levels | Equipped pets gain 1 XP per sold item and level up to 10 (+10% of their bonus per level; ~675 sales to max). Fusion keeps the best level. `Config.Pets.Leveling` |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
 | 📊 Leaderboard | Top 10 lifetime earners on a board in the plaza (OrderedDataStore, refreshed every 2 min) |
 | Selling | Clean items sell at full value; dirty items at 35% |

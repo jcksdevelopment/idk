@@ -39,7 +39,8 @@ export type PlayerStats = {
 	PetsHatched: number,
 }
 
-export type PetRecord = { Id: string, PetId: string, Equipped: boolean, Stars: number } -- Stars 0..MaxStars (fusion)
+-- Stars 0..MaxStars (fusion); Level 1..Leveling.MaxLevel, XP toward next level
+export type PetRecord = { Id: string, PetId: string, Equipped: boolean, Stars: number, Level: number, XP: number }
 export type PetView = PetRecord
 
 export type Moderation = {

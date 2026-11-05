@@ -301,6 +301,16 @@ check(not Events.IsActive("Winter", at(2026, 7, 1)), "Winter inactive in July")
 check(Events.IsActive("Halloween", at(2026, 10, 20)), "Halloween active Oct 20")
 check(not Events.IsActive("Halloween", at(2026, 11, 5)), "Halloween over Nov 5")
 
+-- Pet levels
+local leveling = Config.Pets.Leveling
+check(leveling.MaxLevel >= 5 and leveling.XPPerLevel > 0 and leveling.BonusPerLevel > 0, "pet leveling config sane")
+local totalPetXP = 0
+for level = 1, leveling.MaxLevel - 1 do
+	totalPetXP += leveling.XPPerLevel * level
+end
+print(string.format("  a pet needs %d sold items to reach level %d", totalPetXP, leveling.MaxLevel))
+check(totalPetXP >= 300 and totalPetXP <= 1500, "max pet level takes a few hours, not minutes or weeks")
+
 -- Customer requests
 local requestTotal = 0
 for _, w in Config.Requests.Weights do

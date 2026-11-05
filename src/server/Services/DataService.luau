@@ -325,6 +325,8 @@ local function sanitize(raw: any): Types.PlayerData
 					PetId = pet.PetId,
 					Equipped = wantsEquip,
 					Stars = math.floor(readNumber(pet.Stars, 0, 0, Config.Pets.MaxStars)),
+					Level = math.floor(readNumber(pet.Level, 1, 1, Config.Pets.Leveling.MaxLevel)),
+					XP = math.floor(readNumber(pet.XP, 0, 0, 1e9)),
 				}
 			end
 		end

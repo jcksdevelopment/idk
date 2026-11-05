@@ -351,10 +351,19 @@ function PetsPanel.Build(gui: ScreenGui)
 				card.Stroke.Thickness = if pet.Equipped then 4 else 3
 				Icons.Set(card.Icon, Icons.Lookup("Pets", def.Id), def.Icon)
 				local stars = pet.Stars or 0
-				card.Name.Text = Locale.T("Pet_" .. def.Id) .. (if stars > 0 then " " .. string.rep("⭐", stars) else "")
+				local level = pet.Level or 1
+				local leveling = Config.Pets.Leveling
+				card.Name.Text = Locale.T("Pet_" .. def.Id)
+					.. (if stars > 0 then " " .. string.rep("⭐", stars) else "")
+					.. " · "
+					.. Locale.T("Pets_Lv", { tostring(level) })
 				card.Fuse.Visible = stars < Config.Pets.MaxStars and (groupSize[def.Id .. ":" .. tostring(stars)] or 0) >= 3
 				card.Name.TextColor3 = color
-				card.Bonus.Text = bonusText(def.Bonus, def.Amount * (Config.Pets.StarMultipliers[stars] or 1))
+				local levelMultiplier = 1 + leveling.BonusPerLevel * (level - 1)
+				local xpText = if level < leveling.MaxLevel
+					then string.format("  (%d/%d)", math.floor(pet.XP or 0), leveling.XPPerLevel * level)
+					else "  MAX"
+				card.Bonus.Text = bonusText(def.Bonus, def.Amount * (Config.Pets.StarMultipliers[stars] or 1) * levelMultiplier) .. xpText
 				card.Equip.Text = Locale.T(if pet.Equipped then "Pets_Unequip" else "Pets_Equip")
 				card.Equip.BackgroundColor3 = if pet.Equipped then Theme.Colors.PanelDark else Theme.Colors.Info
 				if (confirmSell[pet.Id] or 0) <= os.clock() then

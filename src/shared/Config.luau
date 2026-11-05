@@ -394,6 +394,10 @@ Config.Pets = {
 	MaxLuckBonus = 0.07, -- at most +7% shiny chance (base 3% -> 10%)
 	-- Fusion: 3 identical pets (same kind + stars) -> 1 pet with one more star.
 	MaxStars = 2,
+	-- Pet levels: equipped pets gain 1 XP per item you sell. Level n -> n+1
+	-- needs XPPerLevel * n XP. Each level above 1 adds BonusPerLevel to the
+	-- pet's bonus (level 10 = +90%). Team caps below still apply.
+	Leveling = { MaxLevel = 10, XPPerLevel = 15, BonusPerLevel = 0.1 },
 	StarMultipliers = { [0] = 1, [1] = 2, [2] = 4 }, -- bonus multiplier per star level
 	Eggs = {
 		BasicEgg = { Icon = "🥚", Price = 500, UnlockLevel = 2, Order = 1, Weights = { Trash = 70, Rare = 25, Legendary = 5 } },
