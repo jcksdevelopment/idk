@@ -5,6 +5,7 @@
 	showers and soap bubbles for the scrub mini-game.
 ]]
 
+local GuiService = game:GetService("GuiService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -97,12 +98,14 @@ function Effects.Bubbles(count: number)
 	if not parent then
 		return
 	end
-	local mouse = UserInputService:GetMouseLocation()
+	-- GetMouseLocation includes the top bar inset; convert to the layer's space.
+	local inset = GuiService:GetGuiInset()
+	local mouse = UserInputService:GetMouseLocation() - inset - parent.AbsolutePosition
 	local size = parent.AbsoluteSize
 	if size.X <= 0 or size.Y <= 0 then
 		return
 	end
-	local origin = Vector2.new(mouse.X / size.X, mouse.Y / size.Y)
+	local origin = Vector2.new(math.clamp(mouse.X / size.X, 0, 1), math.clamp(mouse.Y / size.Y, 0, 1))
 	for _ = 1, count do
 		local bubble: Frame = Create.new("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0.5),

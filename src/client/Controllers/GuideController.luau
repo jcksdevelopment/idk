@@ -125,6 +125,7 @@ function GuideController.Start()
 
 	local newArrow = Instance.new("BillboardGui")
 	newArrow.Name = "TutorialArrow"
+	newArrow.ResetOnSpawn = false -- lives in PlayerGui: must survive respawns
 	newArrow.Size = UDim2.fromScale(4, 4)
 	newArrow.StudsOffset = Vector3.new(0, 14, 0)
 	newArrow.AlwaysOnTop = true

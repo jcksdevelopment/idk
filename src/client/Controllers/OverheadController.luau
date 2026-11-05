@@ -45,6 +45,7 @@ local function attach(player: Player, character: Model)
 
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "BazarTag"
+	gui.ResetOnSpawn = false -- lives in PlayerGui: must survive the local player's respawn
 	gui.Adornee = head
 	gui.Size = UDim2.fromScale(7, 1.6)
 	gui.StudsOffset = Vector3.new(0, 2.8, 0)
