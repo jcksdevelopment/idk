@@ -499,6 +499,72 @@
       ]
     },
     {
+      "id": "backdoor",
+      "title": "Backdoor scanner",
+      "fields": [
+        {
+          "key": "backdoorScanner.enabled",
+          "label": "Enabled",
+          "type": "bool",
+          "help": "Scans every resource's .lua/.js/.cs files for backdoor patterns: remote code execution, shell commands, secret convars, ACE grants, manifest writes, encoded payloads, obfuscated JS."
+        },
+        {
+          "key": "backdoorScanner.scanOnStart",
+          "label": "Scan on every server start",
+          "type": "bool",
+          "help": "Results are printed to the server console with an id per finding. Run 'jac scan' any time."
+        },
+        {
+          "key": "backdoorScanner.minSeverity",
+          "label": "Report from severity",
+          "type": "select",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        {
+          "key": "backdoorScanner.autoAction",
+          "label": "Automatic action",
+          "type": "select",
+          "options": [
+            "none",
+            "remove",
+            "quarantine"
+          ],
+          "help": "none = only report and wait for 'jac scan remove|quarantine <id>'. remove deletes the flagged line (backup kept as .jac-bak). quarantine moves the file into .jac-quarantine/."
+        },
+        {
+          "key": "backdoorScanner.autoActionMinSeverity",
+          "label": "Automatic action from severity",
+          "type": "select",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        {
+          "key": "backdoorScanner.ignoreIds",
+          "label": "Ignored finding ids",
+          "type": "list",
+          "help": "Reviewed false positives. 'jac scan ignore <id>' adds them here."
+        },
+        {
+          "key": "backdoorScanner.ignoreResources",
+          "label": "Ignored resources",
+          "type": "list"
+        },
+        {
+          "key": "backdoorScanner.disabledRules",
+          "label": "Disabled rules",
+          "type": "list",
+          "help": "LUA_REMOTE_LOAD, JS_REMOTE_EVAL, SHELL_EXEC, SECRET_CONVAR, ACE_GRANT, MANIFEST_WRITE, FS_WRITE_OTHER, ENCODED_PAYLOAD, LOAD_ENCODED, CFG_READ, JS_OBFUSCATED, HUGE_LINE"
+        }
+      ]
+    },
+    {
       "id": "discord",
       "title": "Discord logs",
       "fields": [

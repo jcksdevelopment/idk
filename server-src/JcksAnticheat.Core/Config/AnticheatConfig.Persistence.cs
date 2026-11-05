@@ -80,6 +80,13 @@ namespace JcksAnticheat.Core.Config
                 ["flagConfidence"] = Vision.FlagConfidence, ["cooldownSeconds"] = Vision.CooldownSeconds,
                 ["maxStoredCaptures"] = Vision.MaxStoredCaptures,
             },
+            ["backdoorScanner"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = Backdoor.Enabled, ["scanOnStart"] = Backdoor.ScanOnStart, ["minSeverity"] = Backdoor.MinSeverity,
+                ["autoAction"] = Backdoor.AutoAction, ["autoActionMinSeverity"] = Backdoor.AutoActionMinSeverity,
+                ["ignoreIds"] = Backdoor.IgnoreIds.ToList(), ["ignoreResources"] = Backdoor.IgnoreResources.ToList(),
+                ["disabledRules"] = Backdoor.DisabledRules.ToList(),
+            },
             ["discord"] = new Dictionary<string, object?>
             {
                 ["enabled"] = Discord.Enabled, ["webhookEnv"] = Discord.WebhookEnv, ["minAction"] = Discord.MinAction, ["username"] = Discord.Username,
@@ -150,6 +157,9 @@ namespace JcksAnticheat.Core.Config
             foreach (var kv in ProtectedEvents)
                 Require(kv.Value >= 1 && kv.Value <= 10000 && kv.Key.Length > 0 && kv.Key.Length <= 128,
                     "protectedEvents entry " + kv.Key + " must be event=1..10000");
+            Require(new[] { "low", "medium", "high" }.Contains(Backdoor.MinSeverity) && new[] { "low", "medium", "high" }.Contains(Backdoor.AutoActionMinSeverity),
+                "backdoorScanner severities must be low, medium or high");
+            Require(new[] { "none", "remove", "quarantine" }.Contains(Backdoor.AutoAction), "backdoorScanner.autoAction must be none, remove or quarantine");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(Discord.MinAction), "discord.minAction must be log, screenshot, kick or ban");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");

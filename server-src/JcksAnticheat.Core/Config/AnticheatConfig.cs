@@ -35,6 +35,20 @@ namespace JcksAnticheat.Core.Config
         public string ServerId { get; set; } = "main";
     }
 
+    public sealed class BackdoorConfig
+    {
+        public bool Enabled { get; set; } = true;
+        public bool ScanOnStart { get; set; } = true;
+        /// <summary>low | medium | high: lowest severity printed.</summary>
+        public string MinSeverity { get; set; } = "medium";
+        /// <summary>none | remove | quarantine: applied automatically to findings at or above AutoActionMinSeverity.</summary>
+        public string AutoAction { get; set; } = "none";
+        public string AutoActionMinSeverity { get; set; } = "high";
+        public List<string> IgnoreIds { get; set; } = new List<string>();
+        public List<string> IgnoreResources { get; set; } = new List<string>();
+        public List<string> DisabledRules { get; set; } = new List<string>();
+    }
+
     public sealed partial class AnticheatConfig
     {
         public ScoringPolicy Scoring { get; set; } = new ScoringPolicy();
@@ -45,6 +59,7 @@ namespace JcksAnticheat.Core.Config
         public GameEventPolicy GameEvents { get; set; } = new GameEventPolicy();
         public VisionConfig Vision { get; set; } = new VisionConfig();
         public DashboardConfig Dashboard { get; set; } = new DashboardConfig();
+        public BackdoorConfig Backdoor { get; set; } = new BackdoorConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
 
         public List<string> WeaponBlacklist { get; set; } = new List<string>
@@ -201,6 +216,18 @@ namespace JcksAnticheat.Core.Config
                 cfg.Vision.FlagConfidence = v.Num("flagConfidence") ?? cfg.Vision.FlagConfidence;
                 cfg.Vision.CooldownSeconds = (int)(v.Num("cooldownSeconds") ?? cfg.Vision.CooldownSeconds);
                 cfg.Vision.MaxStoredCaptures = (int)(v.Num("maxStoredCaptures") ?? cfg.Vision.MaxStoredCaptures);
+            }
+
+            if (root.Obj("backdoorScanner") is { } bd)
+            {
+                cfg.Backdoor.Enabled = bd.Bool("enabled") ?? cfg.Backdoor.Enabled;
+                cfg.Backdoor.ScanOnStart = bd.Bool("scanOnStart") ?? cfg.Backdoor.ScanOnStart;
+                cfg.Backdoor.MinSeverity = bd.Str("minSeverity") ?? cfg.Backdoor.MinSeverity;
+                cfg.Backdoor.AutoAction = bd.Str("autoAction") ?? cfg.Backdoor.AutoAction;
+                cfg.Backdoor.AutoActionMinSeverity = bd.Str("autoActionMinSeverity") ?? cfg.Backdoor.AutoActionMinSeverity;
+                cfg.Backdoor.IgnoreIds = Strings(bd, "ignoreIds") ?? cfg.Backdoor.IgnoreIds;
+                cfg.Backdoor.IgnoreResources = Strings(bd, "ignoreResources") ?? cfg.Backdoor.IgnoreResources;
+                cfg.Backdoor.DisabledRules = Strings(bd, "disabledRules") ?? cfg.Backdoor.DisabledRules;
             }
 
             if (root.Obj("discord") is { } dc)

@@ -65,6 +65,10 @@ namespace JcksAnticheat.Server
                     edited.DryRun = on;
                     Reply(Apply(edited, actor, save: true));
                     break;
+                case "scan":
+                    if (source != 0) { Reply("Run scan commands from the server console."); break; }
+                    Reply(BackdoorCommand(args));
+                    break;
                 case "shield":
                     if (source != 0) { Reply("Run shield commands from the server console."); break; }
                     Reply(ShieldCommand(args.Count > 1 ? args[1]?.ToString() ?? "status" : "status"));
@@ -73,7 +77,7 @@ namespace JcksAnticheat.Server
                 default:
                     Reply($"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>]");
                     break;
             }
         }

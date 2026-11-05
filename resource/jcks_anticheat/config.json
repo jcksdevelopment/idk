@@ -62,6 +62,17 @@
     "maxStoredCaptures": 500
   },
 
+  "backdoorScanner": {
+    "enabled": true,
+    "scanOnStart": true,
+    "minSeverity": "medium",
+    "autoAction": "none",
+    "autoActionMinSeverity": "high",
+    "ignoreIds": [],
+    "ignoreResources": [],
+    "disabledRules": []
+  },
+
   "discord": {
     "enabled": false,
     "webhookEnv": "JCKS_AC_DISCORD_WEBHOOK",
