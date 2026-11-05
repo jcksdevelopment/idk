@@ -22,6 +22,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Device = require(script.Parent.Device)
 local Effects = require(script.Parent.Effects)
 local Theme = require(script.Parent.Theme)
 local Toast = require(script.Parent.Toast)
@@ -40,7 +41,9 @@ local SEGMENT_COLORS = {
 
 function WheelPanel.Build(gui: ScreenGui)
 	local panel, _header, close = Create.Panel("Wheel", Locale.T("Wheel_Title"), Theme.Colors.Accent, 1.05, gui)
-	panel.Size = UDim2.fromScale(0.5, 0.78)
+	if not Device.IsSmallScreen() then
+		panel.Size = UDim2.fromScale(0.5, 0.78)
+	end
 	close.Activated:Connect(UIController.Close)
 
 	local prizes = Config.Wheel.Prizes

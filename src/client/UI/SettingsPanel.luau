@@ -17,6 +17,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Device = require(script.Parent.Device)
 local Theme = require(script.Parent.Theme)
 
 local SettingsPanel = {}
@@ -29,7 +30,9 @@ local LANGUAGE_OPTIONS = {
 
 function SettingsPanel.Build(gui: ScreenGui)
 	local panel, _header, close = Create.Panel("Settings", Locale.T("Title_Settings"), Theme.Colors.Info, 1.6, gui)
-	panel.Size = UDim2.fromScale(0.46, 0.56)
+	if not Device.IsSmallScreen() then
+		panel.Size = UDim2.fromScale(0.46, 0.56)
+	end
 	close.Activated:Connect(UIController.Close)
 
 	local list: Frame = Create.new("Frame", {

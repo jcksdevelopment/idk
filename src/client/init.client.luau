@@ -77,4 +77,20 @@ RepairController.Start()
 GuideController.Start()
 OverheadController.Start()
 PetController.Start()
+-- Rebuild when the screen size class changes (phone rotated, window resized).
+do
+	local Device = require(UI.Device)
+	local wasSmall = Device.IsSmallScreen()
+	local camera = workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+			local isSmall = Device.IsSmallScreen()
+			if isSmall ~= wasSmall then
+				wasSmall = isSmall
+				UIController.Rebuild()
+			end
+		end)
+	end
+end
+
 StateController.Start() -- last: snapshots arrive once every view is listening

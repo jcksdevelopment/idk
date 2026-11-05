@@ -8,6 +8,7 @@
 
 local TweenService = game:GetService("TweenService")
 
+local Device = require(script.Parent.Device)
 local Theme = require(script.Parent.Theme)
 local SoundController = require(script.Parent.Parent.Controllers.SoundController)
 
@@ -185,6 +186,11 @@ function Create.Panel(name: string, title: string, accent: Color3, aspect: numbe
 		Create.new("UISizeConstraint", { MaxSize = Vector2.new(1100, 760) }),
 		Create.new("UIScale", { Name = "OpenScale" }),
 	})
+	if Device.IsSmallScreen() then
+		-- Phones: use (almost) the whole screen so buttons stay big enough to tap.
+		panel.Size = UDim2.fromScale(0.96, 0.92)
+		panel.Position = UDim2.fromScale(0.5, 0.5)
+	end
 
 	local header: Frame = Create.new("Frame", {
 		Name = "Header",

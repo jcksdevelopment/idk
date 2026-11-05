@@ -24,6 +24,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Device = require(script.Parent.Device)
 local Effects = require(script.Parent.Effects)
 local Theme = require(script.Parent.Theme)
 
@@ -205,7 +206,7 @@ function HUD.Build(gui: ScreenGui)
 			LayoutOrder = order,
 			Size = UDim2.fromScale(1, 0.128),
 			BackgroundColor3 = color,
-			Text = icon .. "\n" .. Locale.T(labelKey) .. (if key ~= "" then " [" .. key .. "]" else ""),
+			Text = icon .. "\n" .. Locale.T(labelKey) .. Device.KeyHint(key),
 			MaxTextSize = 22,
 			Parent = nav,
 		}, function()
@@ -258,7 +259,7 @@ function HUD.Build(gui: ScreenGui)
 		Position = UDim2.fromScale(0.985, 0.37),
 		Size = UDim2.fromScale(0.085, 0.15),
 		BackgroundColor3 = Theme.Colors.Pink,
-		Text = "🐾\n" .. Locale.T("Nav_Pets") .. " [F]",
+		Text = "🐾\n" .. Locale.T("Nav_Pets") .. Device.KeyHint("F"),
 		MaxTextSize = 22,
 		Parent = root,
 	}, function()
