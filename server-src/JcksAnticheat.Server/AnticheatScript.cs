@@ -95,6 +95,7 @@ namespace JcksAnticheat.Server
             InitLicense();
             RebuildIntegrations();
             RegisterSettings();
+            RegisterAntiDump();
             Tick += OnTick;
 
             Log($"started: {_bans.All.Count} bans, vision={(_vision.IsConfigured ? _cfg.Vision.Provider + "/" + _cfg.Vision.Model : "off")}, " +
@@ -223,6 +224,7 @@ namespace JcksAnticheat.Server
             _entities.Forget(id);
             _state.Forget(id);
             _consistency.Forget(id);
+            ForgetAntiDump(id);
             _removing.TryRemove(id, out _);
             _ledger.Park(id, LicenseOf(player.Handle));
             _lastCapture.TryRemove(id, out _);
@@ -261,6 +263,7 @@ namespace JcksAnticheat.Server
             foreach (var kv in ClientSettings()) init[kv.Key] = kv.Value;
             init["bp"] = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace));
             player.TriggerEvent("jcks_anticheat:init", MiniJson.Serialize(init));
+            ServePendingAntiDump(player, id);
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));
         }
 

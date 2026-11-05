@@ -445,6 +445,18 @@
           "label": "Blacklisted texture dictionaries",
           "type": "list",
           "help": "Texture dictionaries only cheat menus stream in. Add names you've confirmed on your server; empty by default."
+        },
+        {
+          "key": "antiDump.enabled",
+          "label": "Anti-dump",
+          "type": "bool",
+          "help": "Client scripts of protected resources are not downloaded into the game cache; the anticheat streams them after the handshake and the shield runs them. Protect a resource with 'jac antidump protect <resource>' in the server console (backs up the manifest; 'unprotect' restores it). Needs the shield."
+        },
+        {
+          "key": "antiDump.resources",
+          "label": "Protected resources",
+          "type": "maplist",
+          "help": "resource=client/file.lua,client/other.lua. Filled by 'jac antidump protect'."
         }
       ]
     },

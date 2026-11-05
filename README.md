@@ -285,6 +285,25 @@ rule itself (rate-limited).
 - Learning mode (`integrations.learning`) records what each resource does. `jac integrations
   suggest` lists what's not trusted yet and `jac integrations apply` saves it.
 
+### Anti-dump
+
+Cheaters copy other servers' client scripts out of the game cache. For resources you protect,
+the client scripts are never downloaded. The anticheat streams them after the heartbeat
+handshake, once per session, and the shield runs them under their real file names.
+
+```
+jac antidump protect my_resource      moves its client .lua files out of the manifest (backup kept)
+refresh
+ensure my_resource
+jac antidump unprotect my_resource    restores the original manifest
+jac antidump status
+```
+
+Requirements and limits: the resource needs the shield (`protect` adds it). The scripts start a
+moment later than usual, after the network handshake. A tool that hooks `load()` in memory can
+still capture the code. Anti-dump stops cache copying, not memory dumping. Escrow remains the
+stronger option for code you sell.
+
 ### Backdoor scanner
 
 On every server start (`backdoorScanner.scanOnStart`) and on `jac scan`, every resource's `.lua`,
@@ -419,7 +438,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-95 tests cover:
+97 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -445,7 +464,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 95 tests pass.
+- Both C# projects build with no warnings and the 97 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

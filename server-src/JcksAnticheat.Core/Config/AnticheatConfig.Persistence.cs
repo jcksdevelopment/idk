@@ -80,6 +80,12 @@ namespace JcksAnticheat.Core.Config
                 ["flagConfidence"] = Vision.FlagConfidence, ["cooldownSeconds"] = Vision.CooldownSeconds,
                 ["maxStoredCaptures"] = Vision.MaxStoredCaptures,
             },
+            ["antiDump"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = AntiDump.Enabled,
+                ["resources"] = AntiDump.Resources.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(k => k.Key, k => (object?)k.Value.Cast<object?>().ToList()),
+            },
             ["countermeasures"] = new Dictionary<string, object?>
             {
                 ["enabled"] = Countermeasures.Enabled, ["skip"] = Countermeasures.Skip.ToList(),
@@ -167,6 +173,8 @@ namespace JcksAnticheat.Core.Config
             foreach (var kv in ProtectedEvents)
                 Require(kv.Value >= 1 && kv.Value <= 10000 && kv.Key.Length > 0 && kv.Key.Length <= 128,
                     "protectedEvents entry " + kv.Key + " must be event=1..10000");
+            foreach (var kv in AntiDump.Resources)
+                Require(kv.Value.All(JcksAnticheat.Core.AntiDump.AntiDumpManifest.SafePath), "antiDump.resources." + kv.Key + ": files must be .lua paths inside the resource");
             Require(Integrations.GraceMs >= 500 && Integrations.GraceMs <= 120000, "integrations.graceMs must be 500–120000");
             foreach (var kv in Integrations.Resources)
                 Require(kv.Value.All(Behaviours.IsKnown), "integrations.resources." + kv.Key + ": unknown behaviour (allowed: " + string.Join(", ", Behaviours.All) + ", *)");

@@ -35,6 +35,13 @@ namespace JcksAnticheat.Core.Config
         public string ServerId { get; set; } = "main";
     }
 
+    public sealed class AntiDumpConfig
+    {
+        public bool Enabled { get; set; }
+        /// <summary>resource → client files served at runtime instead of being downloaded ('jac antidump protect' fills this).</summary>
+        public Dictionary<string, List<string>> Resources { get; set; } = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+    }
+
     public sealed class CountermeasuresConfig
     {
         /// <summary>Undo a detected cheat's effect even when the punishment is only a log/warning.</summary>
@@ -69,6 +76,7 @@ namespace JcksAnticheat.Core.Config
         public DashboardConfig Dashboard { get; set; } = new DashboardConfig();
         public BackdoorConfig Backdoor { get; set; } = new BackdoorConfig();
         public CountermeasuresConfig Countermeasures { get; set; } = new CountermeasuresConfig();
+        public AntiDumpConfig AntiDump { get; set; } = new AntiDumpConfig();
         public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
 
@@ -226,6 +234,17 @@ namespace JcksAnticheat.Core.Config
                 cfg.Vision.FlagConfidence = v.Num("flagConfidence") ?? cfg.Vision.FlagConfidence;
                 cfg.Vision.CooldownSeconds = (int)(v.Num("cooldownSeconds") ?? cfg.Vision.CooldownSeconds);
                 cfg.Vision.MaxStoredCaptures = (int)(v.Num("maxStoredCaptures") ?? cfg.Vision.MaxStoredCaptures);
+            }
+
+            if (root.Obj("antiDump") is { } ado)
+            {
+                cfg.AntiDump.Enabled = ado.Bool("enabled") ?? cfg.AntiDump.Enabled;
+                if (ado.Obj("resources") is { } adr)
+                {
+                    cfg.AntiDump.Resources = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var kv in adr)
+                        if (kv.Value is List<object?> list) cfg.AntiDump.Resources[kv.Key] = list.OfType<string>().ToList();
+                }
             }
 
             if (root.Obj("countermeasures") is { } cmo)

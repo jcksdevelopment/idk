@@ -164,3 +164,23 @@ CreateThread(function()
     scanGlobals()
   end
 end)
+
+if GetResourceMetadata(RES, "jac_antidump", 0) == "yes" then
+  RegisterNetEvent("jcks_anticheat:ad:" .. RES, function(payload)
+    local files = json.decode(payload)
+    if type(files) ~= "table" then return end
+    for _, f in ipairs(files) do
+      local fn, err = load(f.c, "@@" .. RES .. "/" .. f.n)
+      if fn then
+        local ok, e = pcall(fn)
+        if not ok then print(("[jcks_anticheat] %s/%s: %s"):format(RES, f.n, tostring(e))) end
+      else
+        print(("[jcks_anticheat] %s/%s: %s"):format(RES, f.n, tostring(err)))
+      end
+    end
+  end)
+  CreateThread(function()
+    while not NetworkIsSessionStarted() do Wait(250) end
+    TriggerServerEvent("jcks_anticheat:ad", RES)
+  end)
+end
