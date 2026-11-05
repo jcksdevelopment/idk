@@ -177,6 +177,10 @@ function FieldInput({ field, value, disabled, onChange }: { field: SettingsField
       return (
         <ListInput id={field.key} kind={field.type} value={Array.isArray(value) ? value : []} disabled={disabled} onChange={onChange} />
       );
+    case "map":
+      return (
+        <MapInput id={field.key} value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, number>) : {}} disabled={disabled} onChange={onChange} />
+      );
     default:
       return <Input id={field.key} value={String(value ?? "")} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="font-mono" />;
   }
@@ -202,3 +206,28 @@ function parse(text: string, kind: "list" | "codes" | "numbers"): unknown[] {
   if (kind === "codes") return items.map((x) => x.toUpperCase());
   return items;
 }
+
+/** CODE=points per line; keeps its own text like ListInput. */
+function MapInput({ id, value, disabled, onChange }: { id: string; value: Record<string, number>; disabled: boolean; onChange: (v: unknown) => void }) {
+  const joined = Object.entries(value).map(([k, v]) => `${k}=${v}`).join("\n");
+  const [text, setText] = useState(joined);
+  useEffect(() => {
+    setText((t) => (serialize(parseMap(t)) === joined ? t : joined));
+  }, [joined]);
+  return (
+    <textarea id={id} value={text} disabled={disabled} spellCheck={false} placeholder="CODE=points, one per line" rows={Math.min(8, Math.max(3, Object.keys(value).length + 1))}
+      onChange={(e) => { setText(e.target.value); onChange(parseMap(e.target.value)); }}
+      className="w-full rounded-md border border-line-strong bg-transparent px-3 py-2 font-mono text-xs focus:border-zinc-500 focus:outline-none" />
+  );
+}
+
+function parseMap(text: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const line of text.split("\n")) {
+    const m = line.trim().match(/^([A-Za-z_]+)\s*[=:]\s*(-?\d+(?:\.\d+)?)$/);
+    if (m) out[m[1].toUpperCase()] = Math.round(+m[2]);
+  }
+  return out;
+}
+
+const serialize = (m: Record<string, number>) => Object.entries(m).map(([k, v]) => `${k}=${v}`).join("\n");

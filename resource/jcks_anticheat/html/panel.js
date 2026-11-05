@@ -67,6 +67,20 @@
         });
         return t;
       }
+      case "map": {
+        // CODE=points per line.
+        const t = el("textarea", { spellcheck: "false", placeholder: "CODE=points, one per line" });
+        t.value = Object.entries(value || {}).map(([k, v]) => `${k}=${v}`).join("\n");
+        t.addEventListener("input", () => {
+          const out = {};
+          for (const line of t.value.split("\n")) {
+            const m = line.trim().match(/^([A-Za-z_]+)\s*[=:]\s*(-?\d+(?:\.\d+)?)$/);
+            if (m) out[m[1].toUpperCase()] = Math.round(+m[2]);
+          }
+          update(out);
+        });
+        return t;
+      }
       default: {
         const i = el("input", { type: "text" });
         i.value = value ?? "";

@@ -136,6 +136,9 @@ namespace JcksAnticheat.Core.Config
             Require(Uri.TryCreate(Vision.Endpoint, UriKind.Absolute, out _), "vision.endpoint must be an absolute URL");
             Require(Uri.TryCreate(Dashboard.Url, UriKind.Absolute, out _), "dashboard.url must be an absolute URL");
             Require(!string.IsNullOrWhiteSpace(Dashboard.ServerId), "dashboard.serverId is required");
+            foreach (var kv in Scoring.SeverityOverrides)
+                Require(kv.Value >= 0 && kv.Value <= 1000 && System.Text.RegularExpressions.Regex.IsMatch(kv.Key, "^[A-Z_]{3,48}$"),
+                    "scoring.severity entry " + kv.Key + " must be CODE=0..1000");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");
             return errors;

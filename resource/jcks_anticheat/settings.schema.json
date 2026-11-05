@@ -75,6 +75,12 @@
           "step": 1
         },
         {
+          "key": "scoring.severity",
+          "label": "Severity overrides",
+          "type": "map",
+          "help": "One per line as CODE=points, e.g. VEH_HANDLING=10. Overrides the default score a detection adds (see docs/THREAT_MATRIX.md for codes and defaults)."
+        },
+        {
           "key": "scoring.ignore",
           "label": "Ignored codes",
           "type": "codes",
