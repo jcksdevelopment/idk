@@ -425,7 +425,7 @@ may use a VPN, and if the service fails or times out the player is let in. The r
 On start (`auditOnStart`) and on `jac audit`, the server's own security convars are compared with
 the FiveM documentation: `onesync`, `sv_scriptHookAllowed`, `sv_enableNetworkedPhoneExplosions`,
 `sv_filterRequestControl`, `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`,
-`sv_entityLockdown`, `sv_pureLevel`, `sv_stateBagStrictMode`, `sv_devMode`, and FiveM's rate limiters
+`sv_entityLockdown`, `sv_pureLevel`, `sv_stateBagStrictMode`, `sv_protectServerEntities`, `sv_requestParanoia`, `sv_authMinTrust`, `sv_devMode`, and FiveM's rate limiters
 (`rateLimiter_netEvent_*`, `stateBag*`, `netCommand*` raised above 4x their documented defaults). Each suggestion is printed with
 the `set` line to add and why; nothing is changed automatically. Some (`sv_entityLockdown relaxed`,
 `sv_stateBagStrictMode true`) break scripts that create entities or write state bags from the

@@ -75,6 +75,18 @@ namespace JcksAnticheat.Core.Audit
                 found.Add(new AuditFinding("low", "sv_pureLevel", pure, "1",
                     "Blocks modified client game files (level 1 still allows audio and known graphics mods)."));
 
+            if (!Truthy(Get("sv_protectServerEntities", "false")))
+                found.Add(new AuditFinding("low", "sv_protectServerEntities", "false", "true",
+                    "Clients can delete entities that server scripts created (shops, job vehicles, props). Check first that no script relies on clients deleting server-spawned entities."));
+
+            if (int.TryParse(Get("sv_requestParanoia", "0"), out var paranoia) && paranoia < 1)
+                found.Add(new AuditFinding("info", "sv_requestParanoia", paranoia.ToString(), "1",
+                    "Counters proxy-based HTTP floods against info/players endpoints; level 1 blocks requests carrying a 'Via' header."));
+
+            if (int.TryParse(Get("sv_authMinTrust", "1"), out var trust) && trust <= 1)
+                found.Add(new AuditFinding("info", "sv_authMinTrust", trust.ToString(), "2",
+                    "Minimum trust of a player's identity provider (1–5). Raising it refuses easily spoofed identities, but can lock out some legitimate players; test before using."));
+
             if (Truthy(Get("sv_devMode", "false")))
                 found.Add(new AuditFinding("high", "sv_devMode", "true", "false",
                     "Development mode; the FiveM docs say not to enable it in production."));

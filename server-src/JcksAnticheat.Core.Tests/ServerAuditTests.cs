@@ -27,7 +27,7 @@ public class ServerAuditTests
         {
             ["onesync"] = "on", ["sv_filterRequestControl"] = "2", ["sv_enableNetworkedSounds"] = "false",
             ["sv_enableNetworkedScriptEntityStates"] = "false", ["sv_entityLockdown"] = "relaxed", ["sv_pureLevel"] = "1",
-            ["sv_stateBagStrictMode"] = "true",
+            ["sv_stateBagStrictMode"] = "true", ["sv_protectServerEntities"] = "true", ["sv_requestParanoia"] = "1", ["sv_authMinTrust"] = "2",
         });
         Assert.Empty(f);
     }
