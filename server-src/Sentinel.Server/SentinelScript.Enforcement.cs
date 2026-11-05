@@ -11,11 +11,19 @@ namespace Sentinel.Server
 {
     public sealed partial class SentinelScript
     {
+        /// <summary>Players already on their way out (kick scheduled or ban issued): no repeat actions.</summary>
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<int, (DateTime dropAt, string reason, bool banned)> _removing =
+            new System.Collections.Concurrent.ConcurrentDictionary<int, (DateTime, string, bool)>();
+
+        /// <summary>Seconds a score-based kick waits so the requested screenshot can arrive first.</summary>
+        private const int KickScreenshotDelaySeconds = 6;
+
         private void Punish(Violation v)
         {
             if (_cfg.Scoring.Ignore.Contains(v.Code)) return;
             var player = Players[v.Player];
             if (player == null) return;
+            if (_removing.TryGetValue(v.Player, out var leaving) && leaving.banned) return; // already banned
 
             _ledger.Record(v);
             bool bypass = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace));
@@ -36,8 +44,15 @@ namespace Sentinel.Server
                     if (_vision.IsConfigured) RequestScreenshot(v.Player, $"{v.Code} (score {v.ScoreAfter:F0})");
                     break;
                 case EnforcementAction.Kick:
-                    if (_vision.IsConfigured) RequestScreenshot(v.Player, $"{v.Code} before kick");
-                    DropPlayer(player.Handle, $"[Sentinel] Disconnected: suspicious activity ({v.Code}).");
+                    if (_removing.ContainsKey(v.Player)) break; // kick already scheduled
+                    var reason = $"[Sentinel] Disconnected: suspicious activity ({v.Code}).";
+                    // Heartbeat failures and floods leave at once: the scanner is dead or the client is
+                    // spamming, so a screenshot is pointless. Score-based kicks wait a few seconds so the
+                    // capture requested now can reach the server before the connection closes.
+                    bool screenshot = _vision.IsConfigured && !_cfg.Scoring.DropImmediately.Contains(v.Code);
+                    if (screenshot) RequestScreenshot(v.Player, $"{v.Code} before kick");
+                    _removing[v.Player] = (DateTime.UtcNow.AddSeconds(screenshot ? KickScreenshotDelaySeconds : 0), reason, false);
+                    if (!screenshot) DropPlayer(player.Handle, reason);
                     break;
                 case EnforcementAction.Ban:
                     BanPlayer(v.Player, v.Code, $"Automated: {v.Code}", "sentinel");
@@ -49,6 +64,8 @@ namespace Sentinel.Server
         {
             var player = Players[playerId];
             if (player == null) return;
+            if (_removing.TryGetValue(playerId, out var leaving) && leaving.banned) return; // one ban per player
+            _removing[playerId] = (DateTime.UtcNow, reason, true);
             var ban = _bans.Add(new Ban
             {
                 Name = player.Name,
@@ -76,6 +93,19 @@ namespace Sentinel.Server
                 ExpiresAt = cmd.DurationHours.HasValue && cmd.DurationHours > 0 ? DateTime.UtcNow.AddHours(cmd.DurationHours.Value) : (DateTime?)null,
             });
             _dashboard.Enqueue("ban", ban);
+        }
+
+        /// <summary>Runs scheduled kicks whose screenshot window has passed. Called from the tick.</summary>
+        private void ProcessScheduledDrops(DateTime now)
+        {
+            foreach (var kv in _removing)
+            {
+                if (kv.Value.banned || kv.Value.dropAt > now) continue;
+                var p = Players[kv.Key];
+                if (p != null) DropPlayer(p.Handle, kv.Value.reason);
+                // Keep the entry until playerDropped so later violations don't schedule a second kick.
+                _removing[kv.Key] = (DateTime.MaxValue, kv.Value.reason, false);
+            }
         }
 
         private void ExecuteCommand(DashboardCommand cmd)

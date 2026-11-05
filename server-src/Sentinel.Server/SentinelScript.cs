@@ -176,6 +176,7 @@ namespace Sentinel.Server
             _entities.Forget(id);
             _state.Forget(id);
             _consistency.Forget(id);
+            _removing.TryRemove(id, out _);
             _ledger.Forget(id);
             _lastCapture.TryRemove(id, out _);
             _dashboard.Enqueue("player_left", new Dictionary<string, object?> { ["id"] = id, ["name"] = player.Name, ["reason"] = reason });

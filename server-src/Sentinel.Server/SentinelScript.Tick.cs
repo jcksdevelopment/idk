@@ -44,6 +44,7 @@ namespace Sentinel.Server
                 }
             }
 
+            if (!_removing.IsEmpty) ProcessScheduledDrops(now);
             if (_tickCount % 10 == 0) _screenshots.Sweep(now);
             DrainVisionResults();
 
