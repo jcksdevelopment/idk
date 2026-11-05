@@ -29,6 +29,10 @@ An anticheat for FiveM servers, with a moderation dashboard.
                                                          ◀── poll ────────  /api/server/commands (ban/kick/capture)
 ```
 
+**Scores survive reconnects.** When a player leaves, their score is kept under their license
+identifier and restored when they rejoin, still decaying while they're away. A cheater who gets
+kicked and reconnects keeps climbing toward the ban threshold instead of starting from zero.
+
 **The server decides; the client only reports.** Code on the cheater's machine can be patched, so
 client flags add to a suspicion score but can never ban on their own. A ban needs a server-observed
 signal: an impossible movement, an invalid weapon hit, a forbidden game event, or a failed or missing
@@ -221,7 +225,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-41 tests cover:
+44 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -247,7 +251,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 41 tests pass.
+- Both C# projects build with no warnings and the 44 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

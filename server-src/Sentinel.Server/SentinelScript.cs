@@ -157,6 +157,7 @@ namespace Sentinel.Server
         {
             int id = ToId(player.Handle);
             if (id <= 0) return;
+            _ledger.Restore(id, LicenseOf(player.Handle));
             // Loading in and spawning teleports and heals the ped; server checks run from the start,
             // so they get the same grace the handshake grants.
             _movement.GrantGrace(id, TimeSpan.FromSeconds(90));
@@ -177,7 +178,7 @@ namespace Sentinel.Server
             _state.Forget(id);
             _consistency.Forget(id);
             _removing.TryRemove(id, out _);
-            _ledger.Forget(id);
+            _ledger.Park(id, LicenseOf(player.Handle));
             _lastCapture.TryRemove(id, out _);
             _dashboard.Enqueue("player_left", new Dictionary<string, object?> { ["id"] = id, ["name"] = player.Name, ["reason"] = reason });
         }
@@ -453,6 +454,12 @@ namespace Sentinel.Server
                 if (!string.IsNullOrEmpty(name) && GetResourceState(name) == "started") list.Add(name);
             }
             return list;
+        }
+
+        private static string? LicenseOf(string handle)
+        {
+            var license = GetPlayerIdentifierByType(handle, "license");
+            return string.IsNullOrEmpty(license) ? null : license;
         }
 
         private static List<string> IdentifiersOf(string handle)

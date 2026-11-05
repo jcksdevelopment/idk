@@ -142,6 +142,44 @@ namespace Sentinel.Core.Detection
 
         public void Forget(int player) => _entries.TryRemove(player, out _);
 
+        private readonly ConcurrentDictionary<string, Entry> _parked = new ConcurrentDictionary<string, Entry>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// On disconnect: keep the player's score under a stable identifier (license) instead of
+        /// discarding it, so reconnecting doesn't wipe the slate. A cheater kicked repeatedly keeps
+        /// accumulating toward the ban threshold; the score still decays while they're away.
+        /// </summary>
+        public void Park(int player, string? key, DateTime? now = null)
+        {
+            if (!_entries.TryRemove(player, out var e) || string.IsNullOrEmpty(key)) return;
+            lock (e)
+            {
+                if (Decay(e, now ?? DateTime.UtcNow) < 1) return; // nothing worth remembering
+            }
+            _parked[key!] = e;
+            if (_parked.Count > 10000) Prune(now ?? DateTime.UtcNow);
+        }
+
+        /// <summary>On (re)join: bring back a parked score for this identifier, decayed for the time away.</summary>
+        public void Restore(int player, string? key, DateTime? now = null)
+        {
+            if (string.IsNullOrEmpty(key) || !_parked.TryRemove(key!, out var e)) return;
+            lock (e)
+            {
+                if (Decay(e, now ?? DateTime.UtcNow) < 1) return;
+            }
+            _entries[player] = e;
+        }
+
+        public int ParkedCount => _parked.Count;
+
+        private void Prune(DateTime now)
+        {
+            foreach (var kv in _parked)
+                lock (kv.Value)
+                    if (Decay(kv.Value, now) < 1) _parked.TryRemove(kv.Key, out _);
+        }
+
         private double Decay(Entry e, DateTime now)
         {
             var minutes = (now - e.UpdatedAt).TotalMinutes;

@@ -326,3 +326,54 @@ public class StateConsistencyTests
         Assert.Null(sc.Evaluate(1, 200, 0, Here, 120, 0, Here, 0, false));
     }
 }
+
+public class LedgerPersistenceTests
+{
+    private static readonly DateTime T0 = new(2026, 11, 5, 12, 0, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public void ReconnectingDoesNotResetTheScore()
+    {
+        var ledger = new ViolationLedger(new ScoringPolicy { HalfLifeMinutes = 10 });
+        ledger.Record(new Violation(7, "MOV_TELEPORT", ViolationSource.Server), T0);
+        ledger.Record(new Violation(7, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0); // 90 → kicked
+
+        ledger.Park(7, "license:abc", T0);
+        Assert.Equal(0, ledger.ScoreOf(7, T0));
+
+        // Rejoins a minute later in another slot: score is back, slightly decayed.
+        ledger.Restore(12, "license:abc", T0.AddMinutes(1));
+        Assert.InRange(ledger.ScoreOf(12, T0.AddMinutes(1)), 80, 90);
+
+        // Two more offences now cross the ban line (84 + 50 + 40 ≥ 140)...
+        ledger.Record(new Violation(12, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0.AddMinutes(1));
+        var v = new Violation(12, "MOV_TELEPORT", ViolationSource.Server);
+        ledger.Record(v, T0.AddMinutes(1));
+        Assert.Equal(EnforcementAction.Ban, v.Action);
+
+        // ...whereas a fresh player with the same two offences only reaches a kick (90).
+        var fresh = new ViolationLedger(new ScoringPolicy { HalfLifeMinutes = 10 });
+        fresh.Record(new Violation(20, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), T0);
+        var f = new Violation(20, "MOV_TELEPORT", ViolationSource.Server);
+        fresh.Record(f, T0);
+        Assert.Equal(EnforcementAction.Kick, f.Action);
+    }
+
+    [Fact]
+    public void FullyDecayedScoresAreNotKept()
+    {
+        var ledger = new ViolationLedger(new ScoringPolicy { HalfLifeMinutes = 10 });
+        ledger.Record(new Violation(1, "PLY_STAMINA", ViolationSource.Client), T0);
+        ledger.Park(1, "license:x", T0.AddHours(2));
+        Assert.Equal(0, ledger.ParkedCount);
+    }
+
+    [Fact]
+    public void RestoreWithoutParkedScoreIsANoop()
+    {
+        var ledger = new ViolationLedger(new ScoringPolicy());
+        ledger.Restore(3, "license:none", T0);
+        ledger.Restore(3, null, T0);
+        Assert.Equal(0, ledger.ScoreOf(3, T0));
+    }
+}
