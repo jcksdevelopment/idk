@@ -199,6 +199,11 @@ If your server legitimately does something a check looks for (tuning scripts cal
 `SetVehicleHandlingFloat`, infinite stamina, custom vision modes), add the code to
 `scoring.ignore`, for example `"ignore": ["VEH_HANDLING", "PLY_STAMINA"]`.
 
+Per-detection exemptions use the same ACE with the code appended:
+`add_ace group.police jcks_anticheat.bypass.WPN_GIVE_ALL allow` exempts police from that one
+detection and its countermeasure only. `scoring.alwaysBan` lists codes that ban on the first
+detection. It's an explicit opt-in, so it also applies to client-side codes.
+
 Kinds: `heal`, `armor`, `teleport`, `noclip`, `godmode`, `invisible`, `vision`, `ragdoll`, `camera`,
 `vehicle`. Server grace also reaches the client scanner. A client-side `exports.jcks_anticheat:GrantGrace`
 exists for client-only scripts, but the server ignores it.
@@ -444,7 +449,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-102 tests cover:
+103 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -470,7 +475,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 102 tests pass.
+- Both C# projects build with no warnings and the 103 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

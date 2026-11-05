@@ -240,6 +240,7 @@ namespace JcksAnticheat.Server
             };
             foreach (var kv in ClientSettings()) init[kv.Key] = kv.Value;
             init["bp"] = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace));
+            init["bc"] = ViolationCatalog.DefaultSeverity.Keys.Where(code => _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace + "." + code))).ToList();
             player.TriggerEvent("jcks_anticheat:init", MiniJson.Serialize(init));
             ServePendingAntiDump(player, id);
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));

@@ -612,3 +612,17 @@ public class NameFilterTests
         Assert.NotNull(NameFilter.Check("  ", true, Array.Empty<string>()));
     }
 }
+
+public class AlwaysBanTests
+{
+    [Fact]
+    public void AlwaysBanCodesBanOnFirstServerDetection()
+    {
+        var ledger = new ViolationLedger(new ScoringPolicy { AlwaysBan = { "NET_HONEYPOT" } });
+        var v = new Violation(1, "NET_HONEYPOT", ViolationSource.Server);
+        ledger.Record(v, DateTime.UtcNow);
+        Assert.Equal(EnforcementAction.Ban, v.Action);
+        var c = AnticheatConfig.Parse("{\"scoring\":{\"alwaysBan\":[\"WPN_EXPLOSION_BLAME\"]}}");
+        Assert.Contains("WPN_EXPLOSION_BLAME", AnticheatConfig.Parse(c.ToPrettyJson()).Scoring.AlwaysBan);
+    }
+}

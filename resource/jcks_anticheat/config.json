@@ -24,7 +24,8 @@
     "severity": {},
     "ignore": [],
     "logOnly": [],
-    "dropImmediately": ["HB_INVALID", "HB_MISSING", "NET_FLOOD"]
+    "dropImmediately": ["HB_INVALID", "HB_MISSING", "NET_FLOOD"],
+    "alwaysBan": []
   },
 
   "movement": { "onFootMaxSpeed": 12, "landMaxSpeed": 110, "airMaxSpeed": 160, "boatMaxSpeed": 60, "teleportMinDistance": 60, "speedSlack": 1.35 },

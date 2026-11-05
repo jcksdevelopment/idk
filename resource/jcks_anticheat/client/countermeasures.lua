@@ -2,6 +2,7 @@ local S = JcksAC
 
 local function enabled(code)
   return S.server.countermeasures and not S.server.bypass and not (S.server.cmSkip and S.server.cmSkip[code])
+    and not (S.server.bypassCodes and S.server.bypassCodes[code])
 end
 
 function S.shieldActive()

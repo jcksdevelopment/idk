@@ -39,6 +39,7 @@ namespace JcksAnticheat.Core.Config
                 ["ignore"] = Sorted(Scoring.Ignore),
                 ["logOnly"] = Sorted(Scoring.LogOnly),
                 ["dropImmediately"] = Sorted(Scoring.DropImmediately),
+                ["alwaysBan"] = Sorted(Scoring.AlwaysBan),
             },
             ["movement"] = new Dictionary<string, object?>
             {

@@ -71,6 +71,7 @@ namespace JcksAnticheat.Core.Detection
         public HashSet<string> Ignore { get; set; } = new HashSet<string>(StringComparer.Ordinal);
         public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal);
         public HashSet<string> DropImmediately { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "HB_INVALID", "HB_MISSING", "NET_FLOOD" };
+        public HashSet<string> AlwaysBan { get; set; } = new HashSet<string>(StringComparer.Ordinal);
     }
 
     public sealed class ViolationLedger
@@ -120,7 +121,7 @@ namespace JcksAnticheat.Core.Detection
                 v.ScoreAfter = score;
 
                 if (_policy.LogOnly.Contains(v.Code)) v.Action = EnforcementAction.Log;
-                else if (score >= _policy.BanAt) v.Action = EnforcementAction.Ban;
+                else if (score >= _policy.BanAt || _policy.AlwaysBan.Contains(v.Code)) v.Action = EnforcementAction.Ban;
                 else if (score >= _policy.KickAt || _policy.DropImmediately.Contains(v.Code)) v.Action = EnforcementAction.Kick;
                 else if (score >= _policy.ScreenshotAt) v.Action = EnforcementAction.Screenshot;
                 else v.Action = EnforcementAction.Log;

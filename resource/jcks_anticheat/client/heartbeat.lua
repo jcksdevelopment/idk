@@ -76,6 +76,10 @@ local function applySettings(data)
   S.server.cmSkip = {}
   for _, code in ipairs(data.cs or {}) do S.server.cmSkip[code] = true end
   if data.bp ~= nil then S.server.bypass = data.bp and true or false end
+  if data.bc then
+    S.server.bypassCodes = {}
+    for _, code in ipairs(data.bc) do S.server.bypassCodes[code] = true end
+  end
   S.server.textureBlacklist = data.tb or {}
 end
 

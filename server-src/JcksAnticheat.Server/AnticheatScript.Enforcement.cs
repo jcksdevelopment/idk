@@ -24,7 +24,7 @@ namespace JcksAnticheat.Server
             if (_removing.TryGetValue(v.Player, out var leaving) && leaving.banned) return;
 
             _ledger.Record(v);
-            bool bypass = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace));
+            bool bypass = _cfg.AdminAce.Any(ace => IsPlayerAceAllowed(player.Handle, ace) || IsPlayerAceAllowed(player.Handle, ace + "." + v.Code));
             Log($"{player.Name} {v}{(bypass ? " (bypass)" : "")}{(_cfg.DryRun ? " (dry run)" : "")}");
 
             _dashboard.Enqueue("detection", new Dictionary<string, object?>

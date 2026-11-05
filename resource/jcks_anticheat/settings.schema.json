@@ -15,7 +15,7 @@
           "key": "adminAce",
           "label": "Bypass ACE permissions",
           "type": "list",
-          "help": "Players with any of these ACEs are logged but never punished."
+          "help": "Players with any of these ACEs are logged but never punished or countered. For a single detection add the code: e.g. add_ace group.police jcks_anticheat.bypass.WPN_GIVE_ALL allow."
         },
         {
           "key": "maxHealth",
@@ -110,6 +110,12 @@
           "label": "Disconnect-immediately codes",
           "type": "codes",
           "help": "Kick at once regardless of score (never a ban by themselves)."
+        },
+        {
+          "key": "scoring.alwaysBan",
+          "label": "Ban-immediately codes",
+          "type": "codes",
+          "help": "Ban on the first detection regardless of score, e.g. NET_HONEYPOT or WPN_EXPLOSION_BLAME. Use only for codes you trust on your server."
         }
       ]
     },
