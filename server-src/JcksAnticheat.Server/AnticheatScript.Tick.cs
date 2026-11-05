@@ -92,13 +92,8 @@ namespace JcksAnticheat.Server
             if (_tickCount % 30 == 0) PushIntegrationSuggestions(false);
             if (_tickCount % 3 == 0 && players.Count > 1) CheckAttachments(players);
             if (_tickCount == 12 && _cfg.AuditOnStart) Log(RunAudit());
+            if (_tickCount == 20) Log(RunDoctor());
             if (_tickCount == 15 && _cfg.Backdoor.ScanOnStart) StartBackdoorScan("server start");
-            if (_tickCount == 20)
-            {
-                var (shielded, withClient) = ShieldCoverage();
-                if (withClient > 0 && shielded < withClient)
-                    Log($"shield is in {shielded}/{withClient} resources with client scripts. Injection detection, integrations and health/revive countermeasures need it: run 'jac shield install', then 'refresh' and restart.");
-            }
             if (!_scanResults.IsEmpty) DrainBackdoorResults();
 
             if (_dashboard.Enabled)

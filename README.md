@@ -264,7 +264,7 @@ Console and admin commands:
 
 ```
 jac status | reload | panel | dryrun on|off | shield install|uninstall|status
-jac audit | info <id> | reset <id> | history | rollback [n]
+jac audit | doctor | info <id> | reset <id> | history | rollback [n]
 ```
 
 ```
@@ -384,6 +384,13 @@ the work.
 from `autoActionMinSeverity`. The default is `none`. Against `cfx-server-data`, `qb-core`,
 `es_extended`, `ox_lib`, `ox_inventory` and `oxmysql` (662 files) it reports only the stock
 `runcode` resource, which really does execute arbitrary code behind the rcon password.
+
+### Setup check
+
+`jac doctor` (also printed 20 seconds after start) checks the things that silently switch features
+off: OneSync, how many resources carry the shield, the license, `screenshot-basic` and the API key
+when AI vision is on, the dashboard secret and Discord webhook variables, and whether `dryRun` or
+countermeasures are set the way you expect.
 
 ### Staff in game
 

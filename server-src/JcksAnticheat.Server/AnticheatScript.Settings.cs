@@ -115,6 +115,9 @@ namespace JcksAnticheat.Server
                 case "audit":
                     Reply(RunAudit());
                     break;
+                case "doctor":
+                    Reply(RunDoctor());
+                    break;
                 case "status":
                 default:
                     var (shielded, withClient) = ShieldCoverage();
@@ -122,9 +125,34 @@ namespace JcksAnticheat.Server
                           $"integrations={_integrations.Count} rules, countermeasures={(_cfg.Countermeasures.Enabled ? "on" : "off")}, backdoor findings={_lastFindings.Count}, " +
                           $"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit | info <id> | reset <id> | history | rollback [n]");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit | info <id> | reset <id> | history | rollback [n] | doctor");
                     break;
             }
+        }
+
+        private string RunDoctor()
+        {
+            var (shielded, withClient) = ShieldCoverage();
+            var results = Doctor.Check(new DoctorInput
+            {
+                OneSync = GetConvar("onesync", "off"),
+                ShieldedResources = shielded,
+                ResourcesWithClientCode = withClient,
+                VisionEnabled = _cfg.Vision.Enabled,
+                VisionKeySet = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_cfg.Vision.ApiKeyEnv)),
+                ScreenshotBasicStarted = GetResourceState("screenshot-basic") == "started",
+                DashboardEnabled = _cfg.Dashboard.Enabled,
+                DashboardSecretSet = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_cfg.Dashboard.SecretEnv)),
+                DiscordEnabled = _cfg.Discord.Enabled,
+                DiscordUrlSet = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(_cfg.Discord.WebhookEnv)),
+                LicenseRequired = _licenseRequired,
+                Licensed = _licensed,
+                DryRun = _cfg.DryRun,
+                Countermeasures = _cfg.Countermeasures.Enabled,
+            });
+            foreach (var (level, text) in results) Log($"  [{level.ToUpperInvariant()}] {text}");
+            int problems = results.Count(x => x.level == "fail" || x.level == "warn");
+            return problems == 0 ? "doctor: setup looks complete (details above)." : $"doctor: {problems} problem(s) to fix (listed above).";
         }
 
         private string RunAudit()
