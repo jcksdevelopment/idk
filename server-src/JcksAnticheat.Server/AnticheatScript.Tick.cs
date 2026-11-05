@@ -13,6 +13,8 @@ namespace JcksAnticheat.Server
     public sealed partial class AnticheatScript
     {
         private int _tickCount;
+        private readonly List<(int player, Violation violation, Vec3 to)> _tickTeleports = new List<(int, Violation, Vec3)>();
+        private readonly List<(int player, Vec3 pos)> _tickPositions = new List<(int, Vec3)>();
 
         /// <summary>
         /// Runs once per second. With no players online it touches nothing and goes straight back to
@@ -28,7 +30,12 @@ namespace JcksAnticheat.Server
 
             if (players.Count > 0)
             {
+                _tickTeleports.Clear();
+                _tickPositions.Clear();
                 foreach (var p in players) CheckPlayerState(p, now);
+                // Teleports are judged together: many landing on one spot is a "bring all".
+                if (_tickTeleports.Count > 0)
+                    foreach (var v in MassTeleportDetector.Process(_tickTeleports, _tickPositions)) Punish(v);
 
                 foreach (var (player, silent) in _heartbeats.FindMissing(now))
                     Punish(new Violation(player, "HB_MISSING", ViolationSource.Heartbeat, new Dictionary<string, object?>
@@ -102,7 +109,12 @@ namespace JcksAnticheat.Server
             var subject = veh != 0 ? veh : ped;
             var sample = new MovementSample(ToVec(GetEntityCoords(subject)), ToVec(GetEntityVelocity(subject)), mode, now);
 
-            foreach (var v in _movement.Evaluate(id, sample)) Punish(v);
+            _tickPositions.Add((id, sample.Position));
+            foreach (var v in _movement.Evaluate(id, sample))
+            {
+                if (v.Code == "MOV_TELEPORT") _tickTeleports.Add((id, v, sample.Position));
+                else Punish(v);
+            }
             foreach (var v in _state.Evaluate(id, health, armor, dead, now)) Punish(v);
 
             if (!_state.HasGrace(id, "godmode", now) && GetPlayerInvincible(player.Handle))

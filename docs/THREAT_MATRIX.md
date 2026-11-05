@@ -31,6 +31,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `PLY_STAMINA` | Infinite stamina | Sprinting for > 25 s with stamina still at 100 | C | `player.lua` | 10 |
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
 | `PLY_INVISIBLE` | Invisibility | `IsEntityVisible` false or alpha < 50 while not authorised | C+S | `player.lua`, server state tick | 30 |
+| `PLY_TINY_PED` | Tiny ped | Ped config flag 223 (shrink) set without a `tiny` grant | C | `player.lua` | 30 |
 | `PLY_SPECTATE` | Spectate other players | `NetworkIsInSpectatorMode` true without an admin grant (`spectate`) | C | `player.lua` | 35 |
 | `PLY_PED_MODEL` | Ped model swap | Server sees a ped model outside the allow list | S | `EntityValidator` | 20 |
 
@@ -42,6 +43,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `MOV_NOCLIP_COLLISION` | NoClip (collision off) | `GetEntityCollisionDisabled` true on ped or vehicle | C | `movement.lua` | 40 |
 | `MOV_NOCLIP_FLOAT` | NoClip (flying) | > 5 m above ground with near-zero vertical velocity for > 3 s, not in aircraft/parachute | C+S | `movement.lua`, `MovementValidator` | 35 |
 | `MOV_NOCLIP_ZVEL` | NoClip (impossible Z) | Ascending > 15 m/s on foot (gravity forbids it) | C+S | `movement.lua`, `MovementValidator` | 35 |
+| `MOV_BRING_ALL` | "Bring all players" | 3+ players teleported onto the same spot in one tick; the victims' `MOV_TELEPORT` is dropped and the non-teleported player standing there is reported | S | `MassTeleportDetector` | 50 |
 | `MOV_TELEPORT` | Teleport | Server sees displacement over the tick that implies speed > class max, with no authorised teleport | S | `MovementValidator` | 40 |
 | `MOV_SPEED_VEH` | Speedhack (vehicle) | Vehicle speed > class cap (land 110 m/s, air 160 m/s) | S | `MovementValidator` | 30 |
 
@@ -77,6 +79,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `ENT_SPAWN_FLOOD` | Object/ped spam | > 15 entities in 10 s from one owner | S | `EntityValidator` | 45 |
 | `VEH_HANDLING` | Handling edit | Handling floats drift from the baseline captured on entering | C | `vehicle.lua` | 30 |
 | `VEH_POWER` | Power/torque boost | `GetVehicleCheatPowerIncrease` > 1.0 or top-speed modifier set | C | `vehicle.lua` | 30 |
+| `VEH_RAINBOW` | Rainbow vehicle | Paint colour changes 12+ times within 5 s without a `vehicle` grant | C | `vehicle.lua` | 20 |
 | `VEH_HIJACK` | Hijack / warp into another player's vehicle | Driver seat of a locked vehicle another online player spawned, without a `vehicle` grant | S | `VehicleOwnership` | 40 |
 | `VEH_REPAIR` | Instant vehicle repair ("fix vehicle") | Engine or body health jumps from < 600 to full in 0.5 s without a `vehicle` grant | C | `vehicle.lua` | 25 |
 | `VEH_PLATE` | Plate changer | Plate text changes while driving the same vehicle without a `vehicle` grant | C | `vehicle.lua` | 20 |

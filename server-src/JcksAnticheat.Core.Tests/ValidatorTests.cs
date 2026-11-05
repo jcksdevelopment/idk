@@ -559,3 +559,42 @@ public class ProtectedEventConfigTests
         Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{\"scoring\":{\"severity\":{\"bad code\":5}}}"));
     }
 }
+
+public class MassTeleportTests
+{
+    private static Violation Tp(int p) => new(p, "MOV_TELEPORT", ViolationSource.Server);
+
+    [Fact]
+    public void VictimsOfBringAllAreSparedAndThePullerIsReported()
+    {
+        var spot = new Vec3(500, 500, 30);
+        var teleports = new List<(int, Violation, Vec3)>
+        {
+            (2, Tp(2), new Vec3(502, 500, 30)), (3, Tp(3), new Vec3(498, 503, 30)), (4, Tp(4), new Vec3(501, 497, 30)),
+        };
+        var everyone = new List<(int, Vec3)> { (1, spot), (2, new Vec3(502, 500, 30)), (3, new Vec3(498, 503, 30)), (4, new Vec3(501, 497, 30)), (9, new Vec3(-2000, 0, 0)) };
+        var result = MassTeleportDetector.Process(teleports, everyone);
+        var v = Assert.Single(result);
+        Assert.Equal("MOV_BRING_ALL", v.Code);
+        Assert.Equal(1, v.Player);
+    }
+
+    [Fact]
+    public void ScatteredTeleportsStayIndividual()
+    {
+        var teleports = new List<(int, Violation, Vec3)>
+        {
+            (2, Tp(2), new Vec3(0, 0, 0)), (3, Tp(3), new Vec3(1000, 0, 0)), (4, Tp(4), new Vec3(0, 1000, 0)),
+        };
+        var result = MassTeleportDetector.Process(teleports, new List<(int, Vec3)>());
+        Assert.Equal(3, result.Count);
+        Assert.All(result, v => Assert.Equal("MOV_TELEPORT", v.Code));
+    }
+
+    [Fact]
+    public void TwoPlayersTogetherAreNotAMassTeleport()
+    {
+        var teleports = new List<(int, Violation, Vec3)> { (2, Tp(2), new Vec3(0, 0, 0)), (3, Tp(3), new Vec3(3, 0, 0)) };
+        Assert.Equal(2, MassTeleportDetector.Process(teleports, new List<(int, Vec3)>()).Count);
+    }
+}

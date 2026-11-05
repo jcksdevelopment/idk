@@ -36,6 +36,14 @@ S.register("player.state", 2000, function()
   end
 end)
 
+-- Tiny ped: the "shrink" ped config flag (223) that menus set to make the player tiny.
+S.register("player.tiny", 5000, function()
+  if S.allowed("tiny") then return end
+  if GetPedConfigFlag(PlayerPedId(), 223, true) then
+    S.flag("PLY_TINY_PED", {})
+  end
+end)
+
 -- Spectating other players (menus' "spectate player" option) without an admin grant.
 S.register("player.spectate", 3000, function()
   if S.allowed("spectate") or S.allowed("noclip") then return end

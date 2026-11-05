@@ -28,6 +28,28 @@ S.register("vehicle.repair", 500, function()
   lastVeh, lastEngine, lastBody, lastPlate = veh, engine, body, plate
 end)
 
+-- Rainbow vehicle: the paint colour changing many times in a few seconds (menu "rainbow paint").
+-- Paint shops change it a handful of times while browsing; a menu cycles it every frame.
+local paintChanges, paintWindowStart, lastPaint = 0, 0, nil
+S.register("vehicle.rainbow", 250, function()
+  local ped = PlayerPedId()
+  local veh = GetVehiclePedIsIn(ped, false)
+  if veh == 0 or S.allowed("vehicle") then lastPaint = nil return end
+  local r, g, b = GetVehicleCustomPrimaryColour(veh)
+  local p1, p2 = GetVehicleColours(veh)
+  local paint = table.concat({ r, g, b, p1, p2 }, ",")
+  local now = GetGameTimer()
+  if now - paintWindowStart > 5000 then paintChanges, paintWindowStart = 0, now end
+  if lastPaint and paint ~= lastPaint then
+    paintChanges = paintChanges + 1
+    if paintChanges >= 12 then
+      S.flag("VEH_RAINBOW", { changes = paintChanges })
+      paintChanges = 0
+    end
+  end
+  lastPaint = paint
+end)
+
 -- First handling values seen for each model this session. Handling is per-model in GTA, so a
 -- menu that edits one car's handling changes what every later car of that model reads too;
 -- comparing against the first observation catches edits made after we started watching.
