@@ -24,6 +24,7 @@ namespace JcksAnticheat.Core.Config
             ["adminAce"] = AdminAce.ToList(),
             ["maxWeapons"] = MaxWeapons,
             ["textureBlacklist"] = TextureBlacklist.ToList(),
+            ["server"] = ServerThresholds.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["client"] = ClientThresholds.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["blockHtmlNames"] = BlockHtmlNames,
             ["nameBlacklist"] = NameBlacklist.ToList(),
@@ -53,6 +54,8 @@ namespace JcksAnticheat.Core.Config
                 ["bodyDamageMultiplier"] = Damage.BodyDamageMultiplier, ["headDamageMultiplier"] = Damage.HeadDamageMultiplier,
                 ["rangeMultiplier"] = Damage.RangeMultiplier, ["maxAimAngle"] = Damage.MaxAimAngle,
                 ["maxTrajectoryAngle"] = Damage.MaxTrajectoryAngle, ["headshotRatioMax"] = Damage.HeadshotRatioMax,
+                ["aimAngleMinDistance"] = Damage.AimAngleMinDistance, ["rateMultiplier"] = Damage.RateMultiplier,
+                ["headshotSampleSize"] = Damage.HeadshotSampleSize, ["headshotMinDistance"] = Damage.HeadshotMinDistance,
             },
             ["explosions"] = new Dictionary<string, object?>
             {
@@ -177,6 +180,9 @@ namespace JcksAnticheat.Core.Config
                 "backdoorScanner severities must be low, medium or high");
             Require(new[] { "none", "remove", "quarantine" }.Contains(Backdoor.AutoAction), "backdoorScanner.autoAction must be none, remove or quarantine");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(Discord.MinAction), "discord.minAction must be log, screenshot, kick or ban");
+            foreach (var kv in ServerThresholds)
+                Require(kv.Value > 0 && kv.Value < 100000, "server." + kv.Key + " must be positive");
+            Require(Damage.RateMultiplier >= 1 && Damage.HeadshotSampleSize >= 5 && Damage.AimAngleMinDistance >= 0 && Damage.HeadshotMinDistance >= 0, "damage sampling settings invalid");
             foreach (var kv in ClientThresholds)
                 Require(kv.Value > 0 && kv.Value < 100000, "client." + kv.Key + " must be positive");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");

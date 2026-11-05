@@ -8,6 +8,7 @@
   "maxWeapons": 25,
   "textureBlacklist": [],
   "protectedEvents": {},
+  "server": {"statePositionTolerance": 25, "stateSpeedToleranceSeconds": 2, "stateHealthTolerance": 40, "stateArmorTolerance": 40, "stateStreak": 3, "absorbHits": 6, "absorbWindowSeconds": 30, "serverHealthJump": 25, "serverArmorJump": 10},
   "client": {"freecamGameplayDistance": 30, "freecamDistance": 50, "freecamSeconds": 8, "noclipRiseSpeed": 15, "noclipFloatHeight": 5, "noclipFloatSeconds": 3, "godmodeProofs": 2, "healthJump": 25, "armorJump": 10, "footSpeed": 12, "superjumpVelocity": 9, "superjumpHeight": 3.5, "staminaSeconds": 25, "repairFromHealth": 600, "rainbowChanges": 12, "aimSnapDegrees": 70, "triggerbotMs": 60, "triggerbotCount": 5, "infiniteAmmoShots": 10},
   "blockHtmlNames": true,
   "nameBlacklist": [],
@@ -30,7 +31,7 @@
   },
 
   "movement": { "onFootMaxSpeed": 12, "landMaxSpeed": 110, "airMaxSpeed": 160, "boatMaxSpeed": 60, "teleportMinDistance": 60, "speedSlack": 1.35 },
-  "damage": { "bodyDamageMultiplier": 1.6, "headDamageMultiplier": 4.0, "rangeMultiplier": 1.25, "maxAimAngle": 60, "maxTrajectoryAngle": 45, "headshotRatioMax": 0.7 },
+  "damage": { "bodyDamageMultiplier": 1.6, "headDamageMultiplier": 4.0, "rangeMultiplier": 1.25, "maxAimAngle": 60, "maxTrajectoryAngle": 45, "aimAngleMinDistance": 4, "rateMultiplier": 1.5, "headshotSampleSize": 25, "headshotMinDistance": 15, "headshotRatioMax": 0.7 },
   "explosions": { "blacklist": [16, 18, 26, 29, 32, 35, 36, 37, 41], "maxPerSecond": 4, "maxPer10Seconds": 12 },
   "gameEvents": { "projectileOriginMaxDistance": 12, "maxProjectilesPer10s": 20, "maxFiresPer10s": 10, "maxPtfxPer10s": 40, "maxPtfxScale": 5 },
   "entities": { "maxVehiclesPer10s": 5, "maxEntitiesPer10s": 15, "allowedPedModels": [] },

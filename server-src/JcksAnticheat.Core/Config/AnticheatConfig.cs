@@ -129,6 +129,19 @@ namespace JcksAnticheat.Core.Config
             ["triggerbotCount"] = 5,
             ["infiniteAmmoShots"] = 10,
         };
+        public static readonly Dictionary<string, double> ServerThresholdDefaults = new Dictionary<string, double>(StringComparer.Ordinal)
+        {
+            ["statePositionTolerance"] = 25,
+            ["stateSpeedToleranceSeconds"] = 2,
+            ["stateHealthTolerance"] = 40,
+            ["stateArmorTolerance"] = 40,
+            ["stateStreak"] = 3,
+            ["absorbHits"] = 6,
+            ["absorbWindowSeconds"] = 30,
+            ["serverHealthJump"] = 25,
+            ["serverArmorJump"] = 10,
+        };
+        public Dictionary<string, double> ServerThresholds { get; set; } = new Dictionary<string, double>(ServerThresholdDefaults, StringComparer.Ordinal);
         public Dictionary<string, double> ClientThresholds { get; set; } = new Dictionary<string, double>(ClientThresholdDefaults, StringComparer.Ordinal);
         public bool BlockHtmlNames { get; set; } = true;
         public List<string> NameBlacklist { get; set; } = new List<string>();
@@ -158,6 +171,9 @@ namespace JcksAnticheat.Core.Config
             cfg.AdminAce = Strings(root, "adminAce") ?? cfg.AdminAce;
             cfg.MaxWeapons = (int)(root.Num("maxWeapons") ?? cfg.MaxWeapons);
             cfg.TextureBlacklist = Strings(root, "textureBlacklist") ?? cfg.TextureBlacklist;
+            if (root.Obj("server") is { } sv)
+                foreach (var kv in sv)
+                    if (kv.Value is double d && ServerThresholdDefaults.ContainsKey(kv.Key)) cfg.ServerThresholds[kv.Key] = d;
             if (root.Obj("client") is { } ct)
                 foreach (var kv in ct)
                     if (kv.Value is double d && ClientThresholdDefaults.ContainsKey(kv.Key)) cfg.ClientThresholds[kv.Key] = d;
@@ -202,6 +218,10 @@ namespace JcksAnticheat.Core.Config
                 cfg.Damage.MaxAimAngle = (float)(dmg.Num("maxAimAngle") ?? cfg.Damage.MaxAimAngle);
                 cfg.Damage.MaxTrajectoryAngle = (float)(dmg.Num("maxTrajectoryAngle") ?? cfg.Damage.MaxTrajectoryAngle);
                 cfg.Damage.HeadshotRatioMax = dmg.Num("headshotRatioMax") ?? cfg.Damage.HeadshotRatioMax;
+                cfg.Damage.AimAngleMinDistance = (float)(dmg.Num("aimAngleMinDistance") ?? cfg.Damage.AimAngleMinDistance);
+                cfg.Damage.RateMultiplier = (float)(dmg.Num("rateMultiplier") ?? cfg.Damage.RateMultiplier);
+                cfg.Damage.HeadshotSampleSize = (int)(dmg.Num("headshotSampleSize") ?? cfg.Damage.HeadshotSampleSize);
+                cfg.Damage.HeadshotMinDistance = (float)(dmg.Num("headshotMinDistance") ?? cfg.Damage.HeadshotMinDistance);
             }
 
             if (root.Obj("explosions") is { } ex)

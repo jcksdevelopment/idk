@@ -444,6 +444,85 @@
       ]
     },
     {
+      "id": "server",
+      "title": "Server checks",
+      "fields": [
+        {
+          "key": "server.statePositionTolerance",
+          "label": "State check: position tolerance (m)",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1,
+          "help": "Thresholds of the server-side checks: client-vs-server state comparison (HB_STATE_MISMATCH), damage absorption (PLY_DAMAGE_ABSORB) and health/armour jumps seen by the server."
+        },
+        {
+          "key": "server.stateSpeedToleranceSeconds",
+          "label": "State check: extra tolerance per m/s (s)",
+          "type": "number",
+          "min": 0.1,
+          "max": 10,
+          "step": 0.1
+        },
+        {
+          "key": "server.stateHealthTolerance",
+          "label": "State check: health tolerance",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "server.stateArmorTolerance",
+          "label": "State check: armour tolerance",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "server.stateStreak",
+          "label": "State check: mismatching heartbeats in a row",
+          "type": "number",
+          "min": 1,
+          "max": 20,
+          "step": 1
+        },
+        {
+          "key": "server.absorbHits",
+          "label": "Semi-godmode: absorbed hits",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "server.absorbWindowSeconds",
+          "label": "Semi-godmode: window (s)",
+          "type": "number",
+          "min": 5,
+          "max": 600,
+          "step": 5
+        },
+        {
+          "key": "server.serverHealthJump",
+          "label": "Server: health jump per second",
+          "type": "number",
+          "min": 5,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "server.serverArmorJump",
+          "label": "Server: armour jump per second",
+          "type": "number",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        }
+      ]
+    },
+    {
       "id": "combat",
       "title": "Combat",
       "fields": [
@@ -509,6 +588,38 @@
           "label": "Blacklisted weapons",
           "type": "list",
           "help": "Weapon names, e.g. WEAPON_RPG."
+        },
+        {
+          "key": "damage.aimAngleMinDistance",
+          "label": "Silent aim: ignore hits closer than (m)",
+          "type": "number",
+          "min": 0,
+          "max": 50,
+          "step": 0.5
+        },
+        {
+          "key": "damage.rateMultiplier",
+          "label": "Rapid fire: allowed \u00d7 weapon fire rate",
+          "type": "number",
+          "min": 1,
+          "max": 5,
+          "step": 0.05
+        },
+        {
+          "key": "damage.headshotSampleSize",
+          "label": "Headshot ratio: hits per sample",
+          "type": "number",
+          "min": 5,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "damage.headshotMinDistance",
+          "label": "Headshot ratio: count hits from (m)",
+          "type": "number",
+          "min": 0,
+          "max": 200,
+          "step": 1
         }
       ]
     },

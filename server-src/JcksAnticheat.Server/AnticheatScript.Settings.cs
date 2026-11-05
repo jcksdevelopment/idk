@@ -195,6 +195,7 @@ namespace JcksAnticheat.Server
             _heartbeats.MissingAfter = TimeSpan.FromSeconds(_cfg.HeartbeatMissingSeconds);
             _heartbeats.HandshakeTimeout = TimeSpan.FromSeconds(_cfg.HandshakeTimeoutSeconds);
             _state.MaxHealth = _cfg.MaxHealth;
+            ApplyServerThresholds();
             RegisterHoneypots();
             RegisterProtectedEvents();
             RebuildIntegrations();

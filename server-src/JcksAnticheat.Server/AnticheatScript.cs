@@ -85,6 +85,7 @@ namespace JcksAnticheat.Server
             RegisterEvents();
             foreach (var p in Players) OnPlayerJoining(p, "");
             RegisterExports();
+            ApplyServerThresholds();
             InitLicense();
             RebuildIntegrations();
             RegisterSettings();
@@ -301,6 +302,20 @@ namespace JcksAnticheat.Server
                 _state.GrantGrace(id, kind, duration, now);
                 RecordGrant(id, kind, now);
             }
+        }
+
+        private void ApplyServerThresholds()
+        {
+            var t = _cfg.ServerThresholds;
+            _consistency.PositionTolerance = (float)t["statePositionTolerance"];
+            _consistency.SpeedToleranceSeconds = (float)t["stateSpeedToleranceSeconds"];
+            _consistency.HealthTolerance = (int)t["stateHealthTolerance"];
+            _consistency.ArmorTolerance = (int)t["stateArmorTolerance"];
+            _consistency.StreakToReport = Math.Max(1, (int)t["stateStreak"]);
+            _absorb.Threshold = Math.Max(1, (int)t["absorbHits"]);
+            _absorb.Window = TimeSpan.FromSeconds(t["absorbWindowSeconds"]);
+            _state.HealthJump = (int)t["serverHealthJump"];
+            _state.ArmorJump = (int)t["serverArmorJump"];
         }
 
         private void RebuildIntegrations()

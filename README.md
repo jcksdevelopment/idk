@@ -244,7 +244,8 @@ entry there to appear in both.
 Everything lives in `resource/jcks_anticheat/config.json`. The thresholds of every client check
 (freecam distance, super jump height, on-foot speed, aim snap angle, triggerbot reaction time,
 health jump, noclip float height, rainbow paint, and so on) are under `client` and in the
-"Client checks" section of the panel and dashboard. The file also holds: scoring thresholds and half-life, per-code
+"Client checks" section of the panel and dashboard. Server-side tolerances (client-vs-server
+state comparison, damage absorption, health/armour jumps) are under `server` ("Server checks"). The file also holds: scoring thresholds and half-life, per-code
 severity overrides, `ignore` codes (switched off entirely; the client stops sending them), `logOnly` codes, movement and damage limits, explosion and entity rules,
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
