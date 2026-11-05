@@ -149,11 +149,26 @@ function Node.new(path: string, name: string, parent: any)
 	return setmetatable({ Path = path, Name = name, Parent = parent, _children = nil }, Node)
 end
 
+-- Directory listings are read up front: Lune's fs calls yield, and yielding
+-- inside a metamethod (__index) is not allowed.
+local listings: { [string]: { string } } = {}
+local function preload(dir: string)
+	local entries = fs.readDir(dir)
+	listings[dir] = entries
+	for _, entry in entries do
+		if fs.isDir(dir .. "/" .. entry) then
+			preload(dir .. "/" .. entry)
+		end
+	end
+end
+preload("src/shared")
+
 function Node.FindFirstChild(self, name: string)
-	if not fs.isDir(self.Path) then
+	local entries = listings[self.Path]
+	if not entries then
 		return nil
 	end
-	for _, entry in fs.readDir(self.Path) do
+	for _, entry in entries do
 		local childName = string.gsub(string.gsub(entry, "%.luau$", ""), "%.client$", "")
 		childName = string.gsub(childName, "%.server$", "")
 		if childName == name then
@@ -164,23 +179,25 @@ function Node.FindFirstChild(self, name: string)
 end
 Node.WaitForChild = Node.FindFirstChild
 function Node.IsA(self, className: string)
-	return className == "ModuleScript" and not fs.isDir(self.Path)
+	return className == "ModuleScript" and listings[self.Path] == nil
 end
 
 local shared = Node.new("src/shared", "Shared", nil)
 local cache: { [string]: any } = {}
 
 local customRequire
-local env = setmetatable({}, { __index = function(_, k)
-	return mocks[k] or (_G :: any)[k]
-end })
 
 function customRequire(node: any)
 	local path = node.Path
 	if cache[path] ~= nil then
 		return cache[path]
 	end
-	local moduleEnv = setmetatable({ script = node, require = customRequire }, { __index = env })
+	-- Lune copies the environment's own fields (it does not follow
+	-- metatables), so mocks are copied in explicitly.
+	local moduleEnv: { [string]: any } = { script = node, require = customRequire }
+	for name, value in mocks do
+		moduleEnv[name] = value
+	end
 	moduleEnv.game = {
 		GetService = function(_, name)
 			if name == "ReplicatedStorage" then
@@ -279,6 +296,46 @@ check(Pets.Get("Dragon") ~= nil and #Pets.ByRarity("Legendary") == 3, "pet catal
 check(Icons.Lookup("Items", "RustySpoon") == nil, "empty image id falls back to emoji")
 for _, template in Items.All() do
 	check(Config.Images.Items[template.Id] ~= nil, "image slot for " .. template.Id)
+end
+
+-- Box balance: average item value must beat the price, and pricier
+-- regular boxes must earn more per minute (repair time ~70% with scrubbing).
+local avgQuality = (Config.QualityRange.Min + Config.QualityRange.Max) / 2
+local shinyFactor = 1 + Config.Shiny.Chance * (Config.Shiny.ValueMultiplier - 1)
+local function crateStats(crate)
+	local total, value, seconds = 0, 0, 0
+	for _, w in crate.Weights do
+		total += w
+	end
+	for rarity, w in crate.Weights do
+		local pool = if crate.Event then Items.GetEventPool(crate.Event, rarity) else Items.GetByRarity(rarity)
+		local sum = 0
+		for _, template in pool do
+			sum += template.BaseValue
+		end
+		value += (w / total) * (sum / #pool) * avgQuality * shinyFactor
+		seconds += (w / total) * Config.Repair.SecondsByRarity[rarity]
+	end
+	seconds = seconds * 0.7 + 6
+	return value, (value - crate.Price) / seconds * 60
+end
+local regularCrates = {}
+for key, crate in Config.Crates do
+	local value, perMinute = crateStats(crate)
+	check(value > crate.Price, string.format("box %s is profitable (EV %.0f > price %d)", key, value, crate.Price))
+	print(string.format("  %-14s price %5s  avg value %6s  profit/min %5s", key, Format.Cash(crate.Price), Format.Cash(value), Format.Cash(perMinute)))
+	if not crate.Event then
+		table.insert(regularCrates, { Key = key, Price = crate.Price, PerMinute = perMinute })
+	end
+end
+table.sort(regularCrates, function(a, b)
+	return a.Price < b.Price
+end)
+for i = 2, #regularCrates do
+	check(
+		regularCrates[i].PerMinute > regularCrates[i - 1].PerMinute,
+		regularCrates[i].Key .. " earns more per minute than " .. regularCrates[i - 1].Key
+	)
 end
 
 ------------------------------------------------------------------------

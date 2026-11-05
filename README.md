@@ -119,8 +119,8 @@ src/
 | Feature | Behaviour |
 |---|---|
 | Mystery Junk Box ($25, level 1) | Common 70% / Rare 25% / Legendary 5%, rolled on the server |
-| Estate Sale Chest ($250, level 3) | 40 / 45 / 15 |
-| Royal Treasure ($1,500, level 8) | 15 / 50 / 35 |
+| Estate Sale Chest ($80, level 3) | 40 / 45 / 15 |
+| Royal Treasure ($150, level 8) | 15 / 50 / 35 |
 | ✨ Shiny | 3% of found items, worth 2.5× |
 | Repair | Common 8 s, Rare 30 s, Legendary 90 s. Timer persists across sessions (`os.time`) |
 | 🧽 Scrub | Tap a repairing item (card or workbench slot): −0.5 s per tap, at most 60% of the repair, max 8 taps/s |
@@ -164,6 +164,15 @@ Add a table to `src/shared/Locale.luau`, register it in `tables`, and add its co
 
 ## Launch & monetization
 See **[docs/LAUNCH_PLAN.md](docs/LAUNCH_PLAN.md)** (costs, publishing, pricing, marketing, 30-day plan) and **[docs/ART_PROMPTS.md](docs/ART_PROMPTS.md)** (image prompts for every asset).
+
+## Tests (no Roblox needed)
+```bash
+lune run tests/run.luau
+```
+Compiles every script with the Luau compiler, unit-checks the shared modules
+(items, SK/EN texts, levels, prices, events, pets) and checks box balance plus
+a 60-minute economy simulation. Install Lune with `rokit install` or
+`cargo install lune`.
 
 ## Development
 

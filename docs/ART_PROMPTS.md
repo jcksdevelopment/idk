@@ -825,7 +825,7 @@ no watermark. 512x512.
 Negative: text, letters, price tag numbers, Robux symbol, watermark, background, open box, realistic photo, dark, trash bag
 ```
 
-#### 🧰 Truhlica starožitností — `AntiqueChest` ($250, úroveň 3)
+#### 🧰 Truhlica starožitností — `AntiqueChest` ($80, úroveň 3)
 ```text
 Game icon of a closed antique wooden chest with polished brass corners, a round brass lock plate,
 carved floral details and a faded velvet ribbon, a soft blue glow leaking from the seams, 3/4 top
@@ -835,7 +835,7 @@ text, no watermark. 512x512.
 Negative: text, letters, Robux symbol, watermark, background, open chest, skull, pirate, realistic photo, dark
 ```
 
-#### 👑 Kráľovský poklad — `RoyalTreasure` ($1,500, úroveň 8)
+#### 👑 Kráľovský poklad — `RoyalTreasure` ($150, úroveň 8)
 ```text
 Game icon of a closed royal treasure chest in deep purple velvet and polished gold trim, a small
 golden crown emblem on the lid, jewels embedded on the front, warm golden light rays escaping from

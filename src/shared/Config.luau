@@ -102,6 +102,8 @@ Config.Shiny = {
 }
 
 -- Rarity weights per crate. JunkBox uses the canonical 70 / 25 / 5 split.
+-- Prices are balanced so every box is profitable on average and pricier boxes
+-- earn MORE per minute of play (checked by tests/run.luau).
 Config.Crates = {
 	JunkBox = {
 		Icon = "📦",
@@ -112,14 +114,14 @@ Config.Crates = {
 	},
 	AntiqueChest = {
 		Icon = "🧰",
-		Price = 250,
+		Price = 80,
 		Order = 2,
 		UnlockLevel = 3,
 		Weights = { Trash = 40, Rare = 45, Legendary = 15 },
 	},
 	WinterGift = {
 		Icon = "🎁",
-		Price = 300,
+		Price = 120,
 		Order = 0,
 		UnlockLevel = 1,
 		Event = "Winter", -- only sold while the event is active; drops only event items
@@ -127,7 +129,7 @@ Config.Crates = {
 	},
 	SpookyBox = {
 		Icon = "🎃",
-		Price = 300,
+		Price = 120,
 		Order = 0,
 		UnlockLevel = 1,
 		Event = "Halloween",
@@ -135,7 +137,7 @@ Config.Crates = {
 	},
 	RoyalTreasure = {
 		Icon = "👑",
-		Price = 1500,
+		Price = 150,
 		Order = 3,
 		UnlockLevel = 8,
 		Weights = { Trash = 15, Rare = 50, Legendary = 35 },
