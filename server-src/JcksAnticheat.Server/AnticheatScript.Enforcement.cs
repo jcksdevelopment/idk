@@ -154,6 +154,14 @@ namespace JcksAnticheat.Server
                 case "reload":
                     Log("dashboard reload: " + ReloadFromDisk((cmd.Actor ?? "dashboard") + " (web)"));
                     break;
+                case "reset":
+                    if (Players[cmd.Player] != null)
+                    {
+                        _ledger.Forget(cmd.Player);
+                        _recent.Forget(cmd.Player);
+                        Log($"score of #{cmd.Player} reset by {cmd.Actor} (web)");
+                    }
+                    break;
                 case "screenshot":
                     _lastCapture.TryRemove(cmd.Player, out _);
                     RequestScreenshot(cmd.Player, "manual request by " + (cmd.Actor ?? "staff"));

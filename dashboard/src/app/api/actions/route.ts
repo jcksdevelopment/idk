@@ -5,7 +5,7 @@ import { isServerConnected } from "@/lib/servers";
 import { store } from "@/lib/store";
 import type { CommandType } from "@/lib/types";
 
-const TYPES = new Set<CommandType>(["ban", "unban", "kick", "screenshot"]);
+const TYPES = new Set<CommandType>(["ban", "unban", "kick", "screenshot", "reset"]);
 const NEEDS_MOD = new Set<CommandType>(["ban", "unban"]);
 
 export const POST = withSession(async (session, req) => {
@@ -58,6 +58,10 @@ function simulate(serverId: string, type: CommandType, c: { player?: number; ban
       });
     }
     if (type === "kick" && p) store.pushLog({ level: "warn", kind: "kick", text: `KICK ${p.name} (#${p.id}) by ${c.actor}: ${c.reason ?? "no reason"}` });
+    if (type === "reset" && p) {
+      store.resetScore(serverId, p.id);
+      store.pushLog({ level: "info", kind: "command", text: `score of ${p.name} (#${p.id}) reset by ${c.actor}` });
+    }
     if (type === "screenshot" && p) store.pushLog({ level: "info", kind: "screenshot", text: `screenshot requested for ${p.name} (#${p.id}) (demo: no game client to capture)` });
   }, 800);
 }

@@ -36,6 +36,7 @@ local DEFAULTS = {
   gravityTolerance = 2,
   vehicleDamageModifierMax = 1.5,
   weaponDamageModifierMax = 1.5,
+  scanIntervalScale = 1,
 }
 
 function S.t(name)
@@ -118,7 +119,7 @@ CreateThread(function()
       for i = 1, #checks do
         local c = checks[i]
         if now >= c.nextAt then
-          c.nextAt = now + c.interval
+          c.nextAt = now + math.floor(c.interval * math.min(4, math.max(0.5, S.t("scanIntervalScale"))))
           local ok, err = pcall(c.fn)
           if not ok then
             S.flag("CHK_ERROR", { n = c.name, e = tostring(err):sub(1, 120) })

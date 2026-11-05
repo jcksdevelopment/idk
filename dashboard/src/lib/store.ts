@@ -120,6 +120,13 @@ class Store {
     this.scheduleSave();
   }
 
+  resetScore(serverId: string, id: number) {
+    const p = this.state.players[`${serverId}:${id}`];
+    if (!p) return;
+    p.score = 0;
+    this.scheduleSave();
+  }
+
   linkBanIdentifiers(id: string, name: string, added: string[]) {
     const b = this.state.bans[id];
     if (!b) return;

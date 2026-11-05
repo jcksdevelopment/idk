@@ -9,7 +9,7 @@
   "textureBlacklist": [],
   "protectedEvents": {},
   "server": {"statePositionTolerance": 25, "stateSpeedToleranceSeconds": 2, "stateHealthTolerance": 40, "stateArmorTolerance": 40, "stateStreak": 3, "absorbHits": 6, "absorbWindowSeconds": 30, "serverHealthJump": 25, "serverArmorJump": 10, "collisionStreakSeconds": 3},
-  "client": {"freecamGameplayDistance": 30, "freecamDistance": 50, "freecamSeconds": 8, "noclipRiseSpeed": 15, "noclipFloatHeight": 5, "noclipFloatSeconds": 3, "godmodeProofs": 2, "healthJump": 25, "armorJump": 10, "footSpeed": 12, "superjumpVelocity": 9, "superjumpHeight": 3.5, "staminaSeconds": 25, "repairFromHealth": 600, "rainbowChanges": 12, "aimSnapDegrees": 70, "triggerbotMs": 60, "triggerbotCount": 5, "infiniteAmmoShots": 10, "topSpeedModifierMax": 100, "gravityTolerance": 2, "vehicleDamageModifierMax": 1.5, "weaponDamageModifierMax": 1.5},
+  "client": {"freecamGameplayDistance": 30, "freecamDistance": 50, "freecamSeconds": 8, "noclipRiseSpeed": 15, "noclipFloatHeight": 5, "noclipFloatSeconds": 3, "godmodeProofs": 2, "healthJump": 25, "armorJump": 10, "footSpeed": 12, "superjumpVelocity": 9, "superjumpHeight": 3.5, "staminaSeconds": 25, "repairFromHealth": 600, "rainbowChanges": 12, "aimSnapDegrees": 70, "triggerbotMs": 60, "triggerbotCount": 5, "infiniteAmmoShots": 10, "topSpeedModifierMax": 100, "gravityTolerance": 2, "vehicleDamageModifierMax": 1.5, "weaponDamageModifierMax": 1.5, "scanIntervalScale": 1},
   "blockHtmlNames": true,
   "nameBlacklist": [],
   "chatSpoofCheck": true,

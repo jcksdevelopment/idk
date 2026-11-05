@@ -476,6 +476,15 @@
           "min": 1,
           "max": 100,
           "step": 0.1
+        },
+        {
+          "key": "client.scanIntervalScale",
+          "label": "Client scan speed",
+          "type": "number",
+          "min": 0.5,
+          "max": 4,
+          "step": 0.25,
+          "help": "Multiplies how often every client check runs. 1 is the default; 2 runs them half as often (lighter on weak PCs, slower to catch); 0.5 runs them twice as often. Aim and shot checks that run every frame are not affected."
         }
       ]
     },

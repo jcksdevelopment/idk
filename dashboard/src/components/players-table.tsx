@@ -115,6 +115,9 @@ export function PlayersTable() {
                       <Button size="sm" variant="ghost" disabled={!p.online} onClick={() => setAction({ type: "screenshot", player: p.id, serverId: p.serverId, name: p.name })}>
                         Capture
                       </Button>
+                      <Button size="sm" variant="ghost" disabled={!p.online || p.score === 0} onClick={() => setAction({ type: "reset", player: p.id, serverId: p.serverId, name: p.name })}>
+                        Reset
+                      </Button>
                       <Button size="sm" variant="ghost" disabled={!p.online} onClick={() => setAction({ type: "kick", player: p.id, serverId: p.serverId, name: p.name })}>
                         Kick
                       </Button>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { postAction } from "@/lib/client";
 import { Button, Dialog, Input } from "./ui";
 
-export type PendingAction = { type: "ban" | "kick" | "screenshot"; player: number; serverId: string; name: string } | null;
+export type PendingAction = { type: "ban" | "kick" | "screenshot" | "reset"; player: number; serverId: string; name: string } | null;
 
 const DURATIONS: [string, number | undefined][] = [
   ["Permanent", undefined],
@@ -42,13 +42,15 @@ export function ActionDialog({ action, onClose, onDone }: { action: PendingActio
     }
   }
 
-  const title = action ? { ban: `Ban ${action.name}`, kick: `Kick ${action.name}`, screenshot: `Capture ${action.name}'s screen` }[action.type] : "";
+  const title = action ? { ban: `Ban ${action.name}`, kick: `Kick ${action.name}`, screenshot: `Capture ${action.name}'s screen`, reset: `Reset ${action.name}'s score` }[action.type] : "";
 
   return (
     <Dialog open={!!action} onClose={close} title={title}>
       <form onSubmit={submit} className="space-y-4 px-5 py-4">
         {action?.type === "screenshot" ? (
           <p className="text-sm text-muted">Requests a frame from the player&apos;s game. If AI vision is configured, the verdict lands in the Vision Vault.</p>
+        ) : action?.type === "reset" ? (
+          <p className="text-sm text-muted">Sets the player&apos;s anticheat score back to 0, for example after a confirmed false positive. Their detection history stays.</p>
         ) : (
           <label className="block space-y-1.5">
             <span className="text-xs text-muted">Reason{action?.type === "ban" ? "" : " (optional)"}</span>
@@ -79,7 +81,7 @@ export function ActionDialog({ action, onClose, onDone }: { action: PendingActio
             Cancel
           </Button>
           <Button type="submit" variant={action?.type === "ban" ? "danger" : "primary"} disabled={busy}>
-            {busy ? "Sending…" : action?.type === "ban" ? "Ban player" : action?.type === "kick" ? "Kick player" : "Request capture"}
+            {busy ? "Sending…" : action?.type === "ban" ? "Ban player" : action?.type === "kick" ? "Kick player" : action?.type === "reset" ? "Reset score" : "Request capture"}
           </Button>
         </div>
       </form>
