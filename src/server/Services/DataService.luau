@@ -203,7 +203,7 @@ local function sanitize(raw: any): Types.PlayerData
 		end
 	end
 
-	data.XP = readNumber(raw.XP, 0, 0, 1e12)
+	data.XP = math.floor(readNumber(raw.XP, 0, 0, 1e12))
 
 	local function readFlags(source: any, target: { [string]: boolean }, isValidKey: (string) -> boolean)
 		if type(source) ~= "table" then

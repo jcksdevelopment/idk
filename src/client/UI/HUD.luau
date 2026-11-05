@@ -395,8 +395,8 @@ function HUD.Build(gui: ScreenGui)
 		levelLabel.Text = string.format(
 			"⭐ %s  ·  %d / %d XP",
 			Locale.T("HUD_Level", { tostring(snapshot.Level) }),
-			snapshot.XPInLevel,
-			snapshot.XPNeeded
+			math.floor(snapshot.XPInLevel),
+			math.floor(snapshot.XPNeeded)
 		)
 		xpFill.Size = UDim2.fromScale(math.clamp(snapshot.XPInLevel / math.max(snapshot.XPNeeded, 1), 0, 1), 1)
 

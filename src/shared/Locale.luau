@@ -608,7 +608,13 @@ end
 
 -- Server-side: compact, language-neutral reward encoding.
 function Locale.EncodeReward(reward: Types.Reward): string
-	return string.format("@reward:%d;%d;%d;%d", reward.Cash or 0, reward.Tokens or 0, reward.BoostMinutes or 0, reward.XP or 0)
+	return string.format(
+		"@reward:%d;%d;%d;%d",
+		math.floor(reward.Cash or 0),
+		math.floor(reward.Tokens or 0),
+		math.floor(reward.BoostMinutes or 0),
+		math.floor(reward.XP or 0)
+	)
 end
 
 local function formatCash(n: number): string
