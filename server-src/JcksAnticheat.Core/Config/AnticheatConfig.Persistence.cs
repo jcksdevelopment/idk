@@ -110,6 +110,10 @@ namespace JcksAnticheat.Core.Config
                 ["ignoreIds"] = Backdoor.IgnoreIds.ToList(), ["ignoreResources"] = Backdoor.IgnoreResources.ToList(),
                 ["disabledRules"] = Backdoor.DisabledRules.ToList(),
             },
+            ["staffAlerts"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = StaffAlerts.Enabled, ["minAction"] = StaffAlerts.MinAction, ["cooldownSeconds"] = StaffAlerts.CooldownSeconds,
+            },
             ["messages"] = new Dictionary<string, object?>
             {
                 ["kick"] = Messages.Kick, ["ban"] = Messages.Ban, ["banned"] = Messages.Banned, ["staffKick"] = Messages.StaffKick,
@@ -188,6 +192,8 @@ namespace JcksAnticheat.Core.Config
             Require(new[] { "low", "medium", "high" }.Contains(Backdoor.MinSeverity) && new[] { "low", "medium", "high" }.Contains(Backdoor.AutoActionMinSeverity),
                 "backdoorScanner severities must be low, medium or high");
             Require(new[] { "none", "remove", "quarantine" }.Contains(Backdoor.AutoAction), "backdoorScanner.autoAction must be none, remove or quarantine");
+            Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(StaffAlerts.MinAction), "staffAlerts.minAction must be log, screenshot, kick or ban");
+            Require(StaffAlerts.CooldownSeconds >= 0 && StaffAlerts.CooldownSeconds <= 3600, "staffAlerts.cooldownSeconds must be 0–3600");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(Discord.MinAction), "discord.minAction must be log, screenshot, kick or ban");
             foreach (var kv in ServerThresholds)
                 Require(kv.Value > 0 && kv.Value < 100000, "server." + kv.Key + " must be positive");

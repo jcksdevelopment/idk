@@ -40,6 +40,8 @@ namespace JcksAnticheat.Server
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
         private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
         private readonly MassKillTracker _massKills;
+        private readonly JcksAnticheat.Core.Logging.RecentViolations _recent = new JcksAnticheat.Core.Logging.RecentViolations();
+        private readonly JcksAnticheat.Core.Logging.StaffAlerts _staffAlerts;
         private readonly BanStore _bans;
         private readonly ScreenshotAssembler _screenshots = new ScreenshotAssembler();
         private readonly AIVisionEvaluator _vision;
@@ -73,6 +75,7 @@ namespace JcksAnticheat.Server
             _movement = new MovementValidator(_cfg.Movement);
             _damage = new DamageValidator(_cfg.Damage);
             _massKills = new MassKillTracker(_cfg.Damage);
+            _staffAlerts = new JcksAnticheat.Core.Logging.StaffAlerts(_cfg.StaffAlerts);
             _explosions = new ExplosionValidator(_cfg.Explosions);
             _entities = new EntityValidator(_cfg.Entities);
             _state = new PlayerStateValidator { MaxHealth = _cfg.MaxHealth };
@@ -221,6 +224,8 @@ namespace JcksAnticheat.Server
             _state.Forget(id);
             _flags.Forget(id);
             _massKills.Forget(id);
+            _recent.Forget(id);
+            _staffAlerts.Forget(id);
             _consistency.Forget(id);
             ForgetAntiDump(id);
             ForgetDeferred(id);

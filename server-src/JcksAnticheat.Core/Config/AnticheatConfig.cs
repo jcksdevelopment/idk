@@ -70,6 +70,7 @@ namespace JcksAnticheat.Core.Config
         public AntiDumpConfig AntiDump { get; set; } = new AntiDumpConfig();
         public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
+        public JcksAnticheat.Core.Logging.StaffAlertConfig StaffAlerts { get; set; } = new JcksAnticheat.Core.Logging.StaffAlertConfig();
         public JcksAnticheat.Core.Messages.MessageSettings Messages { get; set; } = new JcksAnticheat.Core.Messages.MessageSettings();
 
         public List<string> WeaponBlacklist { get; set; } = new List<string>
@@ -319,6 +320,13 @@ namespace JcksAnticheat.Core.Config
                 cfg.Backdoor.IgnoreIds = Strings(bd, "ignoreIds") ?? cfg.Backdoor.IgnoreIds;
                 cfg.Backdoor.IgnoreResources = Strings(bd, "ignoreResources") ?? cfg.Backdoor.IgnoreResources;
                 cfg.Backdoor.DisabledRules = Strings(bd, "disabledRules") ?? cfg.Backdoor.DisabledRules;
+            }
+
+            if (root.Obj("staffAlerts") is { } sa)
+            {
+                cfg.StaffAlerts.Enabled = sa.Bool("enabled") ?? cfg.StaffAlerts.Enabled;
+                cfg.StaffAlerts.MinAction = sa.Str("minAction") ?? cfg.StaffAlerts.MinAction;
+                cfg.StaffAlerts.CooldownSeconds = (int)(sa.Num("cooldownSeconds") ?? cfg.StaffAlerts.CooldownSeconds);
             }
 
             if (root.Obj("messages") is { } msg)

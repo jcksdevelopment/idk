@@ -75,6 +75,26 @@ namespace JcksAnticheat.Server
                     if (source != 0) { Reply("Run shield commands from the server console."); break; }
                     Reply(ShieldCommand(args.Count > 1 ? args[1]?.ToString() ?? "status" : "status"));
                     break;
+                case "info":
+                case "reset":
+                {
+                    int target = args.Count > 1 ? ToInt(args[1]) : 0;
+                    var tp = target > 0 ? Players[target] : null;
+                    if (tp == null) { Reply("Usage: /jac " + sub + " <server id of an online player>"); break; }
+                    if (sub == "reset")
+                    {
+                        _ledger.Forget(target);
+                        _recent.Forget(target);
+                        Log($"score of {tp.Name} (#{target}) reset by {actor}");
+                        Reply($"Score of {tp.Name} (#{target}) reset to 0.");
+                        break;
+                    }
+                    var recent = _recent.Of(target);
+                    var hb = _heartbeats.HasSession(target) ? "ok" : "no session";
+                    Reply($"{tp.Name} (#{target}): score {_ledger.ScoreOf(target):F0}, heartbeat {hb}, last: " +
+                          (recent.Count == 0 ? "nothing" : string.Join(", ", recent.AsEnumerable().Reverse().Take(6).Select(r => $"{r.code}+{r.severity} {(int)(DateTime.UtcNow - r.at).TotalMinutes}m ago"))));
+                    break;
+                }
                 case "audit":
                     Reply(RunAudit());
                     break;
@@ -85,7 +105,7 @@ namespace JcksAnticheat.Server
                           $"integrations={_integrations.Count} rules, countermeasures={(_cfg.Countermeasures.Enabled ? "on" : "off")}, backdoor findings={_lastFindings.Count}, " +
                           $"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit | info <id> | reset <id>");
                     break;
             }
         }

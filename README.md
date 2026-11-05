@@ -368,6 +368,16 @@ from `autoActionMinSeverity`. The default is `none`. Against `cfx-server-data`, 
 `es_extended`, `ox_lib`, `ox_inventory` and `oxmysql` (662 files) it reports only the stock
 `runcode` resource, which really does execute arbitrary code behind the rcon password.
 
+### Staff in game
+
+Players with `jcks_anticheat.admin` or `jcks_anticheat.alerts` get a chat line for each detection
+(`staffAlerts`: minimum action and a per-player, per-code cooldown; kicks and bans always show).
+
+```
+/jac info <id>     score, heartbeat state and the last detections of an online player
+/jac reset <id>    set that player's score back to 0 (after a false positive)
+```
+
 ### Ban evasion
 
 Bans store every identifier the player had (license, Discord, Steam, Xbox/Live and FiveM's hardware

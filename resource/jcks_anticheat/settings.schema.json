@@ -990,6 +990,39 @@
       ]
     },
     {
+      "id": "staffAlerts",
+      "title": "Staff alerts",
+      "fields": [
+        {
+          "key": "staffAlerts.enabled",
+          "label": "In-game alerts for staff",
+          "type": "bool",
+          "help": "Online players with the jcks_anticheat.admin or jcks_anticheat.alerts ACE get a chat line for each detection (player, code, points, score, action). Staff with bypass are never announced."
+        },
+        {
+          "key": "staffAlerts.minAction",
+          "label": "Minimum action",
+          "type": "select",
+          "options": [
+            "log",
+            "screenshot",
+            "kick",
+            "ban"
+          ],
+          "help": "'log' sends every detection; 'kick' only those that kick or ban."
+        },
+        {
+          "key": "staffAlerts.cooldownSeconds",
+          "label": "Repeat cooldown (seconds)",
+          "type": "number",
+          "min": 0,
+          "max": 3600,
+          "step": 5,
+          "help": "The same code for the same player is announced at most once in this time. Kicks and bans are always announced."
+        }
+      ]
+    },
+    {
       "id": "messages",
       "title": "Messages",
       "fields": [

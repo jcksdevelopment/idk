@@ -97,6 +97,8 @@
     "disabledRules": []
   },
 
+  "staffAlerts": { "enabled": true, "minAction": "log", "cooldownSeconds": 30 },
+
   "messages": {
     "kick": "[JCKS Anticheat] Disconnected: suspicious activity ({code}).",
     "ban": "[JCKS Anticheat] Banned. Reason: {reason} | Ban ID: {id}{appeal}",

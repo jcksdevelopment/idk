@@ -35,6 +35,9 @@ namespace JcksAnticheat.Server
             });
 
             _discord.Detection(player.Name, v.Player, v, _cfg.DryRun);
+            _recent.Add(v);
+            var alert = _staffAlerts.Message(player.Name, v, bypass, _cfg.DryRun, DateTime.UtcNow);
+            if (alert != null) AlertStaff(alert);
             if (!bypass) ApplyServerCountermeasure(v, player.Handle);
             if (bypass || _cfg.DryRun) return;
 
@@ -55,6 +58,13 @@ namespace JcksAnticheat.Server
                     BanPlayer(v.Player, v.Code, $"Automated: {v.Code}", "jcks_anticheat");
                     break;
             }
+        }
+
+        private void AlertStaff(string text)
+        {
+            foreach (var p in Players)
+                if (IsPlayerAceAllowed(p.Handle, AdminAce) || IsPlayerAceAllowed(p.Handle, "jcks_anticheat.alerts"))
+                    p.TriggerEvent("chat:addMessage", new { color = new[] { 255, 170, 60 }, args = new[] { "JCKS AC", text } });
         }
 
         private string Msg(string template, string? code, string? reason, string? id, string? expires, string? name)
