@@ -25,11 +25,11 @@ fi
 
 echo "==> Assemble dist/jcks_anticheat"
 rm -rf dist && mkdir -p dist/jcks_anticheat/server
-cp -r resource/jcks_anticheat/{fxmanifest.lua,config.json,settings.schema.json,client,shared,shield,html} dist/jcks_anticheat/
+cp -r resource/jcks_anticheat/{fxmanifest.lua,config.json,settings.schema.json,integrations.presets.json,client,shared,shield,html} dist/jcks_anticheat/
 cp resource/jcks_anticheat/server/JcksAnticheat.Core.net.dll resource/jcks_anticheat/server/JcksAnticheat.Server.net.dll dist/jcks_anticheat/server/
 
 echo "==> Check every file the manifest needs is packaged"
-for f in settings.schema.json shield/shield.lua html/index.html html/panel.js html/panel.css server/JcksAnticheat.Core.net.dll server/JcksAnticheat.Server.net.dll; do
+for f in settings.schema.json integrations.presets.json shield/shield.lua html/index.html html/panel.js html/panel.css server/JcksAnticheat.Core.net.dll server/JcksAnticheat.Server.net.dll; do
   [ -f "dist/jcks_anticheat/$f" ] || { echo "missing from package: $f" >&2; exit 1; }
 done
 

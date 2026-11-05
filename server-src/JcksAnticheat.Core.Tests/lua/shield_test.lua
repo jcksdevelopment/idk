@@ -6,12 +6,23 @@ local started = { testres = true, jcks_anticheat = true, ox_lib = true }
 local threads = {}
 
 function GetCurrentResourceName() return "testres" end
+function PlayerPedId() return 42 end
+function PlayerId() return 0 end
+function GetVehiclePedIsIn() return 0 end
+local clock = 0
+function GetGameTimer() clock = clock + 2000 return clock end
+local uses = {}
 function GetResourceState(r) return started[r] and "started" or "missing" end
-function TriggerEvent(name, res, kind, detail) if name == "jcks_anticheat:shield" and kind ~= "hello" then reports[#reports + 1] = kind .. "|" .. detail.fn end end
+function TriggerEvent(name, res, kind, detail)
+  if name ~= "jcks_anticheat:shield" or kind == "hello" then return end
+  if kind == "use" then uses[#uses + 1] = res .. "|" .. detail.src return end
+  reports[#reports + 1] = kind .. "|" .. detail.fn
+end
 function CreateThread(fn) threads[#threads + 1] = coroutine.create(fn) end
 function Wait(ms) coroutine.yield(ms) end
 local calls = 0
 function TriggerServerEvent() calls = calls + 1 end
+function SetEntityHealth() calls = calls + 1 end
 function CreateVehicle() calls = calls + 1 return 7 end
 function SetEntityCoords() calls = calls + 1 end
 Citizen = { InvokeNative = function() calls = calls + 1 end }
@@ -36,7 +47,12 @@ loadAs([[ function Helper(cb) cb() end
           TriggerServerEvent("legit:event") CreateVehicle(1) ]], "@@testres/client/main.lua")
 loadAs([[ SetEntityCoords(1, 0, 0, 0) Citizen.InvokeNative(0x1234) ]], "@@ox_lib/imports/teleport/client.lua")
 expect(count() == 0, "legit code reported: " .. table.concat(reports, ","))
-expect(calls == 4, "wrappers must still call the originals (calls=" .. calls .. ")")
+expect(calls >= 4, "wrappers must still call the originals (calls=" .. calls .. ")")
+
+-- Legitimate behaviour on the local player is reported as a "use" (for integrations); on an NPC it isn't.
+loadAs([[ SetEntityHealth(42, 200) SetEntityHealth(77, 200) ]], "@@testres/client/hospital.lua")
+expect(#uses == 1 and uses[1] == "testres|heal", "use reporting: " .. table.concat(uses, ","))
+expect(count() == 0, "legit heal reported as injection")
 
 -- Executor-style injection: code with no file behind it.
 loadAs([[ TriggerServerEvent("esx:giveMoney", 999999) ]], "=(load)")

@@ -37,6 +37,9 @@ namespace JcksAnticheat.Server
         private readonly ExplosionValidator _explosions;
         private readonly GameEventValidator _gameEvents;
         private readonly VehicleOwnership _vehicles = new VehicleOwnership();
+        private readonly IntegrationLearning _learning = new IntegrationLearning();
+        private IntegrationPolicy _integrations = new IntegrationPolicy();
+        private readonly RateLimiter.Rule _graceRule = new RateLimiter.Rule(30, 0.5);
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
@@ -89,6 +92,7 @@ namespace JcksAnticheat.Server
             // Players already connected when the resource (re)starts must handshake too.
             foreach (var p in Players) OnPlayerJoining(p, "");
             RegisterExports();
+            RebuildIntegrations();
             RegisterSettings();
             Tick += OnTick;
 
@@ -168,6 +172,7 @@ namespace JcksAnticheat.Server
         private void OnServerResourceStart(string name)
         {
             if (string.IsNullOrEmpty(name) || name == _resource) return;
+            RebuildIntegrations();
             foreach (var p in Players)
                 if (_heartbeats.HasSession(ToId(p.Handle))) p.TriggerEvent(_resourceEvent, name);
         }
@@ -251,6 +256,7 @@ namespace JcksAnticheat.Server
                 ["mw"] = _cfg.MaxWeapons, ["tb"] = _cfg.TextureBlacklist,
                 ["se"] = _settingsEvent, ["po"] = _panelOpenEvent,
             };
+            foreach (var kv in ClientSettings()) init[kv.Key] = kv.Value;
             player.TriggerEvent("jcks_anticheat:init", MiniJson.Serialize(init));
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));
         }
@@ -275,6 +281,7 @@ namespace JcksAnticheat.Server
 
             player.TriggerEvent(_ackEvent, result.NextChallenge);
             CheckReportedState(player, id, result.Payload.Obj("st"));
+            ProcessIntegrationUses(id, result.Payload.Arr("u"));
 
             var flags = result.Payload.Arr("f");
             if (flags == null) return;
@@ -289,6 +296,34 @@ namespace JcksAnticheat.Server
                 }
                 Punish(new Violation(id, code, ViolationSource.Client, evidence));
             }
+        }
+
+        /// <summary>
+        /// Behaviour the shield saw a resource perform on this player. Allowed by the integration
+        /// rules: the server grants the same grace the client already took (rate-limited). In
+        /// learning mode every use is counted for 'jac integrations suggest'.
+        /// </summary>
+        private void ProcessIntegrationUses(int id, List<object?>? uses)
+        {
+            if (uses == null) return;
+            var now = DateTime.UtcNow;
+            foreach (var u in uses.Take(32).OfType<Dictionary<string, object?>>())
+            {
+                var resource = u.Str("r") ?? "";
+                var kind = u.Str("k") ?? "";
+                if (_cfg.Integrations.Learning) _learning.Record(resource, kind);
+                if (u.Bool("a") != true || !_integrations.Allows(resource, kind)) continue;
+                if (!_limiter.TryConsume(id, "grace:" + kind, _graceRule)) continue;
+                var duration = TimeSpan.FromMilliseconds(_cfg.Integrations.GraceMs);
+                if (kind == "teleport" || kind == "noclip") _movement.GrantGrace(id, duration, now);
+                _state.GrantGrace(id, kind, duration, now);
+            }
+        }
+
+        private void RebuildIntegrations()
+        {
+            var presets = IntegrationPolicy.ParsePresets(LoadResourceFile(_resource, "integrations.presets.json"));
+            _integrations = IntegrationPolicy.Build(_cfg.Integrations, presets, r => GetResourceState(r) != "missing");
         }
 
         /// <summary>Client-reported state (heartbeat "st") vs. what the server sees for the same ped.</summary>

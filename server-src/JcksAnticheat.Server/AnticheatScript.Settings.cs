@@ -65,6 +65,10 @@ namespace JcksAnticheat.Server
                     edited.DryRun = on;
                     Reply(Apply(edited, actor, save: true));
                     break;
+                case "integrations":
+                    if (source != 0) { Reply("Run integration commands from the server console."); break; }
+                    Reply(IntegrationsCommand(args.Count > 1 ? args[1]?.ToString() ?? "list" : "list"));
+                    break;
                 case "scan":
                     if (source != 0) { Reply("Run scan commands from the server console."); break; }
                     Reply(BackdoorCommand(args));
@@ -77,7 +81,7 @@ namespace JcksAnticheat.Server
                 default:
                     Reply($"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>]");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear]");
                     break;
             }
         }
@@ -122,6 +126,39 @@ namespace JcksAnticheat.Server
             }
         }
 
+        private string IntegrationsCommand(string action)
+        {
+            switch (action)
+            {
+                case "suggest":
+                {
+                    var s = _learning.Suggest(_integrations);
+                    if (!_cfg.Integrations.Learning) return "Learning is off. Turn on integrations.learning, play for a while, then run this again.";
+                    if (s.Count == 0) return "No new suggestions yet.";
+                    foreach (var kv in s) Log($"  {kv.Key} = {string.Join(", ", kv.Value)}");
+                    return $"{s.Count} resource(s) did things they aren't trusted for (listed above). Review them, then 'jac integrations apply'.";
+                }
+                case "apply":
+                {
+                    var s = _learning.Suggest(_integrations);
+                    if (s.Count == 0) return "Nothing to apply.";
+                    var edited = AnticheatConfig.Parse(MiniJson.Serialize(_cfg.ToJson()));
+                    foreach (var kv in s)
+                    {
+                        if (!edited.Integrations.Resources.TryGetValue(kv.Key, out var list)) edited.Integrations.Resources[kv.Key] = list = new List<string>();
+                        foreach (var b in kv.Value) if (!list.Contains(b)) list.Add(b);
+                    }
+                    return Apply(edited, "console (jac integrations apply)", save: true);
+                }
+                case "clear":
+                    _learning.Clear();
+                    return "Learning data cleared.";
+                default:
+                    foreach (var kv in _integrations.ToClient()) Log($"  {kv.Key} = {string.Join(", ", kv.Value)}");
+                    return $"{_integrations.Count} resource rule(s) active (presets for running resources + integrations.resources).";
+            }
+        }
+
         /// <summary>Re-reads config.json (e.g. after editing it by hand) and applies it.</summary>
         private string ReloadFromDisk(string actor)
         {
@@ -151,6 +188,7 @@ namespace JcksAnticheat.Server
             _state.MaxHealth = _cfg.MaxHealth;
             RegisterHoneypots();
             RegisterProtectedEvents();
+            RebuildIntegrations();
 
             if (save) SaveResourceFile(_resource, "config.json", _cfg.ToPrettyJson(), -1);
 
@@ -172,6 +210,7 @@ namespace JcksAnticheat.Server
             ["wb"] = _cfg.WeaponBlacklist, ["mh"] = _cfg.MaxHealth, ["dm"] = _cfg.ExpectedDamageModifier,
             ["ig"] = _cfg.Scoring.Ignore.ToList(), ["iv"] = _cfg.HeartbeatIntervalMs,
             ["mw"] = _cfg.MaxWeapons, ["tb"] = _cfg.TextureBlacklist,
+            ["it"] = _integrations.ToClient(), ["ig2"] = _cfg.Integrations.GraceMs, ["il"] = _cfg.Integrations.Learning,
         };
 
         private void PushSettingsToDashboard()

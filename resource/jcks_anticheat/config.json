@@ -62,6 +62,13 @@
     "maxStoredCaptures": 500
   },
 
+  "integrations": {
+    "usePresets": true,
+    "learning": false,
+    "graceMs": 5000,
+    "resources": {}
+  },
+
   "backdoorScanner": {
     "enabled": true,
     "scanOnStart": true,

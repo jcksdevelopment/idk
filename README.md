@@ -241,6 +241,30 @@ severity overrides, `ignore` codes (switched off entirely; the client stops send
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
 
+### Resource integrations
+
+Every server runs different scripts that legitimately heal, teleport or spawn things. Instead of
+editing those scripts, tell the anticheat which resource may do what:
+
+```
+integrations.resources:   qb-ambulancejob=heal,armor,teleport
+                          my_admin_menu=*
+```
+
+The shield, running inside every resource, sees which resource calls e.g. `SetEntityHealth` on
+the local player. When that resource is trusted for `heal`, the matching detections pause for
+`integrations.graceMs` on the client, and the server grants the same grace after checking the
+rule itself (rate-limited).
+
+- Behaviours: `heal armor godmode teleport invisible noclip spectate vehicle weapons camera ragdoll *`.
+- `integrations.presets.json` ships starting rules for popular resources: txAdmin (`monitor`),
+  vMenu, EasyAdmin, qb-/ps- admin menus, qb-core, es_extended, ambulance and police jobs, prisons,
+  multicharacter and spawn, apartments and housing, appearance and clothing, vehicle shops,
+  garages, mechanics and customs, inventories, phones. They apply only to resources you run, and
+  your own rules override them. They're best-effort; check them against your versions.
+- Learning mode (`integrations.learning`) records what each resource does. `jac integrations
+  suggest` lists what's not trusted yet and `jac integrations apply` saves it.
+
 ### Backdoor scanner
 
 On every server start (`backdoorScanner.scanOnStart`) and on `jac scan`, every resource's `.lua`,
@@ -338,7 +362,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-85 tests cover:
+89 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -364,7 +388,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 85 tests pass.
+- Both C# projects build with no warnings and the 89 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

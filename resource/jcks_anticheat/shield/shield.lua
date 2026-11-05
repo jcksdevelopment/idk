@@ -57,13 +57,50 @@ local function injectedCaller()
   return nil
 end
 
+-- What a legitimate call means for the anticheat. When a trusted resource (integrations in the
+-- settings) heals, teleports, etc. the local player, the scanner grants grace for that behaviour.
+local KIND = {
+  SetEntityHealth = "heal", NetworkResurrectLocalPlayer = "heal", SetPedArmour = "armor",
+  SetEntityInvincible = "godmode", SetPlayerInvincible = "godmode", SetEntityProofs = "godmode", SetEntityCanBeDamaged = "godmode",
+  SetEntityCoords = "teleport", SetEntityCoordsNoOffset = "teleport", SetPedCoordsKeepVehicle = "teleport", StartPlayerTeleport = "teleport",
+  SetEntityVisible = "invisible", SetEntityCollision = "noclip", NetworkSetInSpectatorMode = "spectate",
+  SetVehicleFixed = "vehicle", SetVehicleEngineHealth = "vehicle", SetVehicleCheatPowerIncrease = "vehicle", SetVehicleHandlingFloat = "vehicle",
+  SetVehicleNumberPlateText = "vehicle", SetVehicleColours = "vehicle", SetVehicleCustomPrimaryColour = "vehicle",
+  GiveWeaponToPed = "weapons", SetPedAmmo = "weapons", SetPedInfiniteAmmoClip = "weapons",
+  RenderScriptCams = "camera", SetCamActive = "camera", SetPedCanRagdoll = "ragdoll",
+}
+local SELF_ARG = { SetPlayerInvincible = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false }
+
+local lastUse = {}
+local function aboutMe(name, first)
+  if SELF_ARG[name] == false then return true end
+  if SELF_ARG[name] then return first == PlayerId() end
+  local ped = PlayerPedId()
+  if first == ped then return true end
+  local veh = GetVehiclePedIsIn(ped, false)
+  return veh ~= 0 and first == veh
+end
+
+local function reportUse(name, first)
+  local kind = KIND[name]
+  if not kind or not aboutMe(name, first) then return end
+  local now = GetGameTimer()
+  if lastUse[kind] and now - lastUse[kind] < 1500 then return end
+  lastUse[kind] = now
+  TriggerEvent(REPORT, RES, "use", { fn = name, src = kind })
+end
+
 local wrappers = {}
 local function guard(name)
   local original = _G[name]
   if type(original) ~= "function" then return end
   local wrapper = function(...)
     local src = injectedCaller()
-    if src then report("call", { fn = name, src = src }) end
+    if src then
+      report("call", { fn = name, src = src })
+    elseif KIND[name] then
+      reportUse(name, (...))
+    end
     return original(...)
   end
   wrappers[name] = wrapper
@@ -82,6 +119,8 @@ local GUARDED = {
   "SetVehicleFixed", "SetVehicleEngineHealth", "SetVehicleCheatPowerIncrease", "SetVehicleHandlingFloat",
   "NetworkResurrectLocalPlayer", "SetRunSprintMultiplierForPlayer", "SetSuperJumpThisFrame",
   "ClearPedTasksImmediately", "AttachEntityToEntity", "NetworkSetInSpectatorMode",
+  "SetVehicleNumberPlateText", "SetVehicleColours", "SetVehicleCustomPrimaryColour",
+  "RenderScriptCams", "SetCamActive", "SetPedCanRagdoll",
 }
 for i = 1, #GUARDED do guard(GUARDED[i]) end
 if Citizen and type(Citizen.InvokeNative) == "function" then

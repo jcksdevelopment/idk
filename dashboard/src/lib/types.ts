@@ -74,7 +74,7 @@ export type CommandType = "ban" | "unban" | "kick" | "screenshot" | "config" | "
 export interface SettingsField {
   key: string;
   label: string;
-  type: "bool" | "number" | "string" | "select" | "list" | "codes" | "numbers" | "map";
+  type: "bool" | "number" | "string" | "select" | "list" | "codes" | "numbers" | "map" | "maplist";
   help?: string;
   min?: number;
   max?: number;

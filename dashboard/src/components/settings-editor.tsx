@@ -177,6 +177,10 @@ function FieldInput({ field, value, disabled, onChange }: { field: SettingsField
       return (
         <ListInput id={field.key} kind={field.type} value={Array.isArray(value) ? value : []} disabled={disabled} onChange={onChange} />
       );
+    case "maplist":
+      return (
+        <MapListInput id={field.key} value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, string[]>) : {}} disabled={disabled} onChange={onChange} />
+      );
     case "map":
       return (
         <MapInput id={field.key} upper={!!field.upperKeys} value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, number>) : {}} disabled={disabled} onChange={onChange} />
@@ -231,3 +235,28 @@ function parseMap(text: string, upper: boolean): Record<string, number> {
 }
 
 const serialize = (m: Record<string, number>) => Object.entries(m).map(([k, v]) => `${k}=${v}`).join("\n");
+
+/** resource=a,b per line. */
+function MapListInput({ id, value, disabled, onChange }: { id: string; value: Record<string, string[]>; disabled: boolean; onChange: (v: unknown) => void }) {
+  const joined = serializeList(value);
+  const [text, setText] = useState(joined);
+  useEffect(() => {
+    setText((t) => (serializeList(parseMapList(t)) === joined ? t : joined));
+  }, [joined]);
+  return (
+    <textarea id={id} value={text} disabled={disabled} spellCheck={false} placeholder="resource=behaviour,behaviour" rows={Math.min(10, Math.max(3, Object.keys(value).length + 1))}
+      onChange={(e) => { setText(e.target.value); onChange(parseMapList(e.target.value)); }}
+      className="w-full rounded-md border border-line-strong bg-transparent px-3 py-2 font-mono text-xs focus:border-zinc-500 focus:outline-none" />
+  );
+}
+
+function parseMapList(text: string): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const line of text.split("\n")) {
+    const m = line.trim().match(/^(\S+?)\s*=\s*(.+)$/);
+    if (m) out[m[1]] = m[2].split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+  }
+  return out;
+}
+
+const serializeList = (m: Record<string, string[]>) => Object.entries(m).map(([k, v]) => `${k}=${(v ?? []).join(",")}`).join("\n");

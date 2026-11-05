@@ -80,6 +80,12 @@ namespace JcksAnticheat.Core.Config
                 ["flagConfidence"] = Vision.FlagConfidence, ["cooldownSeconds"] = Vision.CooldownSeconds,
                 ["maxStoredCaptures"] = Vision.MaxStoredCaptures,
             },
+            ["integrations"] = new Dictionary<string, object?>
+            {
+                ["usePresets"] = Integrations.UsePresets, ["learning"] = Integrations.Learning, ["graceMs"] = Integrations.GraceMs,
+                ["resources"] = Integrations.Resources.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(k => k.Key, k => (object?)k.Value.Cast<object?>().ToList()),
+            },
             ["backdoorScanner"] = new Dictionary<string, object?>
             {
                 ["enabled"] = Backdoor.Enabled, ["scanOnStart"] = Backdoor.ScanOnStart, ["minSeverity"] = Backdoor.MinSeverity,
@@ -157,6 +163,9 @@ namespace JcksAnticheat.Core.Config
             foreach (var kv in ProtectedEvents)
                 Require(kv.Value >= 1 && kv.Value <= 10000 && kv.Key.Length > 0 && kv.Key.Length <= 128,
                     "protectedEvents entry " + kv.Key + " must be event=1..10000");
+            Require(Integrations.GraceMs >= 500 && Integrations.GraceMs <= 120000, "integrations.graceMs must be 500–120000");
+            foreach (var kv in Integrations.Resources)
+                Require(kv.Value.All(Behaviours.IsKnown), "integrations.resources." + kv.Key + ": unknown behaviour (allowed: " + string.Join(", ", Behaviours.All) + ", *)");
             Require(new[] { "low", "medium", "high" }.Contains(Backdoor.MinSeverity) && new[] { "low", "medium", "high" }.Contains(Backdoor.AutoActionMinSeverity),
                 "backdoorScanner severities must be low, medium or high");
             Require(new[] { "none", "remove", "quarantine" }.Contains(Backdoor.AutoAction), "backdoorScanner.autoAction must be none, remove or quarantine");

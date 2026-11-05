@@ -107,6 +107,16 @@ AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
     JcksAC.shielded[resource] = true
     return
   end
+  if kind == "use" then
+    local behaviour = tostring(detail.src)
+    local allowed = S.server.integrations and S.server.integrations[resource]
+    local ok = allowed and (allowed[behaviour] or allowed["*"])
+    if ok then
+      S.grant(behaviour, S.server.integrationGraceMs or 5000)
+    end
+    S.queueUse(resource, behaviour, ok and true or false)
+    return
+  end
   local evidence = { r = resource:sub(1, 48), fn = tostring(detail.fn):sub(1, 48), src = tostring(detail.src):sub(1, 80), kind = kind }
   if kind == "tamper" then
     S.flag("EXE_SHIELD_TAMPER", evidence)

@@ -1,0 +1,230 @@
+{
+  "_note": "Starting points for popular resources. Each entry lists what that resource legitimately does to the local player. Review them for your versions; your own integrations.resources entries override these.",
+  "resources": {
+    "monitor": [
+      "noclip",
+      "godmode",
+      "teleport",
+      "heal",
+      "armor",
+      "invisible",
+      "spectate",
+      "vehicle",
+      "camera"
+    ],
+    "vMenu": [
+      "noclip",
+      "godmode",
+      "teleport",
+      "heal",
+      "armor",
+      "invisible",
+      "spectate",
+      "vehicle",
+      "weapons",
+      "camera"
+    ],
+    "EasyAdmin": [
+      "spectate",
+      "teleport",
+      "camera"
+    ],
+    "qb-adminmenu": [
+      "noclip",
+      "godmode",
+      "teleport",
+      "heal",
+      "armor",
+      "invisible",
+      "spectate",
+      "vehicle",
+      "weapons",
+      "camera"
+    ],
+    "ps-adminmenu": [
+      "noclip",
+      "godmode",
+      "teleport",
+      "heal",
+      "armor",
+      "invisible",
+      "spectate",
+      "vehicle",
+      "weapons",
+      "camera"
+    ],
+    "esx_adminplus": [
+      "noclip",
+      "godmode",
+      "teleport",
+      "heal",
+      "armor",
+      "invisible",
+      "spectate",
+      "vehicle"
+    ],
+    "qb-core": [
+      "teleport"
+    ],
+    "es_extended": [
+      "teleport",
+      "heal"
+    ],
+    "qb-ambulancejob": [
+      "heal",
+      "armor",
+      "teleport",
+      "ragdoll"
+    ],
+    "esx_ambulancejob": [
+      "heal",
+      "teleport",
+      "ragdoll"
+    ],
+    "wasabi_ambulance": [
+      "heal",
+      "armor",
+      "teleport",
+      "ragdoll"
+    ],
+    "ars_ambulancejob": [
+      "heal",
+      "teleport",
+      "ragdoll"
+    ],
+    "qb-policejob": [
+      "weapons",
+      "armor",
+      "vehicle",
+      "teleport"
+    ],
+    "esx_policejob": [
+      "weapons",
+      "armor",
+      "vehicle",
+      "teleport"
+    ],
+    "qb-prison": [
+      "teleport"
+    ],
+    "esx_jail": [
+      "teleport"
+    ],
+    "qb-multicharacter": [
+      "camera",
+      "teleport",
+      "invisible"
+    ],
+    "esx_multicharacter": [
+      "camera",
+      "teleport",
+      "invisible"
+    ],
+    "qb-spawn": [
+      "camera",
+      "teleport",
+      "invisible"
+    ],
+    "qb-apartments": [
+      "camera",
+      "teleport"
+    ],
+    "qb-houses": [
+      "camera",
+      "teleport"
+    ],
+    "ps-housing": [
+      "camera",
+      "teleport"
+    ],
+    "qb-interior": [
+      "teleport"
+    ],
+    "qb-clothing": [
+      "camera"
+    ],
+    "illenium-appearance": [
+      "camera"
+    ],
+    "fivem-appearance": [
+      "camera"
+    ],
+    "esx_skin": [
+      "camera"
+    ],
+    "skinchanger": [
+      "camera"
+    ],
+    "qb-vehicleshop": [
+      "camera",
+      "vehicle",
+      "teleport"
+    ],
+    "esx_vehicleshop": [
+      "camera",
+      "vehicle",
+      "teleport"
+    ],
+    "qb-garages": [
+      "vehicle"
+    ],
+    "esx_garage": [
+      "vehicle"
+    ],
+    "jg-advancedgarages": [
+      "vehicle",
+      "camera"
+    ],
+    "qb-mechanicjob": [
+      "vehicle"
+    ],
+    "esx_mechanicjob": [
+      "vehicle"
+    ],
+    "jg-mechanic": [
+      "vehicle",
+      "camera"
+    ],
+    "qb-customs": [
+      "vehicle",
+      "camera"
+    ],
+    "esx_lscustom": [
+      "vehicle",
+      "camera"
+    ],
+    "ox_inventory": [
+      "weapons",
+      "heal",
+      "armor"
+    ],
+    "qb-inventory": [
+      "weapons",
+      "heal",
+      "armor"
+    ],
+    "qb-weapons": [
+      "weapons"
+    ],
+    "qb-smallresources": [
+      "heal",
+      "armor",
+      "teleport"
+    ],
+    "esx_basicneeds": [
+      "heal"
+    ],
+    "lb-phone": [
+      "camera"
+    ],
+    "qs-smartphone": [
+      "camera"
+    ],
+    "qb-phone": [
+      "camera"
+    ],
+    "npwd": [
+      "camera"
+    ]
+  }
+}

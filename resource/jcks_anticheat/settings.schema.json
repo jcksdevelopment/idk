@@ -102,6 +102,38 @@
       ]
     },
     {
+      "id": "integrations",
+      "title": "Resource integrations",
+      "fields": [
+        {
+          "key": "integrations.resources",
+          "label": "Trusted resources",
+          "type": "maplist",
+          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, * (everything)."
+        },
+        {
+          "key": "integrations.usePresets",
+          "label": "Use built-in presets",
+          "type": "bool",
+          "help": "Rules for popular resources (txAdmin, vMenu, qb-*, esx_*, ox_inventory, appearance, garages, mechanics, phones...) from integrations.presets.json, applied to resources you run. Your own rules override them."
+        },
+        {
+          "key": "integrations.learning",
+          "label": "Learning mode",
+          "type": "bool",
+          "help": "Records what each resource does to players. 'jac integrations suggest' lists rules to add, 'jac integrations apply' saves them."
+        },
+        {
+          "key": "integrations.graceMs",
+          "label": "Grace after a trusted action (ms)",
+          "type": "number",
+          "min": 500,
+          "max": 120000,
+          "step": 500
+        }
+      ]
+    },
+    {
       "id": "heartbeat",
       "title": "Heartbeat & network",
       "fields": [

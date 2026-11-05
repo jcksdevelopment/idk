@@ -67,6 +67,19 @@
         });
         return t;
       }
+      case "maplist": {
+        const t = el("textarea", { spellcheck: "false", placeholder: "resource=behaviour,behaviour" });
+        t.value = Object.entries(value || {}).map(([k, v]) => `${k}=${(v || []).join(",")}`).join("\n");
+        t.addEventListener("input", () => {
+          const out = {};
+          for (const line of t.value.split("\n")) {
+            const m = line.trim().match(/^(\S+?)\s*=\s*(.+)$/);
+            if (m) out[m[1]] = m[2].split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+          }
+          update(out);
+        });
+        return t;
+      }
       case "map": {
         // CODE=points per line.
         const t = el("textarea", { spellcheck: "false", placeholder: "key=value, one per line" });

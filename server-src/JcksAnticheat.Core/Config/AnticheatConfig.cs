@@ -60,6 +60,7 @@ namespace JcksAnticheat.Core.Config
         public VisionConfig Vision { get; set; } = new VisionConfig();
         public DashboardConfig Dashboard { get; set; } = new DashboardConfig();
         public BackdoorConfig Backdoor { get; set; } = new BackdoorConfig();
+        public IntegrationsConfig Integrations { get; set; } = new IntegrationsConfig();
         public JcksAnticheat.Core.Logging.DiscordConfig Discord { get; set; } = new JcksAnticheat.Core.Logging.DiscordConfig();
 
         public List<string> WeaponBlacklist { get; set; } = new List<string>
@@ -216,6 +217,19 @@ namespace JcksAnticheat.Core.Config
                 cfg.Vision.FlagConfidence = v.Num("flagConfidence") ?? cfg.Vision.FlagConfidence;
                 cfg.Vision.CooldownSeconds = (int)(v.Num("cooldownSeconds") ?? cfg.Vision.CooldownSeconds);
                 cfg.Vision.MaxStoredCaptures = (int)(v.Num("maxStoredCaptures") ?? cfg.Vision.MaxStoredCaptures);
+            }
+
+            if (root.Obj("integrations") is { } igr)
+            {
+                cfg.Integrations.UsePresets = igr.Bool("usePresets") ?? cfg.Integrations.UsePresets;
+                cfg.Integrations.Learning = igr.Bool("learning") ?? cfg.Integrations.Learning;
+                cfg.Integrations.GraceMs = (int)(igr.Num("graceMs") ?? cfg.Integrations.GraceMs);
+                if (igr.Obj("resources") is { } rs)
+                {
+                    cfg.Integrations.Resources = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var kv in rs)
+                        if (kv.Value is List<object?> list) cfg.Integrations.Resources[kv.Key] = list.OfType<string>().ToList();
+                }
             }
 
             if (root.Obj("backdoorScanner") is { } bd)

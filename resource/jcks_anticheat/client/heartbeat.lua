@@ -51,6 +51,7 @@ local function sendHeartbeat()
     c = session.challenge,
     t = GetGameTimer(),
     f = S.drainFlags(),
+    u = S.drainUses(),
     st = snapshot(),
   })
   local nonce = makeNonce()
@@ -76,6 +77,14 @@ local function applySettings(data)
   for _, code in ipairs(data.ig or {}) do S.server.ignore[code] = true end
   if data.iv then session.interval = data.iv end
   S.server.maxWeapons = data.mw or 25
+  S.server.integrations = {}
+  for resource, kinds in pairs(data.it or {}) do
+    local set = {}
+    for _, k in ipairs(kinds) do set[k] = true end
+    S.server.integrations[resource] = set
+  end
+  S.server.integrationGraceMs = data.ig2 or 5000
+  S.server.integrationLearning = data.il and true or false
   S.server.textureBlacklist = data.tb or {}
 end
 

@@ -52,6 +52,25 @@ function S.flag(code, data)
   S.flags[#S.flags + 1] = { c = code, t = now, d = data }
 end
 
+-- Behaviour granted (or merely observed, in learning mode) from trusted resources; sent with the
+-- next heartbeat so the server can grant the same grace on its side.
+S.uses = {}
+function S.queueUse(resource, kind, allowed)
+  if not allowed and not S.server.integrationLearning then return end
+  if #S.uses >= 32 then return end
+  for i = 1, #S.uses do
+    local u = S.uses[i]
+    if u.r == resource and u.k == kind then return end
+  end
+  S.uses[#S.uses + 1] = { r = resource, k = kind, a = allowed }
+end
+
+function S.drainUses()
+  local out = S.uses
+  S.uses = {}
+  return out
+end
+
 function S.drainFlags()
   local out = S.flags
   S.flags = {}
