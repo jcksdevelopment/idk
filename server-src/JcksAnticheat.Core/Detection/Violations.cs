@@ -91,7 +91,8 @@ namespace JcksAnticheat.Core.Detection
         public int SeverityOf(string code)
         {
             if (_policy.SeverityOverrides.TryGetValue(code, out var o)) return o;
-            return ViolationCatalog.DefaultSeverity.TryGetValue(code, out var s) ? s : 10;
+            if (ViolationCatalog.DefaultSeverity.TryGetValue(code, out var s)) return s;
+            return ExternalReport.IsExternal(code) ? ExternalReport.DefaultSeverity : 10;
         }
 
         public double ScoreOf(int player, DateTime? now = null)
@@ -170,6 +171,40 @@ namespace JcksAnticheat.Core.Detection
             e.Score = score;
             e.UpdatedAt = now;
             return score;
+        }
+    }
+
+    public static class ExternalReport
+    {
+        public const int DefaultSeverity = 25;
+        private static readonly System.Text.RegularExpressions.Regex Pattern = new System.Text.RegularExpressions.Regex("^EXT_[A-Z_]{1,40}$");
+        private static readonly SlidingCounter Counter = new SlidingCounter();
+
+        public static bool IsExternal(string code) => code != null && Pattern.IsMatch(code);
+
+        public static string? Normalize(string? code)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return null;
+            var c = code!.Trim().ToUpperInvariant().Replace(' ', '_').Replace('-', '_');
+            if (!c.StartsWith("EXT_", StringComparison.Ordinal)) c = "EXT_" + c;
+            return IsExternal(c) ? c : null;
+        }
+
+        public static Violation? Create(int player, string? code, string? resource, IDictionary<string, object?>? details, DateTime now, int maxPerMinute = 10)
+        {
+            var c = Normalize(code);
+            if (c == null || player <= 0) return null;
+            if (Counter.Add(player + ":" + c, now, TimeSpan.FromMinutes(1)) > maxPerMinute) return null;
+            var evidence = new Dictionary<string, object?> { ["resource"] = resource ?? "unknown" };
+            if (details != null)
+                foreach (var kv in details)
+                {
+                    if (evidence.Count >= 16) break;
+                    var value = kv.Value is string s ? (s.Length > 200 ? s.Substring(0, 200) : s) : kv.Value;
+                    if (value == null || value is string || value is bool || value is int || value is long || value is double || value is float)
+                        evidence[kv.Key.Length > 32 ? kv.Key.Substring(0, 32) : kv.Key] = value;
+                }
+            return new Violation(player, c, ViolationSource.Server, evidence);
         }
     }
 }

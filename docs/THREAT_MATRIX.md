@@ -128,3 +128,10 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
   covers the rest over time.
 - External ESP that draws on a transparent overlay window is invisible to a game screenshot.
   The AI vision layer only sees in-game overlays.
+
+## External reports
+
+Other server resources can report their own findings with `exports.jcks_anticheat:ReportViolation(source, code, details)`.
+The code is prefixed with `EXT_`, scores 25 points by default (override in `scoring.severity`) and is
+treated as server evidence, since only server scripts can call the export. At most 10 reports per
+player per code per minute are accepted.

@@ -136,6 +136,7 @@ namespace JcksAnticheat.Server
             Exports.Add("GrantGrace", new Action<object, string, int>((src, kind, ms) => GrantGrace(ToId(src), kind, ms)));
             Exports.Add("Guard", new Func<object, string, bool>((src, bucket) => Guard(ToId(src), bucket ?? "external")));
             Exports.Add("GetScore", new Func<object, double>(src => _ledger.ScoreOf(ToId(src))));
+            Exports.Add("ReportViolation", new Func<object, string, object, bool>(ReportExternal));
             Exports.Add("BanPlayer", new Action<object, string>((src, reason) => BanPlayer(ToId(src), "MANUAL", reason ?? "Banned by staff", "export")));
         }
 
@@ -509,6 +510,17 @@ namespace JcksAnticheat.Server
                     ["target"] = NetworkGetEntityOwner(ped), ["immediately"] = Get(data, "immediately"),
                 }));
             }
+        }
+
+        private bool ReportExternal(object src, string code, object details)
+        {
+            Dictionary<string, object?>? evidence = null;
+            if (details is IDictionary<string, object> map) evidence = map.ToDictionary(k => k.Key, k => (object?)k.Value);
+            else if (details != null) evidence = new Dictionary<string, object?> { ["details"] = details.ToString() };
+            var v = ExternalReport.Create(ToId(src), code, GetInvokingResource(), evidence, DateTime.UtcNow);
+            if (v == null) return false;
+            Punish(v);
+            return true;
         }
 
         private void OnPedDeath(object rawPed, object rawAttacker, object rawWeapon)

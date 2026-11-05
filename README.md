@@ -213,6 +213,22 @@ exists for client-only scripts, but the server ignores it.
 Other exports: `Guard(source, bucket)` rate-limits your own net events (it returns `false` when the
 player is over budget), `GetScore(source)`, and `BanPlayer(source, reason)`.
 
+Your own server scripts can feed their checks into the same scoring, kicks, bans, dashboard and
+Discord logs:
+
+```lua
+-- server side, e.g. in your bank resource
+if amount > 1000000 then
+  exports.jcks_anticheat:ReportViolation(source, "money_exploit", { amount = amount, event = "bank:deposit" })
+end
+```
+
+The code becomes `EXT_MONEY_EXPLOIT` (letters and `_` only, `EXT_` is added). It scores 25 points
+unless `scoring.severity` sets another value (for example `EXT_MONEY_EXPLOIT=150` to ban at once),
+and `scoring.ignore`, `logOnly`, `alwaysBan` and the bypass ACEs apply to it like any other code.
+The calling resource is stored in the evidence. Each player can report a given code at most 10
+times a minute, so a buggy loop can't ban someone on its own.
+
 ### Live settings (no restart)
 
 Settings can be changed while the server runs, from three places. All three validate the new
