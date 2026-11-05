@@ -171,7 +171,10 @@ the one external dependency.
    ```
    ensure jcks_anticheat
    add_ace group.admin jcks_anticheat.bypass allow
+   add_ace group.admin jcks_anticheat.admin allow
    ```
+   Then from the server console run `jac shield install`, then `refresh`, and restart the server
+   so the shield loads into every resource (see "Shield" above).
 4. Leave `"dryRun": true` in `config.json` for the first sessions. Every detection is logged and
    sent to the dashboard, but nobody is kicked or banned. Tune thresholds against what you see,
    then set it to `false`.
@@ -199,6 +202,34 @@ exists for client-only scripts, but the server ignores it.
 
 Other exports: `Guard(source, bucket)` rate-limits your own net events (it returns `false` when the
 player is over budget), `GetScore(source)`, and `BanPlayer(source, reason)`.
+
+### Live settings (no restart)
+
+Settings can be changed while the server runs, from three places. All three validate the new
+settings first; a rejected change leaves everything as it was.
+
+| Where | How | Who |
+|---|---|---|
+| In game | `/jac panel` opens the settings panel; **Save & apply** writes `config.json` and applies it | ACE `jcks_anticheat.admin` |
+| Web dashboard | **Settings** page; the game server validates, saves, applies and confirms back | Head Admin |
+| By hand | Edit `config.json`, then `/jac reload` (console or in game), or **Reload from file** in the panel or dashboard | console / admin ACE |
+
+Applying a change takes effect at once: thresholds and limits, blacklists, honeypot events, and
+the client scanner's settings (pushed to every connected player). Changing
+`dashboard.secretEnv` needs a restart, because the secret is read from the environment at start.
+
+Console and admin commands:
+
+```
+jac status | reload | panel | dryrun on|off | shield install|uninstall|status
+```
+
+```
+add_ace group.admin jcks_anticheat.admin allow
+```
+
+The panel and dashboard are generated from `settings.schema.json`, so a new setting needs one
+entry there to appear in both.
 
 ### Configuration
 
