@@ -65,12 +65,56 @@ namespace JcksAnticheat.Server
                     edited.DryRun = on;
                     Reply(Apply(edited, actor, save: true));
                     break;
+                case "shield":
+                    if (source != 0) { Reply("Run shield commands from the server console."); break; }
+                    Reply(ShieldCommand(args.Count > 1 ? args[1]?.ToString() ?? "status" : "status"));
+                    break;
                 case "status":
                 default:
                     Reply($"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status");
                     break;
+            }
+        }
+
+        /// <summary>
+        /// jac shield install|uninstall|status: puts the shield include at the top of every other
+        /// resource's manifest (backup saved as fxmanifest.lua.jac-backup), or takes it out again.
+        /// Resources must be restarted (or the server) for the change to load.
+        /// </summary>
+        private string ShieldCommand(string action)
+        {
+            int installed = 0, changed = 0, skipped = 0;
+            var touched = new List<string>();
+            int n = GetNumResources();
+            for (int i = 0; i < n; i++)
+            {
+                var res = GetResourceByFindIndex(i);
+                if (string.IsNullOrEmpty(res) || res == _resource || res.StartsWith("_", StringComparison.Ordinal)) continue;
+                var file = "fxmanifest.lua";
+                var manifest = LoadResourceFile(res, file);
+                if (string.IsNullOrEmpty(manifest)) { file = "__resource.lua"; manifest = LoadResourceFile(res, file); }
+                if (string.IsNullOrEmpty(manifest)) { skipped++; continue; }
+                if (ShieldInstaller.IsInstalled(manifest)) installed++;
+
+                (string text, bool did) result = action == "install" ? ShieldInstaller.Install(manifest)
+                    : action == "uninstall" ? ShieldInstaller.Uninstall(manifest) : (manifest, false);
+                if (!result.did) continue;
+                if (action == "install") SaveResourceFile(res, file + ".jac-backup", manifest, -1);
+                SaveResourceFile(res, file, result.text, -1);
+                changed++;
+                touched.Add(res);
+            }
+            switch (action)
+            {
+                case "install":
+                    return $"Shield added to {changed} resource(s){(touched.Count > 0 ? ": " + string.Join(", ", touched.Take(30)) : "")}. " +
+                           "Run 'refresh' and restart those resources (or the server) to load it.";
+                case "uninstall":
+                    return $"Shield removed from {changed} resource(s). Run 'refresh' and restart them.";
+                default:
+                    return $"Shield present in {installed} resource manifest(s); {skipped} without a readable manifest.";
             }
         }
 

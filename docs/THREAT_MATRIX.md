@@ -86,6 +86,8 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `EXE_RESOURCE_COUNT` | Executor `GetNumResources` spoof | Client resource count/list ≠ server's started list | C | `integrity.lua` | 40 |
 | `EXE_RESOURCE_INJECT` | Injected resource | Unknown resource starts on the client | C | `integrity.lua` | 50 |
 | `EXE_COMMAND_INJECT` | Injected command handlers | `GetRegisteredCommands` contains a name the server didn't register | C | `integrity.lua` | 40 |
+| `EXE_LUA_INJECT` | Lua executor / Lua mod menu injected into a resource | The shield (installed into every resource) sees a guarded function (`TriggerServerEvent`, `CreateVehicle`, `GiveWeaponToPed`, `SetEntityCoords`, `AddExplosion`, `SetEntityInvincible`, `Citizen.InvokeNative`, ...) called with a stack frame from a chunk that isn't a resource file, or a new global function defined by such a chunk | C | `shield/shield.lua` | 60 |
+| `EXE_SHIELD_TAMPER` | Menu unhooking the shield | A shield wrapper in some resource was replaced (natives restored to bypass it) | C | `shield/shield.lua` | 60 |
 | `EXE_GLOBAL_TAMPER` | Native hooking from executor | Canary natives/globals in the scanner's environment were swapped | C | `integrity.lua` | 50 |
 | `NUI_DEVTOOLS` | NUI devtools opened | NUI page detects devtools (debugger timing and console getter traps) | C | `html/index.html`, `integrity.lua` | 40 |
 | `CHK_ERROR` | Scanner tampering (partial) | A client check threw an error, or a heartbeat carried an unknown flag code | C | `client/main.lua`, `AnticheatScript.cs` | 5 |

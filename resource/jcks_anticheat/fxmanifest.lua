@@ -23,7 +23,7 @@ server_scripts {
 }
 
 ui_page "html/index.html"
-files { "html/index.html", "html/panel.js", "html/panel.css" }
+files { "html/index.html", "html/panel.js", "html/panel.css", "shield/shield.lua" }
 
 -- config.json is read by the server with LoadResourceFile; it is not sent to clients.
 

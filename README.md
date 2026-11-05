@@ -69,6 +69,41 @@ game client's memory can lift the key and reimplement the protocol. The heartbea
 of killing or faking the scanner; it doesn't make that impossible. That's why bans rest on
 server-side evidence.
 
+### Shield: catching Lua executors inside every resource
+
+Lua executors inject menu code into a running resource's Lua state, so a scanner living only in
+its own resource never sees it. The shield (`shield/shield.lua`) goes inside every resource
+instead:
+
+```
+jac shield install      (server console; adds the include to every resource with client code)
+refresh
+```
+
+Then restart those resources (or the server). Each manifest gets one first line,
+`client_script "@jcks_anticheat/shield/shield.lua"`, and the original is saved next to it as
+`fxmanifest.lua.jac-backup`. `jac shield uninstall` removes the line and `jac shield status`
+counts installs.
+
+How it detects:
+- FiveM names every chunk loaded from a resource file `@@<resource>/<path>`. Code an executor
+  pushes in has no file behind it (`=(load)`, raw code text, or a made-up resource name).
+- The shield wraps what menus call: server events, `ExecuteCommand`, vehicle/ped/object spawning,
+  weapon and ammo natives, teleport, godmode/proofs/visibility, health and armour, explosions,
+  vehicle repair/boost/handling, resurrect, spectate, attach, and `Citizen.InvokeNative`. On
+  each call it walks the stack, and any frame from a non-file chunk means injected code is behind
+  the call (`EXE_LUA_INJECT`). That holds even when the menu calls through the resource's own
+  helper functions.
+- Every 10 s it flags new global functions defined by non-file chunks (menu frameworks define
+  their UI and option tables globally), and wrappers swapped back to the original natives
+  (`EXE_SHIELD_TAMPER`).
+- These are client signals. They add to the score and can kick, but never ban on their own.
+
+**Limits.** An executor that names its chunk after a running resource (`@@qb-core/x.lua`) passes
+the chunk-name check. The shield doesn't verify that the file exists, because escrowed resources
+can't be read back. Native C++ menus that never touch Lua aren't visible to it; for those you rely
+on the server-side checks, the heartbeat and AI vision.
+
 ### Server-side checks
 
 | Validator | Catches |
@@ -228,7 +263,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-45 tests cover:
+52 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -254,7 +289,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 45 tests pass.
+- Both C# projects build with no warnings and the 52 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

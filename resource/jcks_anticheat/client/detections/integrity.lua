@@ -90,6 +90,22 @@ S.register("integrity.canary", 10000, function()
   end
 end)
 
+-- Shield reports from inside other resources (resource/jcks_anticheat/shield/shield.lua).
+JcksAC.shielded = JcksAC.shielded or {}
+AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
+  if type(resource) ~= "string" or type(kind) ~= "string" or type(detail) ~= "table" then return end
+  if kind == "hello" then
+    JcksAC.shielded[resource] = true
+    return
+  end
+  local evidence = { r = resource:sub(1, 48), fn = tostring(detail.fn):sub(1, 48), src = tostring(detail.src):sub(1, 80), kind = kind }
+  if kind == "tamper" then
+    S.flag("EXE_SHIELD_TAMPER", evidence)
+  else
+    S.flag("EXE_LUA_INJECT", evidence)
+  end
+end)
+
 -- NUI sensor. html/index.html posts here; the page itself is invisible and takes no focus.
 RegisterNUICallback("jac_sensor", function(data, cb)
   cb({})

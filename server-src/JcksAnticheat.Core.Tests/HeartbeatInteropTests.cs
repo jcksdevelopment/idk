@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using JcksAnticheat.Core.Crypto;
+using JcksAnticheat.Core.Detection;
 using JcksAnticheat.Core.Heartbeat;
 using JcksAnticheat.Core.Json;
 using Xunit;
@@ -199,4 +200,47 @@ public class HandshakeTimeoutTests
         mgr.End(6);
         Assert.Empty(mgr.FindMissing(t0.AddSeconds(500)));
     }
+}
+
+public class ShieldTests
+{
+    [Fact]
+    public void ShieldCatchesInjectedLuaAndIgnoresResourceCode()
+    {
+        var lua = new[] { "lua5.4", "lua" }.SelectMany(n => (Environment.GetEnvironmentVariable("PATH") ?? "").Split(':').Select(p => Path.Combine(p, n))).FirstOrDefault(File.Exists);
+        if (lua == null)
+        {
+            if (Environment.GetEnvironmentVariable("JCKS_AC_SKIP_LUA") == "1") return;
+            Assert.Fail("lua5.4 not found on PATH (or set JCKS_AC_SKIP_LUA=1).");
+        }
+        var root = Environment.GetEnvironmentVariable("JCKS_AC_RESOURCE_ROOT");
+        if (string.IsNullOrEmpty(root))
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "resource", "jcks_anticheat"))) dir = dir.Parent;
+            root = Path.Combine(dir!.FullName, "resource", "jcks_anticheat");
+        }
+        var psi = new System.Diagnostics.ProcessStartInfo(lua!) { RedirectStandardOutput = true, RedirectStandardError = true };
+        psi.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory, "lua", "shield_test.lua"));
+        psi.ArgumentList.Add(root);
+        using var p = System.Diagnostics.Process.Start(psi)!;
+        var output = p.StandardOutput.ReadToEnd() + p.StandardError.ReadToEnd();
+        p.WaitForExit();
+        Assert.True(p.ExitCode == 0 && output.Contains("SHIELD OK"), output);
+    }
+
+    [Fact]
+    public void InstallerPrependsOnceAndUninstallsCleanly()
+    {
+        const string manifest = "fx_version 'cerulean'\ngame 'gta5'\nclient_script 'client.lua'\nserver_script 'server.lua'\n";
+        var (installed, changed) = ShieldInstaller.Install(manifest);
+        Assert.True(changed);
+        Assert.StartsWith("client_script \"@jcks_anticheat/shield/shield.lua\"", installed);
+        Assert.False(ShieldInstaller.Install(installed).changed);
+        Assert.Equal(manifest, ShieldInstaller.Uninstall(installed).manifest);
+    }
+
+    [Fact]
+    public void InstallerSkipsServerOnlyResources()
+        => Assert.False(ShieldInstaller.Install("fx_version 'cerulean'\nserver_scripts { 'a.lua' }\n").changed);
 }

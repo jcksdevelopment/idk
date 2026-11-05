@@ -53,7 +53,7 @@ namespace JcksAnticheat.Core.Detection
 
             ["NET_RATE"] = 20, ["NET_FLOOD"] = 40, ["NET_HONEYPOT"] = 60, ["NET_CLEAR_TASKS"] = 40, ["HB_MISSING"] = 60, ["HB_INVALID"] = 60, ["HB_STATE_MISMATCH"] = 30,
             ["EXE_RESOURCE_COUNT"] = 40, ["EXE_RESOURCE_INJECT"] = 50, ["EXE_COMMAND_INJECT"] = 40,
-            ["EXE_GLOBAL_TAMPER"] = 50, ["NUI_DEVTOOLS"] = 40, ["NUI_FRAME_INJECT"] = 40,
+            ["EXE_GLOBAL_TAMPER"] = 50, ["EXE_LUA_INJECT"] = 60, ["EXE_SHIELD_TAMPER"] = 60, ["NUI_DEVTOOLS"] = 40, ["NUI_FRAME_INJECT"] = 40,
             ["CHK_ERROR"] = 5,
 
             // Vision verdicts go to a human review queue; they never push a player over the ban line alone.
