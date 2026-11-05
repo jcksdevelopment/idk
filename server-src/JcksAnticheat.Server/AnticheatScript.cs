@@ -41,6 +41,7 @@ namespace JcksAnticheat.Server
         private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
         private readonly MassKillTracker _massKills;
         private readonly VpnChecker _vpn;
+        private readonly ScopeTracker _scope = new ScopeTracker();
         private readonly JcksAnticheat.Core.Logging.ReportThrottle _throttle = new JcksAnticheat.Core.Logging.ReportThrottle();
         private ConfigHistory _history = null!;
         private readonly JcksAnticheat.Core.Logging.RecentViolations _recent = new JcksAnticheat.Core.Logging.RecentViolations();
@@ -135,6 +136,8 @@ namespace JcksAnticheat.Server
             EventHandlers["clearPedTasksEvent"] += new Action<object, object>(OnClearPedTasks);
             EventHandlers["givePedScriptedTaskEvent"] += new Action<object, object>(OnGivePedTask);
             EventHandlers["onPedDeath"] += new Action<object, object, object>(OnPedDeath);
+            EventHandlers["playerEnteredScope"] += new Action<object>(d => { if (d is IDictionary<string, object> m) _scope.Entered(ToInt(Get(m, "player")), ToInt(Get(m, "for"))); });
+            EventHandlers["playerLeftScope"] += new Action<object>(d => { if (d is IDictionary<string, object> m) _scope.Left(ToInt(Get(m, "player")), ToInt(Get(m, "for")), DateTime.UtcNow); });
             EventHandlers["startProjectileEvent"] += new Action<object, object>(OnStartProjectile);
             EventHandlers["fireEvent"] += new Action<object, object>(OnFireEvent);
             EventHandlers["ptFxEvent"] += new Action<object, object>(OnPtfxEvent);
@@ -268,6 +271,7 @@ namespace JcksAnticheat.Server
             _massKills.Forget(id);
             _recent.Forget(id);
             _throttle.Forget(id);
+            _scope.Forget(id);
             _staffAlerts.Forget(id);
             _consistency.Forget(id);
             ForgetAntiDump(id);
@@ -522,13 +526,18 @@ namespace JcksAnticheat.Server
             };
 
             var found = _damage.Evaluate(hit);
+            if (victimPlayer > 0 && victimPlayer != attacker && _scope.KnownOutOfScope(attacker, victimPlayer, DateTime.UtcNow))
+                found.Add(new Violation(attacker, "WPN_OUT_OF_SCOPE", ViolationSource.Server, new Dictionary<string, object?>
+                {
+                    ["victim"] = victimPlayer, ["dmg"] = hit.Damage, ["serverObserved"] = true,
+                }));
             if (victimPlayer > 0 && hit.Damage > 0)
                 _absorb.RecordHit(victimPlayer, GetEntityHealth(victimEntity), GetPedArmour(victimEntity), DateTime.UtcNow);
 
             bool cancel = false;
             foreach (var v in found)
             {
-                if (v.Code == "WPN_DMG_MODIFIER" || v.Code == "WPN_RANGE") cancel = true;
+                if (v.Code == "WPN_DMG_MODIFIER" || v.Code == "WPN_RANGE" || v.Code == "WPN_OUT_OF_SCOPE") cancel = true;
                 Punish(v);
             }
             if (cancel) CancelEvent();

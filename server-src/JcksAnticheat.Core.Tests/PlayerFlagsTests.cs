@@ -141,3 +141,23 @@ public class MassKillTests
         for (int i = 0; i < 10; i++) Assert.Null(t.RecordKill(3, 3, 0u, now));
     }
 }
+
+public class ScopeTrackerTests
+{
+    [Fact]
+    public void OnlyAKnownExitOlderThanGraceCounts()
+    {
+        var s = new ScopeTracker();
+        var now = System.DateTime.UtcNow;
+        Assert.False(s.KnownOutOfScope(1, 2, now));
+        s.Left(2, 1, now);
+        Assert.False(s.KnownOutOfScope(1, 2, now.AddSeconds(1)));
+        Assert.True(s.KnownOutOfScope(1, 2, now.AddSeconds(5)));
+        Assert.False(s.KnownOutOfScope(2, 1, now.AddSeconds(5)));
+        s.Entered(2, 1);
+        Assert.False(s.KnownOutOfScope(1, 2, now.AddSeconds(6)));
+        s.Left(2, 1, now);
+        s.Forget(2);
+        Assert.False(s.KnownOutOfScope(1, 2, now.AddSeconds(6)));
+    }
+}
