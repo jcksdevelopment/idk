@@ -698,6 +698,12 @@
           "step": 1
         },
         {
+          "key": "entities.blockUnknownScript",
+          "label": "Block entities from unknown scripts",
+          "type": "bool",
+          "help": "The server reads which resource created each script entity (GetEntityScript). When it matches no resource on this server, the entity was most likely spawned by an injected menu and ENT_UNKNOWN_SCRIPT is raised. By default ENT_UNKNOWN_SCRIPT is in scoring.logOnly so you can watch it first; turn this on to also cancel those spawns, and remove the code from logOnly to score it."
+        },
+        {
           "key": "entities.allowedPedModels",
           "label": "Allowed ped models",
           "type": "list",

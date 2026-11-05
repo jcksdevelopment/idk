@@ -95,6 +95,7 @@ namespace JcksAnticheat.Core.Validation
         public int MaxVehiclesPer10s { get; set; } = 5;
         public int MaxEntitiesPer10s { get; set; } = 15;
         public int MaxAttachedToOthers { get; set; } = 2;
+        public bool BlockUnknownScript { get; set; }
     }
 
     public readonly struct Attachment
@@ -103,6 +104,18 @@ namespace JcksAnticheat.Core.Validation
         public int Entity { get; }
         public int Creator { get; }
         public int Victim { get; }
+    }
+
+    public static class EntityScriptCheck
+    {
+        public static Violation? Evaluate(int owner, bool scriptCreated, bool isPlayerPed, string? creatingResource, uint model, EntityKind kind)
+        {
+            if (owner <= 0 || !scriptCreated || isPlayerPed || !string.IsNullOrEmpty(creatingResource)) return null;
+            return new Violation(owner, "ENT_UNKNOWN_SCRIPT", ViolationSource.Server, new Dictionary<string, object?>
+            {
+                ["model"] = model, ["kind"] = kind.ToString(), ["serverObserved"] = true,
+            });
+        }
     }
 
     public static class AttachmentWatch

@@ -468,6 +468,12 @@ namespace JcksAnticheat.Server
             var kind = (EntityKind)GetEntityType(handle);
             bool scriptCreated = GetEntityPopulationType(handle) == 7;
             var (found, cancel) = _entities.Evaluate(owner, model, kind, scriptCreated, DateTime.UtcNow);
+            var unknown = EntityScriptCheck.Evaluate(owner, scriptCreated, kind == EntityKind.Ped && IsPedAPlayer(handle), GetEntityScript(handle), model, kind);
+            if (unknown != null)
+            {
+                found.Add(unknown);
+                if (_cfg.Entities.BlockUnknownScript && CountermeasureOn(unknown.Code) && !_cfg.DryRun) cancel = true;
+            }
             foreach (var v in found) Punish(v);
             if (cancel) CancelEvent();
         }

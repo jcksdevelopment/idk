@@ -30,7 +30,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `PLY_SPEED_FOOT` | Speedhack (on foot) | Ped speed > 12 m/s on foot, not falling, not ragdolled | C+S | `player.lua`, `MovementValidator` | 30 |
 | `PLY_STAMINA` | Infinite stamina | Sprinting for > 25 s with stamina still at 100 | C | `player.lua` | 10 |
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
-| `PLY_INVISIBLE` | Invisibility | `IsEntityVisible` false or alpha < 50 while not authorised | C+S | `player.lua`, server state tick | 30 |
+| `PLY_INVISIBLE` | Invisibility (on foot or in an invisible vehicle) | `IsEntityVisible` false or alpha < 50 on the ped on foot, or on the vehicle the player drives, while not authorised; both are made visible again | C+S | `player.lua`, `vehicle.lua`, server state tick | 30 |
 | `PLY_TINY_PED` | Tiny ped | Ped config flag 223 (shrink) set without a `tiny` grant | C | `player.lua` | 30 |
 | `PLY_SELF_REVIVE` | Self-revive | Player goes from dead to alive without a `heal`/`revive` grace (trusted ambulance/spawn resources grant it through the shield) | C | `player.lua` | 35 |
 | `PLY_SPECTATE` | Spectate other players | `NetworkIsInSpectatorMode` true without an admin grant (`spectate`) | C | `player.lua` | 35 |
@@ -78,6 +78,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 |---|---|---|---|---|---|
 | `VEH_SPAWN` | Vehicle spawn bypass | `entityCreating` with a blacklisted model, or > 5 vehicles in 10 s from one owner | S | `EntityValidator` | 40 |
 | `ENT_SPAWN_FLOOD` | Object/ped spam | > 15 entities in 10 s from one owner | S | `EntityValidator` | 45 |
+| `ENT_UNKNOWN_SCRIPT` | Entities spawned by an injected menu under a made-up resource name | A script-created entity whose creating script (`GetEntityScript`, from the entity's sync data) matches no resource on the server. Log-only by default; `entities.blockUnknownScript` cancels the spawn | S | `EntityScriptCheck` | 35 |
 | `ENT_ATTACH_PLAYER` | Props/cages/vehicles stuck on other players | More than `entities.maxAttachedToOthers` objects or vehicles first owned by one player are attached (`GetEntityAttachedTo`) to other players' peds; they are deleted | S | `AttachmentWatch` | 40 |
 | `VEH_HANDLING` | Handling edit | Handling floats drift from the baseline captured on entering | C | `vehicle.lua` | 30 |
 | `VEH_POWER` | Power/torque boost | `GetVehicleCheatPowerIncrease` > 1.0 | C | `vehicle.lua` | 30 |

@@ -57,6 +57,11 @@ local ACT = {
     local ped = PlayerPedId()
     SetEntityVisible(ped, true, false)
     ResetEntityAlpha(ped)
+    local veh = myVehicle()
+    if veh then
+      SetEntityVisible(veh, true, false)
+      ResetEntityAlpha(veh)
+    end
   end,
   PLY_VISION = function()
     SetSeethrough(false)

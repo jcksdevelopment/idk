@@ -26,7 +26,7 @@
     "halfLifeMinutes": 10,
     "severity": {},
     "ignore": [],
-    "logOnly": [],
+    "logOnly": ["ENT_UNKNOWN_SCRIPT"],
     "dropImmediately": ["HB_INVALID", "HB_MISSING", "NET_FLOOD"],
     "alwaysBan": []
   },
@@ -35,7 +35,7 @@
   "damage": { "bodyDamageMultiplier": 1.6, "headDamageMultiplier": 4.0, "rangeMultiplier": 1.25, "maxAimAngle": 60, "maxTrajectoryAngle": 45, "aimAngleMinDistance": 4, "rateMultiplier": 1.5, "headshotSampleSize": 25, "headshotMinDistance": 15, "headshotRatioMax": 0.7 },
   "explosions": { "blacklist": [16, 18, 26, 29, 32, 35, 36, 37, 41], "maxPerSecond": 4, "maxPer10Seconds": 12 },
   "gameEvents": { "projectileOriginMaxDistance": 12, "maxProjectilesPer10s": 20, "maxFiresPer10s": 10, "maxPtfxPer10s": 40, "maxPtfxScale": 5 },
-  "entities": { "maxVehiclesPer10s": 5, "maxEntitiesPer10s": 15, "maxAttachedToOthers": 2, "allowedPedModels": [] },
+  "entities": { "maxVehiclesPer10s": 5, "maxEntitiesPer10s": 15, "maxAttachedToOthers": 2, "blockUnknownScript": false, "allowedPedModels": [] },
 
   "weaponBlacklist": [
     "WEAPON_RAILGUN", "WEAPON_RAILGUNXM3", "WEAPON_MINIGUN", "WEAPON_RPG", "WEAPON_HOMINGLAUNCHER",

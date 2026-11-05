@@ -89,3 +89,31 @@ public class PlayerFlagsTests
         Assert.True(JcksAnticheat.Core.Config.Behaviours.IsKnown("superjump"));
     }
 }
+
+public class EntityScriptCheckTests
+{
+    [Fact]
+    public void ScriptEntityFromUnknownResourceIsReported()
+    {
+        var v = EntityScriptCheck.Evaluate(5, true, false, null, 123u, EntityKind.Vehicle);
+        Assert.NotNull(v);
+        Assert.Equal("ENT_UNKNOWN_SCRIPT", v!.Code);
+        Assert.Equal(5, v.Player);
+    }
+
+    [Fact]
+    public void KnownResourcesPopulationAndPlayerPedsAreIgnored()
+    {
+        Assert.Null(EntityScriptCheck.Evaluate(5, true, false, "qb-garages", 1u, EntityKind.Vehicle));
+        Assert.Null(EntityScriptCheck.Evaluate(5, false, false, null, 1u, EntityKind.Ped));
+        Assert.Null(EntityScriptCheck.Evaluate(5, true, true, null, 1u, EntityKind.Ped));
+        Assert.Null(EntityScriptCheck.Evaluate(0, true, false, null, 1u, EntityKind.Object));
+    }
+
+    [Fact]
+    public void UnknownScriptIsLogOnlyByDefault()
+    {
+        Assert.Contains("ENT_UNKNOWN_SCRIPT", new ScoringPolicy().LogOnly);
+        Assert.Contains("ENT_UNKNOWN_SCRIPT", JcksAnticheat.Core.Config.AnticheatConfig.Parse("{}").Scoring.LogOnly);
+    }
+}

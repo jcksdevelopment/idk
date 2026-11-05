@@ -50,7 +50,7 @@ namespace JcksAnticheat.Core.Detection
             ["WPN_PROJECTILE_ORIGIN"] = 45, ["WPN_PROJECTILE_SPAM"] = 40, ["WPN_FIRE_PLAYER"] = 45, ["WPN_FIRE_SPAM"] = 40,
             ["NET_PTFX_SPAM"] = 35,
 
-            ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30, ["VEH_REPAIR"] = 25, ["VEH_HIJACK"] = 40, ["VEH_RAINBOW"] = 20, ["VEH_PLATE"] = 20, ["VEH_TOP_SPEED"] = 30, ["VEH_GRAVITY"] = 30, ["VEH_DMG_MODIFIER"] = 30, ["ENT_ATTACH_PLAYER"] = 40, ["EXE_MENU_TEXTURE"] = 50,
+            ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["ENT_UNKNOWN_SCRIPT"] = 35, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30, ["VEH_REPAIR"] = 25, ["VEH_HIJACK"] = 40, ["VEH_RAINBOW"] = 20, ["VEH_PLATE"] = 20, ["VEH_TOP_SPEED"] = 30, ["VEH_GRAVITY"] = 30, ["VEH_DMG_MODIFIER"] = 30, ["ENT_ATTACH_PLAYER"] = 40, ["EXE_MENU_TEXTURE"] = 50,
 
             ["NET_RATE"] = 20, ["NET_FLOOD"] = 40, ["NET_HONEYPOT"] = 60, ["NET_CLEAR_TASKS"] = 40, ["NET_GIVE_TASK"] = 40, ["NET_EVENT_SPAM"] = 30, ["NET_CHAT_SPOOF"] = 40, ["HB_MISSING"] = 60, ["HB_INVALID"] = 60, ["HB_STATE_MISMATCH"] = 30,
             ["EXE_RESOURCE_COUNT"] = 40, ["EXE_RESOURCE_INJECT"] = 50, ["EXE_COMMAND_INJECT"] = 40,
@@ -69,7 +69,7 @@ namespace JcksAnticheat.Core.Detection
         public double HalfLifeMinutes { get; set; } = 10;
         public Dictionary<string, int> SeverityOverrides { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         public HashSet<string> Ignore { get; set; } = new HashSet<string>(StringComparer.Ordinal);
-        public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal);
+        public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "ENT_UNKNOWN_SCRIPT" };
         public HashSet<string> DropImmediately { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "HB_INVALID", "HB_MISSING", "NET_FLOOD" };
         public HashSet<string> AlwaysBan { get; set; } = new HashSet<string>(StringComparer.Ordinal);
     }

@@ -87,6 +87,10 @@ S.register("vehicle.state", 1500, function()
     S.flag("VEH_GODMODE", {})
   end
 
+  if not S.allowed("invisible") and (not IsEntityVisible(veh) or GetEntityAlpha(veh) < 50) then
+    S.flag("PLY_INVISIBLE", { veh = true, vis = IsEntityVisible(veh), a = GetEntityAlpha(veh) })
+  end
+
   local top = GetVehicleTopSpeedModifier(veh)
   if top > S.t("topSpeedModifierMax") then
     S.flag("VEH_TOP_SPEED", { p = math.floor(top) })

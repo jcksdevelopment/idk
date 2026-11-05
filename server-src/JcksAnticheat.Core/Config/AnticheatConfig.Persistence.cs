@@ -65,7 +65,7 @@ namespace JcksAnticheat.Core.Config
             },
             ["entities"] = new Dictionary<string, object?>
             {
-                ["maxVehiclesPer10s"] = Entities.MaxVehiclesPer10s, ["maxEntitiesPer10s"] = Entities.MaxEntitiesPer10s, ["maxAttachedToOthers"] = Entities.MaxAttachedToOthers,
+                ["maxVehiclesPer10s"] = Entities.MaxVehiclesPer10s, ["maxEntitiesPer10s"] = Entities.MaxEntitiesPer10s, ["maxAttachedToOthers"] = Entities.MaxAttachedToOthers, ["blockUnknownScript"] = Entities.BlockUnknownScript,
                 ["allowedPedModels"] = Entities.AllowedPedModelNames.ToList(),
             },
             ["gameEvents"] = new Dictionary<string, object?>

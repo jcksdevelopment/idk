@@ -243,6 +243,7 @@ namespace JcksAnticheat.Core.Config
                 cfg.Entities.MaxVehiclesPer10s = (int)(en.Num("maxVehiclesPer10s") ?? cfg.Entities.MaxVehiclesPer10s);
                 cfg.Entities.MaxEntitiesPer10s = (int)(en.Num("maxEntitiesPer10s") ?? cfg.Entities.MaxEntitiesPer10s);
                 cfg.Entities.MaxAttachedToOthers = (int)(en.Num("maxAttachedToOthers") ?? cfg.Entities.MaxAttachedToOthers);
+                cfg.Entities.BlockUnknownScript = en.Bool("blockUnknownScript") ?? cfg.Entities.BlockUnknownScript;
                 if (Strings(en, "allowedPedModels") is { } peds)
                 {
                     cfg.Entities.AllowedPedModelNames = peds;

@@ -159,8 +159,12 @@ namespace JcksAnticheat.Server
             if (!_state.HasGrace(id, "godmode", now) && GetPlayerInvincible(player.Handle))
                 Defer(id, "godmode", now, new Violation(id, "PLY_GODMODE_FLAG", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }), null);
 
-            if (!_state.HasGrace(id, "invisible", now) && veh == 0 && !dead && !IsEntityVisible(ped))
-                Defer(id, "invisible", now, new Violation(id, "PLY_INVISIBLE", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true }), null);
+            if (!_state.HasGrace(id, "invisible", now) && !dead)
+            {
+                bool driving = veh != 0 && GetPedInVehicleSeat(veh, -1) == ped;
+                if ((veh == 0 && !IsEntityVisible(ped)) || (driving && !IsEntityVisible(veh)))
+                    Defer(id, "invisible", now, new Violation(id, "PLY_INVISIBLE", ViolationSource.Server, new Dictionary<string, object?> { ["serverObserved"] = true, ["vehicle"] = driving }), null);
+            }
 
             if (veh != 0 && GetPedInVehicleSeat(veh, -1) == ped)
             {
