@@ -179,7 +179,7 @@ function FieldInput({ field, value, disabled, onChange }: { field: SettingsField
       );
     case "map":
       return (
-        <MapInput id={field.key} value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, number>) : {}} disabled={disabled} onChange={onChange} />
+        <MapInput id={field.key} upper={!!field.upperKeys} value={value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, number>) : {}} disabled={disabled} onChange={onChange} />
       );
     default:
       return <Input id={field.key} value={String(value ?? "")} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="font-mono" />;
@@ -208,24 +208,24 @@ function parse(text: string, kind: "list" | "codes" | "numbers"): unknown[] {
 }
 
 /** CODE=points per line; keeps its own text like ListInput. */
-function MapInput({ id, value, disabled, onChange }: { id: string; value: Record<string, number>; disabled: boolean; onChange: (v: unknown) => void }) {
+function MapInput({ id, upper, value, disabled, onChange }: { id: string; upper: boolean; value: Record<string, number>; disabled: boolean; onChange: (v: unknown) => void }) {
   const joined = Object.entries(value).map(([k, v]) => `${k}=${v}`).join("\n");
   const [text, setText] = useState(joined);
   useEffect(() => {
-    setText((t) => (serialize(parseMap(t)) === joined ? t : joined));
-  }, [joined]);
+    setText((t) => (serialize(parseMap(t, upper)) === joined ? t : joined));
+  }, [joined, upper]);
   return (
-    <textarea id={id} value={text} disabled={disabled} spellCheck={false} placeholder="CODE=points, one per line" rows={Math.min(8, Math.max(3, Object.keys(value).length + 1))}
-      onChange={(e) => { setText(e.target.value); onChange(parseMap(e.target.value)); }}
+    <textarea id={id} value={text} disabled={disabled} spellCheck={false} placeholder="key=value, one per line" rows={Math.min(8, Math.max(3, Object.keys(value).length + 1))}
+      onChange={(e) => { setText(e.target.value); onChange(parseMap(e.target.value, upper)); }}
       className="w-full rounded-md border border-line-strong bg-transparent px-3 py-2 font-mono text-xs focus:border-zinc-500 focus:outline-none" />
   );
 }
 
-function parseMap(text: string): Record<string, number> {
+function parseMap(text: string, upper: boolean): Record<string, number> {
   const out: Record<string, number> = {};
   for (const line of text.split("\n")) {
-    const m = line.trim().match(/^([A-Za-z_]+)\s*[=:]\s*(-?\d+(?:\.\d+)?)$/);
-    if (m) out[m[1].toUpperCase()] = Math.round(+m[2]);
+    const m = line.trim().match(/^(\S+?)\s*=\s*(-?\d+(?:\.\d+)?)$/);
+    if (m) out[upper ? m[1].toUpperCase() : m[1]] = Math.round(+m[2]);
   }
   return out;
 }

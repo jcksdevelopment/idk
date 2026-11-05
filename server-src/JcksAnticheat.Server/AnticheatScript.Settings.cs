@@ -146,6 +146,7 @@ namespace JcksAnticheat.Server
             _heartbeats.HandshakeTimeout = TimeSpan.FromSeconds(_cfg.HandshakeTimeoutSeconds);
             _state.MaxHealth = _cfg.MaxHealth;
             RegisterHoneypots();
+            RegisterProtectedEvents();
 
             if (save) SaveResourceFile(_resource, "config.json", _cfg.ToPrettyJson(), -1);
 

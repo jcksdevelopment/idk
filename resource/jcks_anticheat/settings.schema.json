@@ -78,7 +78,8 @@
           "key": "scoring.severity",
           "label": "Severity overrides",
           "type": "map",
-          "help": "One per line as CODE=points, e.g. VEH_HANDLING=10. Overrides the default score a detection adds (see docs/THREAT_MATRIX.md for codes and defaults)."
+          "help": "One per line as CODE=points, e.g. VEH_HANDLING=10. Overrides the default score a detection adds (see docs/THREAT_MATRIX.md for codes and defaults).",
+          "upperKeys": true
         },
         {
           "key": "scoring.ignore",
@@ -158,6 +159,12 @@
           "label": "Honeypot event names",
           "type": "list",
           "help": "Decoy events nothing legitimate triggers."
+        },
+        {
+          "key": "protectedEvents",
+          "label": "Protected server events",
+          "type": "map",
+          "help": "One per line as event=max per minute, e.g. esx_jobs:pay=10. Triggers over the limit are reported (NET_EVENT_SPAM) and cancelled."
         }
       ]
     },

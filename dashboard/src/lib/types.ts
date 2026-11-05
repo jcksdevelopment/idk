@@ -80,6 +80,8 @@ export interface SettingsField {
   max?: number;
   step?: number;
   options?: string[];
+  /** For "map": upper-case the keys (detection codes). */
+  upperKeys?: boolean;
 }
 
 export interface SettingsSchema {

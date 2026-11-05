@@ -88,6 +88,8 @@ namespace JcksAnticheat.Core.Config
         public int MaxWeapons { get; set; } = 25;
         /// <summary>Texture dictionaries only cheat menus load (operator-maintained; empty by default).</summary>
         public List<string> TextureBlacklist { get; set; } = new List<string>();
+        /// <summary>Server events to rate-limit per player: event name → max triggers per minute.</summary>
+        public Dictionary<string, int> ProtectedEvents { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         public List<string> AdminAce { get; set; } = new List<string> { "jcks_anticheat.bypass" };
 
         public static AnticheatConfig Parse(string json)
@@ -112,6 +114,11 @@ namespace JcksAnticheat.Core.Config
             cfg.AdminAce = Strings(root, "adminAce") ?? cfg.AdminAce;
             cfg.MaxWeapons = (int)(root.Num("maxWeapons") ?? cfg.MaxWeapons);
             cfg.TextureBlacklist = Strings(root, "textureBlacklist") ?? cfg.TextureBlacklist;
+            if (root.Obj("protectedEvents") is { } pe)
+            {
+                cfg.ProtectedEvents = new Dictionary<string, int>(StringComparer.Ordinal);
+                foreach (var kv in pe) if (kv.Value is double d) cfg.ProtectedEvents[kv.Key] = (int)d;
+            }
 
             if (root.Obj("scoring") is { } s)
             {

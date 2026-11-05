@@ -26,6 +26,7 @@ namespace JcksAnticheat.Core.Config
             ["adminAce"] = AdminAce.ToList(),
             ["maxWeapons"] = MaxWeapons,
             ["textureBlacklist"] = TextureBlacklist.ToList(),
+            ["protectedEvents"] = ProtectedEvents.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["scoring"] = new Dictionary<string, object?>
             {
                 ["screenshotAt"] = Scoring.ScreenshotAt,
@@ -139,6 +140,9 @@ namespace JcksAnticheat.Core.Config
             foreach (var kv in Scoring.SeverityOverrides)
                 Require(kv.Value >= 0 && kv.Value <= 1000 && System.Text.RegularExpressions.Regex.IsMatch(kv.Key, "^[A-Z_]{3,48}$"),
                     "scoring.severity entry " + kv.Key + " must be CODE=0..1000");
+            foreach (var kv in ProtectedEvents)
+                Require(kv.Value >= 1 && kv.Value <= 10000 && kv.Key.Length > 0 && kv.Key.Length <= 128,
+                    "protectedEvents entry " + kv.Key + " must be event=1..10000");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");
             return errors;

@@ -7,6 +7,7 @@
   "expectedDamageModifier": 1.0,
   "maxWeapons": 25,
   "textureBlacklist": [],
+  "protectedEvents": {},
   "eventBurst": 60,
   "eventRefillPerSecond": 25,
   "floodDeniedPer10s": 40,

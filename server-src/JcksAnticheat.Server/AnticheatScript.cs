@@ -105,6 +105,7 @@ namespace JcksAnticheat.Server
             EventHandlers[_ssUploadEvent] += new Action<Player, string, int, int, string>(OnScreenshotChunk);
 
             RegisterHoneypots();
+            RegisterProtectedEvents();
 
             // OneSync game events.
             EventHandlers["weaponDamageEvent"] += new Action<object, object>(OnWeaponDamage);
@@ -176,6 +177,7 @@ namespace JcksAnticheat.Server
             _heartbeats.End(id);
             _limiter.ForgetPlayer(id);
             _denied.RemoveWhere(k => k == id.ToString());
+            _protectedCounter.RemoveWhere(k => k.StartsWith(id + ":", StringComparison.Ordinal));
             _movement.Forget(id);
             _damage.Forget(id);
             _explosions.Forget(id);
@@ -280,6 +282,37 @@ namespace JcksAnticheat.Server
         }
 
         private readonly HashSet<string> _honeypotsRegistered = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _protectedRegistered = new HashSet<string>(StringComparer.Ordinal);
+        private readonly SlidingCounter _protectedCounter = new SlidingCounter();
+
+        /// <summary>
+        /// Adds a listener to each protected server event (alongside the resource's own handler).
+        /// Over the per-minute limit the trigger is reported and cancelled. CancelEvent stops handlers
+        /// that check WasEventCanceled and later ones; it can't undo a handler that already ran.
+        /// </summary>
+        private void RegisterProtectedEvents()
+        {
+            foreach (var name in _cfg.ProtectedEvents.Keys)
+            {
+                if (!_protectedRegistered.Add(name)) continue;
+                var eventName = name;
+                EventHandlers[eventName] += new Action<Player>(p => OnProtectedEvent(p, eventName));
+            }
+        }
+
+        private void OnProtectedEvent([FromSource] Player player, string eventName)
+        {
+            int id = ToId(player.Handle);
+            if (id <= 0 || !_cfg.ProtectedEvents.TryGetValue(eventName, out var perMinute)) return;
+            int n = _protectedCounter.Add(id + ":" + eventName, DateTime.UtcNow, TimeSpan.FromMinutes(1));
+            if (n <= perMinute) return;
+            CancelEvent();
+            if (n == perMinute + 1 || n % 50 == 0)
+                Punish(new Violation(id, "NET_EVENT_SPAM", ViolationSource.Server, new Dictionary<string, object?>
+                {
+                    ["event"] = eventName, ["perMinute"] = n, ["limit"] = perMinute,
+                }));
+        }
 
         /// <summary>Registers handlers for honeypot names not yet registered (also after a settings reload).</summary>
         private void RegisterHoneypots()

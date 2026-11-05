@@ -544,3 +544,18 @@ public class ExplosionBlameTests
         => Assert.Empty(new ExplosionValidator(new ExplosionPolicy()).Evaluate(
             new ExplosionInfo { Source = 8, ExplosionType = 7, DamageScale = 1, CameraShake = 1, OwnerPlayer = 9 }).violations);
 }
+
+public class ProtectedEventConfigTests
+{
+    [Fact]
+    public void ProtectedEventsParseRoundTripAndValidate()
+    {
+        var cfg = AnticheatConfig.Parse("{\"protectedEvents\":{\"esx_jobs:pay\":10,\"qb-bank:server:deposit\":30}}");
+        Assert.Equal(10, cfg.ProtectedEvents["esx_jobs:pay"]);
+        var again = AnticheatConfig.Parse(cfg.ToPrettyJson());
+        Assert.Equal(30, again.ProtectedEvents["qb-bank:server:deposit"]);
+        Assert.Empty(again.Validate());
+        Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{\"protectedEvents\":{\"x\":0}}"));
+        Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{\"scoring\":{\"severity\":{\"bad code\":5}}}"));
+    }
+}
