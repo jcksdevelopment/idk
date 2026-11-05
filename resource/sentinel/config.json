@@ -6,6 +6,7 @@
   "expectedDamageModifier": 1.0,
   "eventBurst": 60,
   "eventRefillPerSecond": 25,
+  "floodDeniedPer10s": 40,
   "adminAce": ["sentinel.bypass"],
 
   "scoring": {
@@ -14,11 +15,12 @@
     "banAt": 140,
     "halfLifeMinutes": 10,
     "severity": {},
-    "logOnly": []
+    "logOnly": [],
+    "dropImmediately": ["HB_INVALID", "HB_MISSING", "NET_FLOOD"]
   },
 
   "movement": { "onFootMaxSpeed": 12, "landMaxSpeed": 110, "airMaxSpeed": 160, "boatMaxSpeed": 60, "teleportMinDistance": 60, "speedSlack": 1.35 },
-  "damage": { "bodyDamageMultiplier": 1.6, "headDamageMultiplier": 4.0, "rangeMultiplier": 1.25, "maxAimAngle": 60, "headshotRatioMax": 0.7 },
+  "damage": { "bodyDamageMultiplier": 1.6, "headDamageMultiplier": 4.0, "rangeMultiplier": 1.25, "maxAimAngle": 60, "maxTrajectoryAngle": 45, "headshotRatioMax": 0.7 },
   "explosions": { "blacklist": [16, 18, 26, 29, 32, 35, 36, 37, 41], "maxPerSecond": 4, "maxPer10Seconds": 12 },
   "entities": { "maxVehiclesPer10s": 5, "maxEntitiesPer10s": 15, "allowedPedModels": [] },
 

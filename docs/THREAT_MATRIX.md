@@ -12,7 +12,8 @@ Layers:
 - **H**: heartbeat integrity. If the scanner is stopped or tampered with, the heartbeat fails.
 
 Severity is the score added per hit. Scores decay over time. Thresholds for kick and ban
-live in `config.json`, not in code.
+live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default `HB_INVALID`,
+`HB_MISSING`, `NET_FLOOD`) disconnect the player at once regardless of score, but never ban alone.
 
 ## Player
 
@@ -52,6 +53,7 @@ live in `config.json`, not in code.
 | `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ 1.0, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `DamageValidator` | 40 |
 | `WPN_RANGE` | Out-of-range hits | Hit distance > weapon effective range × 1.25 | S | `DamageValidator` | 25 |
 | `WPN_AIM_ANGLE` | Silent aim | Shooter's facing vs. vector to victim > 60° on a confirmed hit | S | `DamageValidator` | 30 |
+| `WPN_TRAJECTORY` | Magic bullet / fabricated hits | Reported bullet impact direction (`impactDirX/Y/Z`) deviates > 45° from the shooter→victim line | S | `DamageValidator` | 20 |
 | `WPN_AIM_SNAP` | Aimbot snap | Camera rotation jumps > 70° in one frame within 150 ms before a shot | C | `weapon.lua` | 20 |
 | `WPN_HEADSHOT_RATIO` | Aimbot (statistical) | Headshot ratio > 70% over ≥ 25 ranged hits | S | `DamageValidator` | 30 |
 | `WPN_TRIGGERBOT` | Triggerbot | Shot reaction time < 60 ms after crosshair acquires a ped, repeatedly | C | `weapon.lua` | 15 |
@@ -76,6 +78,7 @@ live in `config.json`, not in code.
 |---|---|---|---|---|---|
 | `NET_RATE` | Event flood / spoofing | Per-player token bucket on net events is exhausted | S | `RateLimiter` | 20 |
 | `NET_CLEAR_TASKS` | Kick players out of vehicles / freeze them | `clearPedTasksEvent` aimed at another player's ped (cancelled) | S | `SentinelScript.cs` | 40 |
+| `NET_FLOOD` | Event flood / spam triggers | 40+ rate-limited events within 10 s: the player is disconnected at once | S | `SentinelScript.cs` (`Guard`) | 40 |
 | `NET_HONEYPOT` | Event spoofing (dumped triggers) | Client fires a decoy event that legitimate code never fires | S | `SentinelScript.cs` (honeypot events) | 60 |
 | `HB_MISSING` | Scanner killed | No valid heartbeat for > 20 s | H | `HeartbeatManager` | 60 |
 | `HB_INVALID` | Heartbeat forgery/replay | MAC mismatch, sequence replay, or stale challenge | H | `HeartbeatManager` | 60 |

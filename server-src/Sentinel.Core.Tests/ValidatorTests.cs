@@ -211,3 +211,54 @@ public class ValidatorTests
         Assert.Equal(new[] { "WEAPON_RPG" }, cfg.WeaponBlacklist);
     }
 }
+
+public class IterationTwoTests
+{
+    private static readonly DateTime T0 = new(2026, 11, 5, 12, 0, 0, DateTimeKind.Utc);
+
+    private static WeaponHit Hit(Vec3? impact, float heading = 0) => new()
+    {
+        Attacker = 1, VictimPlayer = 2, WeaponHash = Joaat.Hash("WEAPON_CARBINERIFLE"), Damage = 30,
+        AttackerPos = new Vec3(0, 0, 0), AttackerHeading = heading, VictimPos = new Vec3(0, 40, 0), ImpactDir = impact, At = T0,
+    };
+
+    [Fact]
+    public void TrajectoryAlongLineOfFireIsAcceptedInEitherSign()
+    {
+        var dv = new DamageValidator(new DamageLimits());
+        Assert.DoesNotContain(dv.Evaluate(Hit(new Vec3(0.05f, 1, -0.02f))), v => v.Code == "WPN_TRAJECTORY");
+        Assert.DoesNotContain(new DamageValidator(new DamageLimits()).Evaluate(Hit(new Vec3(0, -1, 0))), v => v.Code == "WPN_TRAJECTORY");
+    }
+
+    [Fact]
+    public void SidewaysBulletIsFlagged()
+    {
+        var found = new DamageValidator(new DamageLimits()).Evaluate(Hit(new Vec3(1, 0, 0)));
+        Assert.Contains(found, v => v.Code == "WPN_TRAJECTORY");
+    }
+
+    [Fact]
+    public void MissingImpactDirSkipsTheCheck()
+        => Assert.DoesNotContain(new DamageValidator(new DamageLimits()).Evaluate(Hit(null)), v => v.Code == "WPN_TRAJECTORY");
+
+    [Fact]
+    public void HeartbeatFailureDropsButNeverBansAlone()
+    {
+        var ledger = new ViolationLedger(new ScoringPolicy());
+        var v = new Violation(3, "HB_INVALID", ViolationSource.Heartbeat);
+        ledger.Record(v, T0);
+        Assert.Equal(EnforcementAction.Kick, v.Action);
+        Assert.True(v.ScoreAfter < new ScoringPolicy().BanAt);
+    }
+
+    [Fact]
+    public void DropImmediatelyIsConfigurable()
+    {
+        var cfg = SentinelConfig.Parse("{\"scoring\":{\"dropImmediately\":[]},\"damage\":{\"maxTrajectoryAngle\":30},\"floodDeniedPer10s\":10}");
+        var v = new Violation(3, "HB_INVALID", ViolationSource.Heartbeat);
+        new ViolationLedger(cfg.Scoring).Record(v, T0);
+        Assert.Equal(EnforcementAction.Screenshot, v.Action);
+        Assert.Equal(30f, cfg.Damage.MaxTrajectoryAngle);
+        Assert.Equal(10, cfg.FloodDeniedPer10s);
+    }
+}

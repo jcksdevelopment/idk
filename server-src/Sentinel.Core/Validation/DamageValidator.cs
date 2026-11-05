@@ -19,6 +19,8 @@ namespace Sentinel.Core.Validation
         public Vec3 AttackerPos { get; set; }
         public float AttackerHeading { get; set; }
         public bool AttackerInVehicle { get; set; }
+        /// <summary>weaponDamageEvent impactDirX/Y/Z when hasImpactDir is set: the direction the bullet travelled.</summary>
+        public Vec3? ImpactDir { get; set; }
         public Vec3 VictimPos { get; set; }
         public DateTime At { get; set; } = DateTime.UtcNow;
     }
@@ -30,6 +32,8 @@ namespace Sentinel.Core.Validation
         public float RangeMultiplier { get; set; } = 1.25f;
         /// <summary>Above this angle between the shooter's facing and the victim, a hit is implausible.</summary>
         public float MaxAimAngle { get; set; } = 60f;
+        /// <summary>Max angle between the bullet's impact direction and the shooter→victim line.</summary>
+        public float MaxTrajectoryAngle { get; set; } = 45f;
         /// <summary>The angle check is skipped closer than this (point-blank, melee, body overlap).</summary>
         public float AimAngleMinDistance { get; set; } = 4f;
         public float RateMultiplier { get; set; } = 1.5f;
@@ -101,6 +105,21 @@ namespace Sentinel.Core.Validation
                 float angle = Vec3.Angle2D(facing, toVictim);
                 if (angle > _limits.MaxAimAngle)
                     found.Add(new Violation(hit.Attacker, "WPN_AIM_ANGLE", ViolationSource.Server, Evidence(("angle", Math.Round(angle, 1)))));
+            }
+
+            // Trajectory: the impact direction the attacker's client reported must lie along the line from
+            // shooter to victim. A hit whose bullet travelled sideways, or arrived from behind a wall the
+            // shooter never fired through, was fabricated (magic bullet / silent aim that rewrites the hit).
+            // The sign convention of impactDir isn't documented, so the check compares lines, not directions:
+            // angle = min(a, 180 - a). That loses "from behind" detection but never misreads a valid shot.
+            if (hit.ImpactDir is Vec3 dir && dir.Length > 0.1f && distance > _limits.AimAngleMinDistance && spec?.Group != WeaponGroup.Melee
+                && spec?.Group != WeaponGroup.Shotgun)
+            {
+                var line = (hit.VictimPos - hit.AttackerPos).Normalized();
+                double cos = Math.Abs(Vec3.Dot(dir.Normalized(), line));
+                double angle = Math.Acos(Math.Min(1.0, cos)) * 180.0 / Math.PI;
+                if (angle > _limits.MaxTrajectoryAngle)
+                    found.Add(new Violation(hit.Attacker, "WPN_TRAJECTORY", ViolationSource.Server, Evidence(("angle", Math.Round(angle, 1)))));
             }
 
             var stats = _stats.GetOrAdd(hit.Attacker, _ => new ShooterStats());

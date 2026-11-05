@@ -45,13 +45,13 @@ namespace Sentinel.Core.Detection
             ["MOV_NOCLIP_ZVEL"] = 35, ["MOV_TELEPORT"] = 40, ["MOV_SPEED_VEH"] = 30,
 
             ["WPN_BLACKLIST"] = 50, ["WPN_GIVE_EVENT"] = 50, ["WPN_DMG_MODIFIER"] = 40, ["WPN_RANGE"] = 25,
-            ["WPN_AIM_ANGLE"] = 30, ["WPN_AIM_SNAP"] = 20, ["WPN_HEADSHOT_RATIO"] = 30, ["WPN_TRIGGERBOT"] = 15,
+            ["WPN_AIM_ANGLE"] = 30, ["WPN_TRAJECTORY"] = 20, ["WPN_AIM_SNAP"] = 20, ["WPN_HEADSHOT_RATIO"] = 30, ["WPN_TRIGGERBOT"] = 15,
             ["WPN_RAPID_FIRE"] = 30, ["WPN_INFINITE_AMMO"] = 20, ["WPN_EXPLOSIVE_AMMO"] = 50,
             ["WPN_EXPLOSION_BLACKLIST"] = 50,
 
             ["VEH_SPAWN"] = 40, ["ENT_SPAWN_FLOOD"] = 45, ["VEH_HANDLING"] = 30, ["VEH_POWER"] = 30, ["VEH_GODMODE"] = 30,
 
-            ["NET_RATE"] = 20, ["NET_HONEYPOT"] = 60, ["NET_CLEAR_TASKS"] = 40, ["HB_MISSING"] = 60, ["HB_INVALID"] = 60,
+            ["NET_RATE"] = 20, ["NET_FLOOD"] = 40, ["NET_HONEYPOT"] = 60, ["NET_CLEAR_TASKS"] = 40, ["HB_MISSING"] = 60, ["HB_INVALID"] = 60,
             ["EXE_RESOURCE_COUNT"] = 40, ["EXE_RESOURCE_INJECT"] = 50, ["EXE_COMMAND_INJECT"] = 40,
             ["EXE_GLOBAL_TAMPER"] = 50, ["NUI_DEVTOOLS"] = 40, ["NUI_FRAME_INJECT"] = 40,
             ["CHK_ERROR"] = 5,
@@ -71,6 +71,8 @@ namespace Sentinel.Core.Detection
         public Dictionary<string, int> SeverityOverrides { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         /// <summary>Codes that may only ever log (for tuning a noisy detection on a live server).</summary>
         public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal);
+        /// <summary>Codes that disconnect the player at once, whatever the score (still never a ban by themselves).</summary>
+        public HashSet<string> DropImmediately { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "HB_INVALID", "HB_MISSING", "NET_FLOOD" };
     }
 
     /// <summary>
@@ -127,7 +129,7 @@ namespace Sentinel.Core.Detection
 
                 if (_policy.LogOnly.Contains(v.Code)) v.Action = EnforcementAction.Log;
                 else if (score >= _policy.BanAt) v.Action = EnforcementAction.Ban;
-                else if (score >= _policy.KickAt) v.Action = EnforcementAction.Kick;
+                else if (score >= _policy.KickAt || _policy.DropImmediately.Contains(v.Code)) v.Action = EnforcementAction.Kick;
                 else if (score >= _policy.ScreenshotAt) v.Action = EnforcementAction.Screenshot;
                 else v.Action = EnforcementAction.Log;
             }

@@ -29,6 +29,7 @@ namespace Sentinel.Server
         private readonly RateLimiter _limiter = new RateLimiter();
         private readonly RateLimiter.Rule _eventRule;
         private readonly RateLimiter.Rule _helloRule = new RateLimiter.Rule(3, 0.05);
+        private readonly SlidingCounter _denied = new SlidingCounter();
         private readonly HeartbeatManager _heartbeats = new HeartbeatManager();
         private readonly MovementValidator _movement;
         private readonly DamageValidator _damage;
@@ -139,6 +140,7 @@ namespace Sentinel.Server
             int id = ToId(player.Handle);
             _heartbeats.End(id);
             _limiter.ForgetPlayer(id);
+            _denied.RemoveWhere(k => k == id.ToString());
             _movement.Forget(id);
             _damage.Forget(id);
             _explosions.Forget(id);
@@ -249,6 +251,9 @@ namespace Sentinel.Server
                 AttackerHeading = GetEntityHeading(attackerPed),
                 AttackerInVehicle = GetVehiclePedIsIn(attackerPed, false) != 0,
                 VictimPos = ToVec(GetEntityCoords(victimEntity)),
+                ImpactDir = Get(data, "hasImpactDir") is bool hasDir && hasDir
+                    ? new Vec3(ToFloat(Get(data, "impactDirX")), ToFloat(Get(data, "impactDirY")), ToFloat(Get(data, "impactDirZ")))
+                    : (Vec3?)null,
             };
 
             var found = _damage.Evaluate(hit);
@@ -366,7 +371,13 @@ namespace Sentinel.Server
         {
             if (player <= 0) return true;
             if (_limiter.TryConsume(player, "all", _eventRule)) return true;
-            Punish(new Violation(player, "NET_RATE", ViolationSource.Server, new Dictionary<string, object?> { ["bucket"] = bucket }));
+            // One denied event is noise (lag burst); a sustained stream of denials is a flood: drop the client.
+            int denied = _denied.Add(player.ToString(), DateTime.UtcNow, TimeSpan.FromSeconds(10));
+            if (denied == 1 || denied == _cfg.FloodDeniedPer10s)
+            {
+                var code = denied >= _cfg.FloodDeniedPer10s ? "NET_FLOOD" : "NET_RATE";
+                Punish(new Violation(player, code, ViolationSource.Server, new Dictionary<string, object?> { ["bucket"] = bucket, ["denied10s"] = denied }));
+            }
             return false;
         }
 

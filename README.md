@@ -49,6 +49,9 @@ plain net event a cheat could block or spoof to stay clean. Blocking the heartbe
    ratchet `key = SHA256(key ‖ mac)`, so a captured packet can't be replayed and a forger who missed
    one packet loses the key.
 4. A second handshake after a working session is itself a violation (`HB_INVALID`).
+5. An invalid heartbeat (`HB_INVALID`) or 20 s of silence (`HB_MISSING`) disconnects the player
+   immediately (`scoring.dropImmediately`). That's a kick, not a ban: a crashed or frozen client
+   looks the same as a killed scanner.
 
 The crypto is pure Lua 5.4 (`shared/crypto.lua`) and is byte-compatible with the C# side. The test
 suite runs the real `crypto.lua`, `main.lua` and `heartbeat.lua` under `lua5.4` with stubbed natives
@@ -64,14 +67,14 @@ server-side evidence.
 | Validator | Catches |
 |---|---|
 | `MovementValidator` | Teleport, speedhack (on foot and in vehicles), noclip rising faster than gravity allows. Uses OneSync positions, not client claims. Falling is always allowed. |
-| `DamageValidator` | Damage multipliers, out-of-range hits, silent aim (shooter facing away from the victim), rapid fire, headshot ratio over 25 hits |
+| `DamageValidator` | Damage multipliers, out-of-range hits, silent aim (shooter facing away from the victim), bullet trajectory (reported impact direction vs. the shooter→victim line), rapid fire, headshot ratio over 25 hits |
 | `AbsorbTracker` | Semi-godmode: confirmed hits that never lower the victim's health |
 | `ExplosionValidator` | Explosive ammo (`EXP_TAG_BULLET`), blacklisted and stealth explosions, explosion spam. Cancels the event. |
 | `EntityValidator` | Blacklisted vehicles and objects, spawn floods. Cancels `entityCreating`. |
 | `PlayerStateValidator` | Health and armour jumps without a server-granted heal, max-health tampering |
 | Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` against other players |
 | Honeypots | Decoy net events no real resource fires (`honeypotEvents` in config) |
-| `RateLimiter` | Per-player token bucket, shared by Sentinel's own events and other resources through `exports.sentinel:Guard` |
+| `RateLimiter` | Per-player token bucket, shared by Sentinel's own events and other resources through `exports.sentinel:Guard`. A sustained flood (40 denied events in 10 s) disconnects the player. |
 
 **Idle cost.** Everything is event-driven except one coroutine that wakes once a second and returns
 immediately when nobody is online. Buckets refill lazily and nothing allocates at idle. I designed
@@ -205,7 +208,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-27 tests cover:
+32 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -231,7 +234,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 27 tests pass.
+- Both C# projects build with no warnings and the 32 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

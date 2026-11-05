@@ -71,6 +71,8 @@ namespace Sentinel.Core.Config
         /// <summary>Allowed per-player net events per second (burst capacity, refill/sec).</summary>
         public double EventBurst { get; set; } = 60;
         public double EventRefillPerSecond { get; set; } = 25;
+        /// <summary>Rate-limited (denied) events within 10 s that turn NET_RATE into a NET_FLOOD disconnect.</summary>
+        public int FloodDeniedPer10s { get; set; } = 40;
 
         public int HeartbeatIntervalMs { get; set; } = 5000;
         public int HeartbeatMissingSeconds { get; set; } = 20;
@@ -92,6 +94,7 @@ namespace Sentinel.Core.Config
             cfg.ExpectedDamageModifier = root.Num("expectedDamageModifier") ?? cfg.ExpectedDamageModifier;
             cfg.EventBurst = root.Num("eventBurst") ?? cfg.EventBurst;
             cfg.EventRefillPerSecond = root.Num("eventRefillPerSecond") ?? cfg.EventRefillPerSecond;
+            cfg.FloodDeniedPer10s = (int)(root.Num("floodDeniedPer10s") ?? cfg.FloodDeniedPer10s);
             cfg.WeaponBlacklist = Strings(root, "weaponBlacklist") ?? cfg.WeaponBlacklist;
             cfg.VehicleBlacklist = Strings(root, "vehicleBlacklist") ?? cfg.VehicleBlacklist;
             cfg.ObjectBlacklist = Strings(root, "objectBlacklist") ?? cfg.ObjectBlacklist;
@@ -107,6 +110,7 @@ namespace Sentinel.Core.Config
                 if (s.Obj("severity") is { } sev)
                     foreach (var kv in sev) if (kv.Value is double d) cfg.Scoring.SeverityOverrides[kv.Key] = (int)d;
                 if (Strings(s, "logOnly") is { } lo) cfg.Scoring.LogOnly = new HashSet<string>(lo, StringComparer.Ordinal);
+                if (Strings(s, "dropImmediately") is { } di) cfg.Scoring.DropImmediately = new HashSet<string>(di, StringComparer.Ordinal);
             }
 
             if (root.Obj("movement") is { } m)
@@ -125,6 +129,7 @@ namespace Sentinel.Core.Config
                 cfg.Damage.HeadDamageMultiplier = (float)(dmg.Num("headDamageMultiplier") ?? cfg.Damage.HeadDamageMultiplier);
                 cfg.Damage.RangeMultiplier = (float)(dmg.Num("rangeMultiplier") ?? cfg.Damage.RangeMultiplier);
                 cfg.Damage.MaxAimAngle = (float)(dmg.Num("maxAimAngle") ?? cfg.Damage.MaxAimAngle);
+                cfg.Damage.MaxTrajectoryAngle = (float)(dmg.Num("maxTrajectoryAngle") ?? cfg.Damage.MaxTrajectoryAngle);
                 cfg.Damage.HeadshotRatioMax = dmg.Num("headshotRatioMax") ?? cfg.Damage.HeadshotRatioMax;
             }
 
