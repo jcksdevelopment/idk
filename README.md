@@ -34,9 +34,11 @@ identifier and restored when they rejoin, still decaying while they're away. A c
 kicked and reconnects keeps climbing toward the ban threshold instead of starting from zero.
 
 **The server decides; the client only reports.** Code on the cheater's machine can be patched, so
-client flags add to a suspicion score but can never ban on their own. A ban needs a server-observed
-signal: an impossible movement, an invalid weapon hit, a forbidden game event, or a failed or missing
-heartbeat. `ViolationLedger` enforces this in code (see the `ClientOnlyEvidenceNeverBans` test).
+client flags add to a suspicion score but can never ban on their own. An automatic ban needs at least
+`scoring.serverShareForBan` (default half) of `banAt` to come from server-observed detections: impossible
+movement, invalid weapon hits, forbidden game events, values read from OneSync sync. Client flags and
+heartbeat reports can still push someone to a kick. `ViolationLedger` enforces this in code (see the
+`ClientOnlyEvidenceNeverBans` test).
 
 **No "ban me" event.** Client detections travel inside the heartbeat as encrypted flags. There is no
 plain net event a cheat could block or spoof to stay clean. Blocking the heartbeat entirely trips

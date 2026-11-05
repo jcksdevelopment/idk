@@ -69,6 +69,7 @@ namespace JcksAnticheat.Core.Detection
         public double HalfLifeMinutes { get; set; } = 10;
         public Dictionary<string, int> SeverityOverrides { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         public HashSet<string> Ignore { get; set; } = new HashSet<string>(StringComparer.Ordinal);
+        public double ServerShareForBan { get; set; } = 0.5;
         public HashSet<string> LogOnly { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "ENT_UNKNOWN_SCRIPT" };
         public HashSet<string> DropImmediately { get; set; } = new HashSet<string>(StringComparer.Ordinal) { "HB_INVALID", "HB_MISSING", "NET_FLOOD" };
         public HashSet<string> AlwaysBan { get; set; } = new HashSet<string>(StringComparer.Ordinal);
@@ -80,7 +81,7 @@ namespace JcksAnticheat.Core.Detection
         {
             public double Score;
             public DateTime UpdatedAt = DateTime.UtcNow;
-            public bool HasServerSignal;
+            public double ServerScore;
         }
 
         private readonly ConcurrentDictionary<int, Entry> _entries = new ConcurrentDictionary<int, Entry>();
@@ -107,15 +108,19 @@ namespace JcksAnticheat.Core.Detection
             var entry = _entries.GetOrAdd(v.Player, _ => new Entry());
             lock (entry)
             {
-                double score = Decay(entry, t);
+                double factor = DecayFactor(entry, t);
+                double score = entry.Score * factor;
+                double serverScore = entry.ServerScore * factor;
                 v.Severity = SeverityOf(v.Code);
                 score += v.Severity;
-                if (v.Source != ViolationSource.Client) entry.HasServerSignal = true;
+                if (v.Source == ViolationSource.Server) serverScore += v.Severity;
 
-                if (!entry.HasServerSignal && score >= _policy.BanAt)
+                if (score >= _policy.BanAt && serverScore < _policy.BanAt * _policy.ServerShareForBan)
                 {
                     score = Math.Max(_policy.KickAt, _policy.BanAt - 1);
                 }
+
+                entry.ServerScore = serverScore;
 
                 entry.Score = score;
                 entry.UpdatedAt = t;
@@ -161,6 +166,12 @@ namespace JcksAnticheat.Core.Detection
             foreach (var kv in _parked)
                 lock (kv.Value)
                     if (Decay(kv.Value, now) < 1) _parked.TryRemove(kv.Key, out _);
+        }
+
+        private double DecayFactor(Entry e, DateTime now)
+        {
+            var minutes = (now - e.UpdatedAt).TotalMinutes;
+            return minutes <= 0 ? 1 : Math.Pow(0.5, minutes / _policy.HalfLifeMinutes);
         }
 
         private double Decay(Entry e, DateTime now)

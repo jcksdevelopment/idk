@@ -38,7 +38,7 @@ namespace JcksAnticheat.Core.Config
                 ["screenshotAt"] = Scoring.ScreenshotAt,
                 ["kickAt"] = Scoring.KickAt,
                 ["banAt"] = Scoring.BanAt,
-                ["halfLifeMinutes"] = Scoring.HalfLifeMinutes,
+                ["halfLifeMinutes"] = Scoring.HalfLifeMinutes, ["serverShareForBan"] = Scoring.ServerShareForBan,
                 ["severity"] = Scoring.SeverityOverrides.OrderBy(k => k.Key, StringComparer.Ordinal)
                     .ToDictionary(k => k.Key, k => (object?)k.Value),
                 ["ignore"] = Sorted(Scoring.Ignore),
@@ -162,6 +162,7 @@ namespace JcksAnticheat.Core.Config
             Require(Scoring.ScreenshotAt <= Scoring.KickAt, "scoring.screenshotAt must not exceed scoring.kickAt");
             Require(Scoring.KickAt < Scoring.BanAt, "scoring.kickAt must be below scoring.banAt");
             Require(Scoring.HalfLifeMinutes > 0, "scoring.halfLifeMinutes must be positive");
+            Require(Scoring.ServerShareForBan >= 0 && Scoring.ServerShareForBan <= 1, "scoring.serverShareForBan must be 0–1");
             Require(HeartbeatIntervalMs >= 1000 && HeartbeatIntervalMs <= 30000, "heartbeatIntervalMs must be 1000–30000");
             Require(HeartbeatMissingSeconds * 1000 > HeartbeatIntervalMs * 2, "heartbeatMissingSeconds must cover at least two heartbeat intervals");
             Require(HandshakeTimeoutSeconds >= 30, "handshakeTimeoutSeconds must be at least 30");

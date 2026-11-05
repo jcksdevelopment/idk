@@ -93,6 +93,15 @@
           "step": 1
         },
         {
+          "key": "scoring.serverShareForBan",
+          "label": "Server evidence needed for an automatic ban",
+          "type": "number",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "help": "Share of the ban score that must come from server-observed detections (OneSync state, game events) before an automatic ban. 0.5 means at least half of banAt; client-scanner detections alone can kick but never ban. 0 lets any evidence ban. scoring.alwaysBan still bans on the first hit."
+        },
+        {
           "key": "scoring.severity",
           "label": "Severity overrides",
           "type": "map",

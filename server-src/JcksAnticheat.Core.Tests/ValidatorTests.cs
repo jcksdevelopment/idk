@@ -157,9 +157,26 @@ public class ValidatorTests
         for (int i = 0; i < 10; i++) { last = new Violation(1, "PLY_GODMODE_FLAG", ViolationSource.Client); ledger.Record(last, T0); }
         Assert.Equal(EnforcementAction.Kick, last!.Action);
 
+        var heartbeat = new Violation(1, "HB_STATE_MISMATCH", ViolationSource.Heartbeat);
+        ledger.Record(heartbeat, T0);
+        Assert.Equal(EnforcementAction.Kick, heartbeat.Action);
+
         var server = new Violation(1, "MOV_TELEPORT", ViolationSource.Server);
         ledger.Record(server, T0);
-        Assert.Equal(EnforcementAction.Ban, server.Action);
+        Assert.Equal(EnforcementAction.Kick, server.Action);
+
+        var again = new Violation(1, "MOV_TELEPORT", ViolationSource.Server);
+        ledger.Record(again, T0);
+        Assert.Equal(EnforcementAction.Ban, again.Action);
+    }
+
+    [Fact]
+    public void ServerShareZeroRestoresScoreOnlyBans()
+    {
+        var ledger = new ViolationLedger(new ScoringPolicy { ServerShareForBan = 0 });
+        Violation? last = null;
+        for (int i = 0; i < 10; i++) { last = new Violation(1, "PLY_GODMODE_FLAG", ViolationSource.Client); ledger.Record(last, T0); }
+        Assert.Equal(EnforcementAction.Ban, last!.Action);
     }
 
     [Fact]

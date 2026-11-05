@@ -26,6 +26,7 @@
     "kickAt": 80,
     "banAt": 140,
     "halfLifeMinutes": 10,
+    "serverShareForBan": 0.5,
     "severity": {},
     "ignore": [],
     "logOnly": ["ENT_UNKNOWN_SCRIPT"],

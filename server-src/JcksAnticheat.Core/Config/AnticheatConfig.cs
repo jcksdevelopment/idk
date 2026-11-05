@@ -217,6 +217,7 @@ namespace JcksAnticheat.Core.Config
                 cfg.Scoring.KickAt = s.Num("kickAt") ?? cfg.Scoring.KickAt;
                 cfg.Scoring.BanAt = s.Num("banAt") ?? cfg.Scoring.BanAt;
                 cfg.Scoring.HalfLifeMinutes = s.Num("halfLifeMinutes") ?? cfg.Scoring.HalfLifeMinutes;
+                cfg.Scoring.ServerShareForBan = s.Num("serverShareForBan") ?? cfg.Scoring.ServerShareForBan;
                 if (s.Obj("severity") is { } sev)
                     foreach (var kv in sev) if (kv.Value is double d) cfg.Scoring.SeverityOverrides[kv.Key] = (int)d;
                 if (Strings(s, "logOnly") is { } lo) cfg.Scoring.LogOnly = new HashSet<string>(lo, StringComparer.Ordinal);
