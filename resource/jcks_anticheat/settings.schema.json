@@ -226,7 +226,13 @@
           "key": "protectedEvents",
           "label": "Protected server events",
           "type": "map",
-          "help": "One per line as event=max per minute, e.g. esx_jobs:pay=10. Triggers over the limit are reported (NET_EVENT_SPAM) and cancelled."
+          "help": "One per line as event=max per minute, e.g. esx_jobs:pay=10. Triggers over the limit are reported (NET_EVENT_SPAM). FiveM still delivers the event to its own resource; to block it there, add 'if not exports.jcks_anticheat:CheckEvent(source, \"esx_jobs:pay\") then return end' at the top of that handler."
+        },
+        {
+          "key": "eventZones",
+          "label": "Event zones",
+          "type": "maplist",
+          "help": "One per line as event=x,y,z,radius, e.g. job:startJob=125.0,111.1,35.8,15. When a player triggers that server event farther than radius metres from the point (server-side position), NET_EVENT_ZONE is reported. Repeat the four numbers for more allowed places. As with protected events, block it in the event's own handler with exports.jcks_anticheat:CheckEvent(source, eventName)."
         }
       ]
     },
@@ -846,7 +852,7 @@
           "key": "chatSpoofCheck",
           "label": "Detect chat spoofing",
           "type": "bool",
-          "help": "Reports and cancels chat messages sent under another player's name (cfx chat)."
+          "help": "Reports chat messages whose author differs from the sender's real name (a forged chat event) and stops them through the chat resource's chatMessage event. Current cfx chat already shows the real name."
         },
         {
           "key": "auditOnStart",

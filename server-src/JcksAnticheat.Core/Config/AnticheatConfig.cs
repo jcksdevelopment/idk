@@ -157,6 +157,7 @@ namespace JcksAnticheat.Core.Config
         public bool AuditOnStart { get; set; } = true;
         public bool LinkBanIdentifiers { get; set; } = true;
         public Dictionary<string, int> ProtectedEvents { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
+        public Dictionary<string, List<string>> EventZones { get; set; } = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         public List<string> AdminAce { get; set; } = new List<string> { "jcks_anticheat.bypass" };
 
         public static AnticheatConfig Parse(string json)
@@ -196,6 +197,14 @@ namespace JcksAnticheat.Core.Config
             {
                 cfg.ProtectedEvents = new Dictionary<string, int>(StringComparer.Ordinal);
                 foreach (var kv in pe) if (kv.Value is double d) cfg.ProtectedEvents[kv.Key] = (int)d;
+            }
+
+            if (root.Obj("eventZones") is { } ez)
+            {
+                cfg.EventZones = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+                foreach (var kv in ez)
+                    if (kv.Value is List<object?> list)
+                        cfg.EventZones[kv.Key] = list.Select(x => x is double d ? d.ToString(System.Globalization.CultureInfo.InvariantCulture) : x as string).Where(x => x != null).Select(x => x!).ToList();
             }
 
             if (root.Obj("scoring") is { } s)

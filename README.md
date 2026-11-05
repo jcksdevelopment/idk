@@ -121,8 +121,8 @@ on the server-side checks, the heartbeat and AI vision.
 | `AttachmentWatch` | Props, cages or vehicles created by one player and attached to other players' peds (`ENT_ATTACH_PLAYER`, above `entities.maxAttachedToOthers`); they are deleted. Peds attached to peds (carry/escort) are not counted. |
 | Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` and `givePedScriptedTaskEvent` against other players (cancelled) |
 | Honeypots | Decoy net events no real resource fires (`honeypotEvents` in config) |
-| Protected events | `protectedEvents` (event = max per minute) rate-limits sensitive server events of other resources (payouts, transfers, item grants) per player; over the limit they're reported (`NET_EVENT_SPAM`) and cancelled. Editable live in the panel and dashboard. |
-| Names & chat | Connections whose name contains HTML/script (chat/NUI injection) or an operator-blocked word are refused; chat messages sent under another player's name are cancelled (`NET_CHAT_SPOOF`). |
+| Protected events | `protectedEvents` (event = max per minute) rate-limits sensitive server events of other resources (payouts, transfers, item grants) per player; over the limit they're reported (`NET_EVENT_SPAM`). `eventZones` (event = x,y,z,radius) reports the event when the player's server-side position is outside the radius (`NET_EVENT_ZONE`). FiveM still runs the event's own handler (cancelling a net event doesn't stop other resources' handlers), so add `if not exports.jcks_anticheat:CheckEvent(source, "event:name") then return end` at the top of that handler to block it. Editable live in the panel and dashboard. |
+| Names & chat | Connections whose name contains HTML/script (chat/NUI injection) or an operator-blocked word are refused; chat messages sent under another player's name are reported and stopped through the chat resource's `chatMessage` event (`NET_CHAT_SPOOF`). |
 | `RateLimiter` | Per-player token bucket, shared by JCKS Anticheat's own events and other resources through `exports.jcks_anticheat:Guard`. A sustained flood (40 denied events in 10 s) disconnects the player. |
 
 **Idle cost.** Everything is event-driven except one coroutine that wakes once a second and returns
@@ -212,6 +212,18 @@ exists for client-only scripts, but the server ignores it.
 
 Other exports: `Guard(source, bucket)` rate-limits your own net events (it returns `false` when the
 player is over budget), `GetScore(source)`, and `BanPlayer(source, reason)`.
+
+To actually stop a protected or zoned event, check it at the top of its own handler:
+
+```lua
+RegisterNetEvent("job:startJob", function()
+  if not exports.jcks_anticheat:CheckEvent(source, "job:startJob") then return end
+  -- ...
+end)
+```
+
+`CheckEvent` returns `false` when the player is over that event's `protectedEvents` limit or
+outside its `eventZones`; the detection itself is raised by JCKS Anticheat's own handler.
 
 Your own server scripts can feed their checks into the same scoring, kicks, bans, dashboard and
 Discord logs:

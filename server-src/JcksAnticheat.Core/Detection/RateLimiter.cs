@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -77,6 +78,13 @@ namespace JcksAnticheat.Core.Detection
             var cutoff = now - window;
             while (q.TryPeek(out var head) && head < cutoff) q.TryDequeue(out _);
             return q.Count;
+        }
+
+        public int Count(string key, DateTime now, TimeSpan window)
+        {
+            if (!_events.TryGetValue(key, out var q)) return 0;
+            var cutoff = now - window;
+            return q.Count(t => t >= cutoff);
         }
 
         public void RemoveWhere(Func<string, bool> predicate)

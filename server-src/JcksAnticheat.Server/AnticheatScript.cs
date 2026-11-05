@@ -112,6 +112,7 @@ namespace JcksAnticheat.Server
             EventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDropped);
             EventHandlers["playerJoining"] += new Action<Player, string>(OnPlayerJoining);
             EventHandlers["_chat:messageEntered"] += new Action<Player, object, object, object>(OnChatMessage);
+            EventHandlers["chatMessage"] += new Action<int, string, string>(OnLocalChatMessage);
             EventHandlers["onServerResourceStart"] += new Action<string>(OnServerResourceStart);
             EventHandlers["jcks_anticheat:hello"] += new Action<Player>(OnHello);
             EventHandlers[_hbEvent] += new Action<Player, object, string, string, string>(OnHeartbeat);
@@ -141,6 +142,7 @@ namespace JcksAnticheat.Server
             Exports.Add("GrantGrace", new Action<object, string, int>((src, kind, ms) => GrantGrace(ToId(src), kind, ms)));
             Exports.Add("Guard", new Func<object, string, bool>((src, bucket) => Guard(ToId(src), bucket ?? "external")));
             Exports.Add("GetScore", new Func<object, double>(src => _ledger.ScoreOf(ToId(src))));
+            Exports.Add("CheckEvent", new Func<object, string, bool>((src, ev) => CheckEvent(ToId(src), ev ?? "")));
             Exports.Add("ReportViolation", new Func<object, string, object, bool>(ReportExternal));
             Exports.Add("BanPlayer", new Action<object, string>((src, reason) => BanPlayer(ToId(src), "MANUAL", reason ?? "Banned by staff", "export")));
         }
@@ -194,10 +196,21 @@ namespace JcksAnticheat.Server
             var claimed = author?.ToString() ?? "";
             if (claimed.Length == 0 || claimed == player.Name) return;
             CancelEvent();
+            lock (_chatSpoofAt) _chatSpoofAt[id] = DateTime.UtcNow;
             Punish(new Violation(id, "NET_CHAT_SPOOF", ViolationSource.Server, new Dictionary<string, object?>
             {
                 ["claimed"] = claimed.Length > 48 ? claimed.Substring(0, 48) : claimed,
             }));
+        }
+
+        private void OnLocalChatMessage(int source, string author, string message)
+        {
+            lock (_chatSpoofAt)
+            {
+                if (!_chatSpoofAt.TryGetValue(source, out var at)) return;
+                _chatSpoofAt.Remove(source);
+                if (DateTime.UtcNow - at < TimeSpan.FromSeconds(3)) CancelEvent();
+            }
         }
 
         private void OnPlayerJoining([FromSource] Player player, string oldId)
@@ -372,9 +385,14 @@ namespace JcksAnticheat.Server
         private readonly HashSet<string> _protectedRegistered = new HashSet<string>(StringComparer.Ordinal);
         private readonly SlidingCounter _protectedCounter = new SlidingCounter();
 
+        private Dictionary<string, List<EventZone>> _zones = new Dictionary<string, List<EventZone>>(StringComparer.Ordinal);
+        private readonly SlidingCounter _zoneReports = new SlidingCounter();
+        private readonly Dictionary<int, DateTime> _chatSpoofAt = new Dictionary<int, DateTime>();
+
         private void RegisterProtectedEvents()
         {
-            foreach (var name in _cfg.ProtectedEvents.Keys)
+            _zones = EventZones.Compile(_cfg.EventZones);
+            foreach (var name in _cfg.ProtectedEvents.Keys.Concat(_zones.Keys))
             {
                 if (!_protectedRegistered.Add(name)) continue;
                 var eventName = name;
@@ -382,10 +400,38 @@ namespace JcksAnticheat.Server
             }
         }
 
+        private bool OutsideZone(int id, string eventName, out float distance)
+        {
+            distance = 0;
+            if (!_zones.TryGetValue(eventName, out var zones)) return false;
+            var p = Players[id];
+            int ped = p != null ? GetPlayerPed(p.Handle) : 0;
+            if (ped == 0) return false;
+            return !EventZones.Inside(zones, ToVec(GetEntityCoords(ped)), out distance);
+        }
+
+        private bool CheckEvent(int id, string eventName)
+        {
+            if (id <= 0 || string.IsNullOrEmpty(eventName)) return true;
+            if (_cfg.ProtectedEvents.TryGetValue(eventName, out var perMinute)
+                && _protectedCounter.Count(id + ":" + eventName, DateTime.UtcNow, TimeSpan.FromMinutes(1)) > perMinute) return false;
+            return !OutsideZone(id, eventName, out _);
+        }
+
         private void OnProtectedEvent([FromSource] Player player, string eventName)
         {
             int id = ToId(player.Handle);
-            if (id <= 0 || !_cfg.ProtectedEvents.TryGetValue(eventName, out var perMinute)) return;
+            if (id <= 0) return;
+            if (OutsideZone(id, eventName, out var distance))
+            {
+                CancelEvent();
+                if (_zoneReports.Add(id + ":" + eventName, DateTime.UtcNow, TimeSpan.FromSeconds(30)) == 1)
+                    Punish(new Violation(id, "NET_EVENT_ZONE", ViolationSource.Server, new Dictionary<string, object?>
+                    {
+                        ["event"] = eventName, ["metresOutside"] = Math.Round(distance, 1),
+                    }));
+            }
+            if (!_cfg.ProtectedEvents.TryGetValue(eventName, out var perMinute)) return;
             int n = _protectedCounter.Add(id + ":" + eventName, DateTime.UtcNow, TimeSpan.FromMinutes(1));
             if (n <= perMinute) return;
             CancelEvent();
