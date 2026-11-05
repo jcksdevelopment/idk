@@ -18,7 +18,7 @@ if ($env:SKIP_TESTS -ne "1") {
 Write-Host "==> Assemble dist\jcks_anticheat"
 Remove-Item -Recurse -Force dist -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force dist/jcks_anticheat/server | Out-Null
-foreach ($item in "fxmanifest.lua", "config.json", "client", "shared", "html") {
+foreach ($item in "fxmanifest.lua", "config.json", "settings.schema.json", "client", "shared", "shield", "html") {
   Copy-Item -Recurse "resource/jcks_anticheat/$item" "dist/jcks_anticheat/"
 }
 Copy-Item resource/jcks_anticheat/server/JcksAnticheat.Core.net.dll, resource/jcks_anticheat/server/JcksAnticheat.Server.net.dll dist/jcks_anticheat/server/
