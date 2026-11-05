@@ -99,6 +99,7 @@ end)
 
 JcksAC.shielded = JcksAC.shielded or {}
 local lastUrgent = {}
+local HELD = { godmode = true, invisible = true, noclip = true, camera = true, vision = true, ragdoll = true, spectate = true, vehicle = true, weapons = true }
 local URGENT = { teleport = true, noclip = true, heal = true, armor = true, godmode = true, invisible = true, vehicle = true, superjump = true, weapons = true }
 AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
   if type(resource) ~= "string" or type(kind) ~= "string" or type(detail) ~= "table" then return end
@@ -119,6 +120,7 @@ AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
     local ok = allowed and (allowed[behaviour] or allowed["*"])
     if ok then
       S.grant(behaviour, S.server.integrationGraceMs or 5000)
+      if HELD[behaviour] then S.hold(behaviour) end
     elseif S.server.integrationTrustAll then
       S.grant(behaviour, 3000)
     end

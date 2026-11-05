@@ -49,6 +49,8 @@ namespace JcksAnticheat.Core.Validation
             _grace.AddOrUpdate(player, until, (_, old) => old > until ? old : until);
         }
 
+        public void RevokeGrace(int player) => _grace.TryRemove(player, out _);
+
         public void Forget(int player)
         {
             _last.TryRemove(player, out _);

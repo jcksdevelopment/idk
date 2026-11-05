@@ -56,9 +56,22 @@ function S.register(name, intervalMs, fn)
   checks[#checks + 1] = { name = name, interval = intervalMs, fn = fn, nextAt = 0 }
 end
 
+S.held = {}
+
 function S.allowed(kind)
+  local now = GetGameTimer()
   local untilAt = S.grace[kind]
-  return untilAt ~= nil and GetGameTimer() < untilAt
+  if untilAt ~= nil and now < untilAt then return true end
+  local heldUntil = S.held[kind]
+  return heldUntil ~= nil and now < heldUntil
+end
+
+function S.hold(kind)
+  S.held[kind] = GetGameTimer() + 1800000
+end
+
+function S.release(kind)
+  if S.held[kind] and not (S.grace[kind] and GetGameTimer() < S.grace[kind]) then S.held[kind] = nil end
 end
 
 function S.grant(kind, ms)

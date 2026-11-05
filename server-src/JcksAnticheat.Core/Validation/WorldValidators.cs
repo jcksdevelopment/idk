@@ -204,8 +204,22 @@ namespace JcksAnticheat.Core.Validation
             _grace.AddOrUpdate(player + ":" + kind, until, (_, old) => old > until ? old : until);
         }
 
+        private readonly ConcurrentDictionary<string, DateTime> _held = new ConcurrentDictionary<string, DateTime>(StringComparer.Ordinal);
+
         public bool HasGrace(int player, string kind, DateTime? now = null)
-            => _grace.TryGetValue(player + ":" + kind, out var until) && (now ?? DateTime.UtcNow) < until;
+        {
+            var t = now ?? DateTime.UtcNow;
+            return (_grace.TryGetValue(player + ":" + kind, out var until) && t < until)
+                || (_held.TryGetValue(player + ":" + kind, out var heldUntil) && t < heldUntil);
+        }
+
+        public void Hold(int player, string kind, TimeSpan max, DateTime? now = null)
+            => _held[player + ":" + kind] = (now ?? DateTime.UtcNow) + max;
+
+        public bool IsHeld(int player, string kind, DateTime? now = null)
+            => _held.ContainsKey(player + ":" + kind) && !(_grace.TryGetValue(player + ":" + kind, out var until) && (now ?? DateTime.UtcNow) < until);
+
+        public void Release(int player, string kind) => _held.TryRemove(player + ":" + kind, out _);
 
         public List<Violation> Evaluate(int player, int health, int armor, bool dead, DateTime now)
         {
@@ -231,6 +245,8 @@ namespace JcksAnticheat.Core.Validation
             _last.TryRemove(player, out _);
             foreach (var k in _grace.Keys)
                 if (k.StartsWith(player + ":", StringComparison.Ordinal)) _grace.TryRemove(k, out _);
+            foreach (var k in _held.Keys)
+                if (k.StartsWith(player + ":", StringComparison.Ordinal)) _held.TryRemove(k, out _);
         }
     }
 }

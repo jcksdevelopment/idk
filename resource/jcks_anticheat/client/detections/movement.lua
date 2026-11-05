@@ -17,6 +17,7 @@ do
   S.onReset(function() farSince = nil end)
   S.register("movement.freecam", 1000, function()
     local ped = PlayerPedId()
+    if GetRenderingCam() == -1 then S.release("camera") end
     if S.allowed("noclip") or S.allowed("camera") or IsCutsceneActive() or IsPlayerSwitchInProgress()
         or NetworkIsInSpectatorMode() then
       farSince = nil
@@ -45,6 +46,7 @@ do
   local floatSince
   S.onReset(function() floatSince = nil end)
   S.register("movement.noclip", 500, function()
+    if not GetEntityCollisionDisabled(PlayerPedId()) then S.release("noclip") end
     if S.allowed("noclip") then floatSince = nil return end
     local ped = PlayerPedId()
     local veh = GetVehiclePedIsIn(ped, false)

@@ -36,6 +36,7 @@ namespace JcksAnticheat.Server
         private IntegrationPolicy _integrations = new IntegrationPolicy();
         private readonly RateLimiter.Rule _graceRule = new RateLimiter.Rule(6, 1.0 / 15);
         private readonly RateLimiter.Rule _reportedGraceRule = new RateLimiter.Rule(2, 1.0 / 60);
+        private static readonly HashSet<string> HeldKinds = new HashSet<string>(StringComparer.Ordinal) { "godmode", "invisible", "noclip", "superjump", "weapons" };
         private static readonly HashSet<string> ListedOnlyKinds = new HashSet<string>(StringComparer.Ordinal) { "godmode", "invisible", "noclip", "spectate" };
         private readonly EntityValidator _entities;
         private readonly PlayerStateValidator _state;
@@ -371,6 +372,11 @@ namespace JcksAnticheat.Server
                 if (!listed && !reported) continue;
                 if (!_limiter.TryConsume(id, (listed ? "grace:" : "rgrace:") + kind, listed ? _graceRule : _reportedGraceRule)) continue;
                 var duration = TimeSpan.FromMilliseconds(listed ? _cfg.Integrations.GraceMs : 3000);
+                if (listed && HeldKinds.Contains(kind))
+                {
+                    _state.Hold(id, kind, TimeSpan.FromMinutes(30), now);
+                    if (kind == "noclip") _movement.GrantGrace(id, TimeSpan.FromMinutes(30), now);
+                }
                 if (kind == "teleport" || kind == "noclip") _movement.GrantGrace(id, duration, now);
                 _state.GrantGrace(id, kind, duration, now);
                 RecordGrant(id, kind, now);

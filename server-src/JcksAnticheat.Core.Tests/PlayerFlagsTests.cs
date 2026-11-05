@@ -186,3 +186,21 @@ public class MovementStaleSampleTests
         Assert.Contains(m.Evaluate(1, new MovementSample(new Vec3(1500, 0, 30), default, MovementMode.OnFoot, t.AddSeconds(21))), v => v.Code == "MOV_TELEPORT");
     }
 }
+
+public class HeldGraceTests
+{
+    [Fact]
+    public void HeldGraceLastsUntilReleasedButNotPastTheCap()
+    {
+        var s = new PlayerStateValidator();
+        var t = System.DateTime.UtcNow;
+        s.GrantGrace(1, "godmode", System.TimeSpan.FromSeconds(5), t);
+        s.Hold(1, "godmode", System.TimeSpan.FromMinutes(30), t);
+        Assert.False(s.IsHeld(1, "godmode", t.AddSeconds(1)));
+        Assert.True(s.IsHeld(1, "godmode", t.AddSeconds(10)));
+        Assert.True(s.HasGrace(1, "godmode", t.AddMinutes(10)));
+        Assert.False(s.HasGrace(1, "godmode", t.AddMinutes(31)));
+        s.Release(1, "godmode");
+        Assert.False(s.HasGrace(1, "godmode", t.AddMinutes(10)));
+    }
+}

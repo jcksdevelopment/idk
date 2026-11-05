@@ -14,7 +14,8 @@ S.register("weapon.inventory", 2500, function()
   local dmg = GetPlayerWeaponDamageModifier(pid)
   local melee = GetPlayerMeleeWeaponDamageModifier(pid)
   local defense = GetPlayerWeaponDefenseModifier(pid)
-  if dmg > expected + 0.05 or melee > expected + 0.05 then
+  if dmg <= expected + 0.05 and melee <= expected + 0.05 then S.release("weapons") end
+  if (dmg > expected + 0.05 or melee > expected + 0.05) and not S.allowed("weapons") then
     S.flag("WPN_DMG_MODIFIER", { d = dmg, m = melee })
   end
   if defense < S.t("defenseModifierMin") and not S.allowed("godmode") then

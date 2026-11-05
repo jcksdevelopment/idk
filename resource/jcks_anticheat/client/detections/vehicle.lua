@@ -45,7 +45,7 @@ S.register("vehicle.rainbow", 250, function()
   lastPaint = paint
 end)
 
-local baseline = {}
+local baseline, approved = {}, {}
 
 local function readHandling(veh)
   local out = {}
@@ -58,12 +58,19 @@ end
 S.register("vehicle.state", 1500, function()
   local ped = PlayerPedId()
   local veh = GetVehiclePedIsIn(ped, false)
+  if veh == 0 then S.release("vehicle") end
   if veh == 0 or GetPedInVehicleSeat(veh, -1) ~= ped then return end
-  if S.allowed("vehicle") then return end
+  for v in pairs(approved) do
+    if not DoesEntityExist(v) then approved[v] = nil end
+  end
+  if S.allowed("vehicle") then
+    approved[veh] = readHandling(veh)
+    return
+  end
 
   local model = GetEntityModel(veh)
   local now = readHandling(veh)
-  local base = baseline[model]
+  local base = approved[veh] or baseline[model]
   if not base then
     baseline[model] = now
   else

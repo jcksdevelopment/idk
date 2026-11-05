@@ -2,32 +2,37 @@ local S = JcksAC
 
 S.register("player.state", 2000, function()
   local ped, pid = PlayerPedId(), PlayerId()
-  if S.allowed("godmode") then return end
 
-  if GetPlayerInvincible(pid) or GetPlayerInvincible_2(pid) or not GetEntityCanBeDamaged(ped) then
-    S.flag("PLY_GODMODE_FLAG", { inv = GetPlayerInvincible(pid), dmg = GetEntityCanBeDamaged(ped) })
-  end
-
+  local invincible = GetPlayerInvincible(pid) or GetPlayerInvincible_2(pid) or not GetEntityCanBeDamaged(ped)
   local _, bullet, fire, explosion, collision, melee, steam, p7, drown = GetEntityProofs(ped)
   local proofs = 0
   for _, v in ipairs({ bullet, fire, explosion, melee, steam, drown }) do
     if v == 1 or v == true then proofs = proofs + 1 end
   end
-  if proofs >= S.t("godmodeProofs") then
-    S.flag("PLY_GODMODE_PROOFS", { n = proofs })
+  if not invincible and proofs < S.t("godmodeProofs") then S.release("godmode") end
+  if not S.allowed("godmode") then
+    if invincible then
+      S.flag("PLY_GODMODE_FLAG", { inv = GetPlayerInvincible(pid), dmg = GetEntityCanBeDamaged(ped) })
+    end
+    if proofs >= S.t("godmodeProofs") then
+      S.flag("PLY_GODMODE_PROOFS", { n = proofs })
+    end
   end
 
   local health, maxHealth = GetEntityHealth(ped), GetEntityMaxHealth(ped)
-  if health > maxHealth + 1 or maxHealth > S.server.maxHealth then
+  if (health > maxHealth + 1 or maxHealth > S.server.maxHealth) and not S.allowed("heal") then
     S.flag("PLY_HEALTH_CAP", { h = health, mh = maxHealth })
   end
 
-  if not S.allowed("invisible") and not IsPedInAnyVehicle(ped, false)
-      and (not IsEntityVisible(ped) or GetEntityAlpha(ped) < 50) then
+  local hidden = not IsEntityVisible(ped) or GetEntityAlpha(ped) < 50
+  if not hidden then S.release("invisible") end
+  if not S.allowed("invisible") and not IsPedInAnyVehicle(ped, false) and hidden then
     S.flag("PLY_INVISIBLE", { vis = IsEntityVisible(ped), a = GetEntityAlpha(ped) })
   end
 
-  if not S.allowed("vision") and (GetUsingseethrough() or GetUsingnightvision()) then
+  local vision = GetUsingseethrough() or GetUsingnightvision()
+  if not vision then S.release("vision") end
+  if not S.allowed("vision") and vision then
     S.flag("PLY_VISION", { th = GetUsingseethrough(), nv = GetUsingnightvision() })
   end
 end)
@@ -59,6 +64,7 @@ S.register("player.espblips", 5000, function()
 end)
 
 S.register("player.spectate", 3000, function()
+  if not NetworkIsInSpectatorMode() then S.release("spectate") end
   if S.allowed("spectate") or S.allowed("noclip") then return end
   if NetworkIsInSpectatorMode() then
     S.flag("PLY_SPECTATE", {})
@@ -87,6 +93,7 @@ end
 
 S.register("player.ragdoll", 3000, function()
   local ped = PlayerPedId()
+  if CanPedRagdoll(ped) then S.release("ragdoll") end
   if S.allowed("ragdoll") or IsPedInAnyVehicle(ped, false) then return end
   if not CanPedRagdoll(ped) then
     S.flag("PLY_NO_RAGDOLL", {})

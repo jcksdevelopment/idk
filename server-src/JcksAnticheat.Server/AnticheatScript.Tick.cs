@@ -144,6 +144,7 @@ namespace JcksAnticheat.Server
                 GetPlayerMeleeWeaponDamageModifier(player.Handle), GetPlayerWeaponDefenseModifier(player.Handle),
                 GetPlayerWeaponDefenseModifier_2(player.Handle), GetPlayerMaxHealth(player.Handle),
                 GetEntityCollisionDisabled(ped), GetEntityAttachedTo(ped) != 0, veh != 0, dead);
+            ReleaseHeld(id, ped, veh, flags, player.Handle);
             foreach (var v in _flags.Evaluate(id, flags))
             {
                 var kind = GraceKindFor(v.Code);
@@ -180,6 +181,15 @@ namespace JcksAnticheat.Server
 
             var pedModel = _entities.CheckPedModel(id, Joaat.FromSigned(GetEntityModel(ped)));
             if (pedModel != null) Punish(pedModel);
+        }
+
+        private void ReleaseHeld(int id, int ped, int veh, PlayerFlags flags, string handle)
+        {
+            if (_state.IsHeld(id, "godmode") && !GetPlayerInvincible(handle) && flags.Defense >= _flags.MinDefense) _state.Release(id, "godmode");
+            if (_state.IsHeld(id, "invisible") && IsEntityVisible(ped) && (veh == 0 || IsEntityVisible(veh))) _state.Release(id, "invisible");
+            if (_state.IsHeld(id, "noclip") && !flags.CollisionDisabled) { _state.Release(id, "noclip"); _movement.RevokeGrace(id); }
+            if (_state.IsHeld(id, "superjump") && !flags.SuperJump) _state.Release(id, "superjump");
+            if (_state.IsHeld(id, "weapons") && flags.WeaponDamage <= _flags.ExpectedDamageModifier + _flags.Tolerance && flags.MeleeDamage <= _flags.ExpectedDamageModifier + _flags.Tolerance) _state.Release(id, "weapons");
         }
 
         private void CheckAttachments(List<Player> players)
