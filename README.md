@@ -206,7 +206,7 @@ Per-detection exemptions use the same ACE with the code appended:
 detection and its countermeasure only. `scoring.alwaysBan` lists codes that ban on the first
 detection. It's an explicit opt-in, so it also applies to client-side codes.
 
-Kinds: `heal`, `armor`, `teleport`, `noclip`, `godmode`, `invisible`, `vision`, `ragdoll`, `superjump`, `camera`,
+Kinds: `heal`, `armor`, `teleport`, `noclip`, `godmode`, `invisible`, `vision`, `ragdoll`, `superjump`, `blips`, `camera`,
 `vehicle`. Server grace also reaches the client scanner. A client-side `exports.jcks_anticheat:GrantGrace`
 exists for client-only scripts, but the server ignores it.
 
@@ -322,7 +322,7 @@ just because the report arrived a moment after the position or health changed. W
 `integrations.graceMs` on the client, and the server grants the same grace after checking the
 rule itself (rate-limited).
 
-- Behaviours: `heal armor godmode teleport invisible noclip spectate vehicle weapons camera ragdoll vision superjump *`.
+- Behaviours: `heal armor godmode teleport invisible noclip spectate vehicle weapons camera ragdoll vision superjump blips *`.
 - `integrations.presets.json` ships starting rules for popular resources: txAdmin (`monitor`),
   vMenu, EasyAdmin, qb-/ps- admin menus, qb-core, es_extended, ambulance and police jobs, prisons,
   multicharacter and spawn, apartments and housing, appearance and clothing, vehicle shops,

@@ -37,6 +37,7 @@ local DEFAULTS = {
   vehicleDamageModifierMax = 1.5,
   weaponDamageModifierMax = 1.5,
   scanIntervalScale = 1,
+  espBlipPlayers = 4,
 }
 
 function S.t(name)

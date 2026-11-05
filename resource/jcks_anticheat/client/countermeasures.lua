@@ -67,6 +67,11 @@ local ACT = {
     SetSeethrough(false)
     SetNightvision(false)
   end,
+  PLY_ESP_BLIPS = function(d)
+    for _, blip in ipairs(d.blips or {}) do
+      if DoesBlipExist(blip) then RemoveBlip(blip) end
+    end
+  end,
   PLY_TINY_PED = function() SetPedConfigFlag(PlayerPedId(), 223, false) end,
   PLY_SPECTATE = function() NetworkSetInSpectatorMode(false, PlayerPedId()) end,
   PLY_NO_RAGDOLL = function() SetPedCanRagdoll(PlayerPedId(), true) end,

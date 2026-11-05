@@ -8,7 +8,7 @@ local W = {
   ragdoll = true, spectating = false, seethrough = false, nightvision = false, sprinting = false, stamina = 100.0,
   camCoord = nil, renderingCam = -1, weapons = {}, selected = 0, weaponMods = {}, dmgMod = 1.0, meleeMod = 1.0,
   defense = 1.0, ramMod = 1.0, resources = { "jcks_anticheat", "chat", "spawnmanager", "es_extended" },
-  commands = {}, textures = {}, vehicle = nil,
+  commands = {}, textures = {}, vehicle = nil, blips = {},
 }
 local calls = {}
 local function call(name, ...) calls[#calls + 1] = name end
@@ -73,6 +73,11 @@ function N.GetVehicleCheatPowerIncrease() return W.vehicle.power or 1.0 end
 function N.GetVehicleTopSpeedModifier() return W.vehicle.topSpeed or -1.0 end
 function N.GetVehicleGravityAmount() return W.vehicle.gravity or 9.8 end
 function N.GetVehicleClass() return 0 end
+function N.GetActivePlayers() return { 0, 1, 2, 3, 4, 5, 6 } end
+function N.GetPlayerPed(p) return p == 0 and W.ped or 1000 + p end
+function N.GetBlipFromEntity(e) return W.blips[e] or 0 end
+function N.DoesBlipExist(b) for _, x in pairs(W.blips) do if x == b then return true end end return false end
+function N.RemoveBlip(b) for e, x in pairs(W.blips) do if x == b then W.blips[e] = nil end end call("RemoveBlip") end
 function N.SetPlayerInvincible(_, v) W.invincible = v call("SetPlayerInvincible") end
 function N.SetPlayerInvincibleKeepRagdollEnabled(_, v) W.invincible2 = v call("SetPlayerInvincibleKeepRagdollEnabled") end
 function N.SetEntityCanBeDamaged(e, v) if e == 500 then W.vehicle.canBeDamaged = v else W.canBeDamaged = v end call("SetEntityCanBeDamaged") end
@@ -191,6 +196,8 @@ local SCENARIOS = {
   injected_resource = { what = "Injected fake resource", run = function() W.resources[#W.resources + 1] = "totally_legit_menu" end },
   injected_command = { what = "Command registered by an unknown resource", run = function() W.commands = { { name = "openmenu", resource = "redmenu" } } end },
   menu_texture = { what = "Menu texture dictionary loaded", run = function() W.textures["menu_textures"] = true end },
+  esp_blips = { what = "Blip ESP on 6 other players", run = function() S.shielded = { es_extended = true } for p = 1, 6 do W.blips[1000 + p] = 500 + p end end, undone = function() return next(W.blips) == nil end },
+  police_blips = { what = "Police script blips on 6 players via a shielded resource (must NOT flag)", run = function() S.shielded = { es_extended = true } S.legitBlips = {} for p = 1, 6 do W.blips[1000 + p] = 500 + p S.legitBlips[1000 + p] = true end end },
 }
 
 local EXPECT = {
@@ -201,7 +208,7 @@ local EXPECT = {
   blacklisted_weapon = "WPN_BLACKLIST", give_all_weapons = "WPN_GIVE_ALL", damage_multiplier = "WPN_DMG_MODIFIER",
   weapon_modifier = "WPN_DMG_MODIFIER", vehicle_repair = "VEH_REPAIR", plate_change = "VEH_PLATE", power_boost = "VEH_POWER",
   top_speed = "VEH_TOP_SPEED", gravity = "VEH_GRAVITY", ram_damage = "VEH_DMG_MODIFIER", vehicle_godmode = "VEH_GODMODE",
-  injected_resource = "EXE_RESOURCE_INJECT", injected_command = "EXE_COMMAND_INJECT", menu_texture = "EXE_MENU_TEXTURE",
+  injected_resource = "EXE_RESOURCE_INJECT", esp_blips = "PLY_ESP_BLIPS", police_blips = "none", injected_command = "EXE_COMMAND_INJECT", menu_texture = "EXE_MENU_TEXTURE",
 }
 
 if scenarioName == "all" then

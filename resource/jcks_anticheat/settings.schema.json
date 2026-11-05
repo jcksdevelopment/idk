@@ -127,7 +127,7 @@
           "key": "integrations.resources",
           "label": "Trusted resources",
           "type": "maplist",
-          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, vision, superjump, * (everything)."
+          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, vision, superjump, blips, * (everything)."
         },
         {
           "key": "integrations.usePresets",
@@ -491,6 +491,15 @@
           "max": 4,
           "step": 0.25,
           "help": "Multiplies how often every client check runs. 1 is the default; 2 runs them half as often (lighter on weak PCs, slower to catch); 0.5 runs them twice as often. Aim and shot checks that run every frame are not affected."
+        },
+        {
+          "key": "client.espBlipPlayers",
+          "label": "ESP blips: other players with a map blip",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "help": "How many other players may carry a map blip that no shielded resource created before PLY_ESP_BLIPS (blip ESP) is raised; those blips are removed. Needs the shield. Police/gang scripts that add player blips are recognised through the shield, or trust them with the 'blips' behaviour."
         }
       ]
     },

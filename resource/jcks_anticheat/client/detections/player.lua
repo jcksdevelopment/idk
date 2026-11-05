@@ -39,6 +39,22 @@ S.register("player.tiny", 5000, function()
   end
 end)
 
+S.register("player.espblips", 5000, function()
+  if not S.shieldActive() or S.allowed("blips") then return end
+  local me, found = PlayerId(), {}
+  local legit = S.legitBlips or {}
+  for _, p in ipairs(GetActivePlayers()) do
+    if p ~= me then
+      local ped = GetPlayerPed(p)
+      local blip = ped ~= 0 and GetBlipFromEntity(ped) or 0
+      if blip ~= 0 and not legit[ped] then found[#found + 1] = blip end
+    end
+  end
+  if #found >= S.t("espBlipPlayers") then
+    S.flag("PLY_ESP_BLIPS", { n = #found, blips = found })
+  end
+end)
+
 S.register("player.spectate", 3000, function()
   if S.allowed("spectate") or S.allowed("noclip") then return end
   if NetworkIsInSpectatorMode() then

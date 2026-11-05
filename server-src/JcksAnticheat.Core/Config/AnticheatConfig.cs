@@ -136,6 +136,7 @@ namespace JcksAnticheat.Core.Config
             ["vehicleDamageModifierMax"] = 1.5,
             ["weaponDamageModifierMax"] = 1.5,
             ["scanIntervalScale"] = 1,
+            ["espBlipPlayers"] = 4,
         };
         public static readonly Dictionary<string, double> ServerThresholdDefaults = new Dictionary<string, double>(StringComparer.Ordinal)
         {

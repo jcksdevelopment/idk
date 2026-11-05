@@ -30,6 +30,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `PLY_SPEED_FOOT` | Speedhack (on foot) | Ped speed > 12 m/s on foot, not falling, not ragdolled | C+S | `player.lua`, `MovementValidator` | 30 |
 | `PLY_STAMINA` | Infinite stamina | Sprinting for > 25 s with stamina still at 100 | C | `player.lua` | 10 |
 | `PLY_VISION` | Thermal / night vision | `GetUsingseethrough` or `GetUsingnightvision` true without an authorised item | C | `player.lua` | 15 |
+| `PLY_ESP_BLIPS` | Player ESP through map blips | At least `client.espBlipPlayers` other players' peds carry a blip (`GetBlipFromEntity`) that no shielded resource created with `AddBlipForEntity`; the blips are removed. Needs the shield | C | `player.lua`, `shield.lua` | 25 |
 | `PLY_INVISIBLE` | Invisibility (on foot or in an invisible vehicle) | `IsEntityVisible` false or alpha < 50 on the ped on foot, or on the vehicle the player drives, while not authorised; both are made visible again | C+S | `player.lua`, `vehicle.lua`, server state tick | 30 |
 | `PLY_TINY_PED` | Tiny ped | Ped config flag 223 (shrink) set without a `tiny` grant | C | `player.lua` | 30 |
 | `PLY_SELF_REVIVE` | Self-revive | Player goes from dead to alive without a `heal`/`revive` grace (trusted ambulance/spawn resources grant it through the shield) | C | `player.lua` | 35 |

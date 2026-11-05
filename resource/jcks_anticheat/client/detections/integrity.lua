@@ -96,6 +96,13 @@ AddEventHandler("jcks_anticheat:shield", function(resource, kind, detail)
     JcksAC.shielded[resource] = true
     return
   end
+  if kind == "blip" then
+    if type(detail.entity) == "number" then
+      S.legitBlips = S.legitBlips or {}
+      S.legitBlips[detail.entity] = true
+    end
+    return
+  end
   if kind == "use" then
     local behaviour = tostring(detail.src)
     local allowed = S.server.integrations and S.server.integrations[resource]

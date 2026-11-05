@@ -86,6 +86,8 @@ local function guard(name)
       report("call", { fn = name, src = src })
     elseif KIND[name] then
       reportUse(name, (...))
+    elseif name == "AddBlipForEntity" then
+      TriggerEvent(REPORT, RES, "blip", { entity = (...) })
     end
     return original(...)
   end
@@ -107,7 +109,7 @@ local GUARDED = {
   "SetVehicleNumberPlateText", "SetVehicleColours", "SetVehicleCustomPrimaryColour",
   "RenderScriptCams", "SetCamActive", "SetPedCanRagdoll", "SetSeethrough", "SetNightvision",
   "ModifyVehicleTopSpeed", "SetVehicleGravityAmount", "SetPlayerVehicleDamageModifier", "SetWeaponDamageModifier",
-  "SetPlayerMeleeWeaponDamageModifier",
+  "SetPlayerMeleeWeaponDamageModifier", "AddBlipForEntity",
 }
 for i = 1, #GUARDED do guard(GUARDED[i]) end
 if Citizen and type(Citizen.InvokeNative) == "function" then
