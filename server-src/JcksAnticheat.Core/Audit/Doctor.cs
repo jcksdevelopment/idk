@@ -18,6 +18,7 @@ namespace JcksAnticheat.Core.Audit
         public bool Licensed { get; set; }
         public bool DryRun { get; set; }
         public bool Countermeasures { get; set; }
+        public int? ArtifactBuild { get; set; }
     }
 
     public static class Doctor
@@ -41,6 +42,12 @@ namespace JcksAnticheat.Core.Audit
             if (i.VisionEnabled && !i.ScreenshotBasicStarted) Add("warn", "vision.enabled is on but screenshot-basic is not started; no captures can be taken.");
             if (i.DashboardEnabled && !i.DashboardSecretSet) Add("warn", "dashboard.enabled is on but the dashboard secret environment variable is empty; nothing is sent.");
             if (i.DiscordEnabled && !i.DiscordUrlSet) Add("warn", "discord.enabled is on but the webhook environment variable is empty.");
+            if (i.ArtifactBuild is int build)
+            {
+                if (build < 9149) Add("warn", $"Server artifact {build} is old: the game-event relevance checks (sv_experimentalNetGameEventHandler, 9149+) and sv_stateBagStrictMode (12739+) are missing. Update the artifacts.");
+                else if (build < 12739) Add("info", $"Server artifact {build}: sv_stateBagStrictMode needs 12739 or newer.");
+                else Add("ok", $"Server artifact {build}.");
+            }
             if (i.DryRun) Add("info", "dryRun is on: nobody is kicked or banned (countermeasures still apply). Turn it off once the logs look clean.");
             if (!i.Countermeasures) Add("info", "Countermeasures are off: cheat effects are only reported, not undone.");
             return r;

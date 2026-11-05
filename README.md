@@ -390,7 +390,8 @@ from `autoActionMinSeverity`. The default is `none`. Against `cfx-server-data`, 
 `jac doctor` (also printed 20 seconds after start) checks the things that silently switch features
 off: OneSync, how many resources carry the shield, the license, `screenshot-basic` and the API key
 when AI vision is on, the dashboard secret and Discord webhook variables, and whether `dryRun` or
-countermeasures are set the way you expect.
+countermeasures are set the way you expect, and the server artifact build (old builds lack
+`sv_stateBagStrictMode` and the game-event relevance checks).
 
 ### Staff in game
 
@@ -414,7 +415,8 @@ refused, and the new identifiers are added to the same ban.
 On start (`auditOnStart`) and on `jac audit`, the server's own security convars are compared with
 the FiveM documentation: `onesync`, `sv_scriptHookAllowed`, `sv_enableNetworkedPhoneExplosions`,
 `sv_filterRequestControl`, `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`,
-`sv_entityLockdown`, `sv_pureLevel` and `sv_stateBagStrictMode`. Each suggestion is printed with
+`sv_entityLockdown`, `sv_pureLevel`, `sv_stateBagStrictMode`, `sv_devMode`, and FiveM's rate limiters
+(`rateLimiter_netEvent_*`, `stateBag*`, `netCommand*` raised above 4x their documented defaults). Each suggestion is printed with
 the `set` line to add and why; nothing is changed automatically. Some (`sv_entityLockdown relaxed`,
 `sv_stateBagStrictMode true`) break scripts that create entities or write state bags from the
 client, so they are listed as low/info.

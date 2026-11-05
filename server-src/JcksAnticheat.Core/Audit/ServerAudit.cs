@@ -19,6 +19,19 @@ namespace JcksAnticheat.Core.Audit
 
     public static class ServerAudit
     {
+        private static readonly (string name, double rate, double burst)[] DefaultLimiters =
+        {
+            ("netEvent", 50, 200), ("netEventFlood", 75, 300), ("stateBag", 75, 125), ("stateBagFlood", 150, 175),
+            ("netCommand", 7, 14), ("netCommandFlood", 25, 45),
+        };
+
+        public static int? ArtifactBuild(string? version)
+        {
+            if (string.IsNullOrEmpty(version)) return null;
+            var m = System.Text.RegularExpressions.Regex.Match(version, @"v1\.0\.0\.(\d+)");
+            return m.Success && int.TryParse(m.Groups[1].Value, out var b) ? b : (int?)null;
+        }
+
         private static bool Truthy(string v) => v == "true" || v == "1" || v == "on" || v == "yes";
 
         public static List<AuditFinding> Evaluate(Func<string, string, string> convar)
@@ -61,6 +74,20 @@ namespace JcksAnticheat.Core.Audit
             if (pure != "1" && pure != "2")
                 found.Add(new AuditFinding("low", "sv_pureLevel", pure, "1",
                     "Blocks modified client game files (level 1 still allows audio and known graphics mods)."));
+
+            if (Truthy(Get("sv_devMode", "false")))
+                found.Add(new AuditFinding("high", "sv_devMode", "true", "false",
+                    "Development mode; the FiveM docs say not to enable it in production."));
+
+            foreach (var (name, rate, burst) in DefaultLimiters)
+            {
+                if (double.TryParse(Get("rateLimiter_" + name + "_rate", ""), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var r) && r > rate * 4)
+                    found.Add(new AuditFinding("medium", "rateLimiter_" + name + "_rate", r.ToString(System.Globalization.CultureInfo.InvariantCulture), rate.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        $"More than 4x FiveM's default ({rate}/s): flooding {name} gets much easier. Raise it only as far as a real script needs."));
+                if (double.TryParse(Get("rateLimiter_" + name + "_burst", ""), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var b) && b > burst * 4)
+                    found.Add(new AuditFinding("medium", "rateLimiter_" + name + "_burst", b.ToString(System.Globalization.CultureInfo.InvariantCulture), burst.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        $"More than 4x FiveM's default burst ({burst})."));
+            }
 
             if (!Truthy(Get("sv_stateBagStrictMode", "false")))
                 found.Add(new AuditFinding("info", "sv_stateBagStrictMode", "false", "true",

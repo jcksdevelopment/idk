@@ -149,6 +149,7 @@ namespace JcksAnticheat.Server
                 Licensed = _licensed,
                 DryRun = _cfg.DryRun,
                 Countermeasures = _cfg.Countermeasures.Enabled,
+                ArtifactBuild = ServerAudit.ArtifactBuild(GetConvar("version", "")),
             });
             foreach (var (level, text) in results) Log($"  [{level.ToUpperInvariant()}] {text}");
             int problems = results.Count(x => x.level == "fail" || x.level == "warn");
