@@ -40,6 +40,7 @@ namespace JcksAnticheat.Server
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
         private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
         private readonly MassKillTracker _massKills;
+        private ConfigHistory _history = null!;
         private readonly JcksAnticheat.Core.Logging.RecentViolations _recent = new JcksAnticheat.Core.Logging.RecentViolations();
         private readonly JcksAnticheat.Core.Logging.StaffAlerts _staffAlerts;
         private readonly BanStore _bans;
@@ -85,6 +86,7 @@ namespace JcksAnticheat.Server
 
             _dataDir = Path.Combine(GetResourcePath(_resource), "data");
             Directory.CreateDirectory(Path.Combine(_dataDir, "vision"));
+            _history = new ConfigHistory(Path.Combine(_dataDir, "config-history"));
             _bans = new BanStore(Path.Combine(_dataDir, "bans.json"));
             _vision = new AIVisionEvaluator(_cfg.Vision);
             _dashboard = new DashboardBridge(_cfg.Dashboard);

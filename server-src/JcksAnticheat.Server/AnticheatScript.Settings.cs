@@ -95,6 +95,23 @@ namespace JcksAnticheat.Server
                           (recent.Count == 0 ? "nothing" : string.Join(", ", recent.AsEnumerable().Reverse().Take(6).Select(r => $"{r.code}+{r.severity} {(int)(DateTime.UtcNow - r.at).TotalMinutes}m ago"))));
                     break;
                 }
+                case "history":
+                {
+                    var list = _history.Entries();
+                    for (int i = 0; i < Math.Min(10, list.Count); i++) Log($"  {i + 1}: {ConfigHistory.Label(list[i])}");
+                    Reply(list.Count == 0 ? "No earlier settings saved yet." : $"{list.Count} earlier version(s) of config.json (newest first, listed in the console). 'jac rollback <n>' restores one.");
+                    break;
+                }
+                case "rollback":
+                {
+                    if (source != 0) { Reply("Run rollback from the server console."); break; }
+                    int n = args.Count > 1 ? ToInt(args[1]) : 1;
+                    var saved = _history.Read(n);
+                    if (saved == null) { Reply("No such version; see 'jac history'."); break; }
+                    try { Reply(Apply(AnticheatConfig.ParseValidated(saved), actor + " (rollback " + n + ")", save: true)); }
+                    catch (FormatException ex) { Reply("That version is not valid any more: " + ex.Message); }
+                    break;
+                }
                 case "audit":
                     Reply(RunAudit());
                     break;
@@ -105,7 +122,7 @@ namespace JcksAnticheat.Server
                           $"integrations={_integrations.Count} rules, countermeasures={(_cfg.Countermeasures.Enabled ? "on" : "off")}, backdoor findings={_lastFindings.Count}, " +
                           $"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit | info <id> | reset <id>");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit | info <id> | reset <id> | history | rollback [n]");
                     break;
             }
         }
@@ -265,7 +282,12 @@ namespace JcksAnticheat.Server
             RegisterProtectedEvents();
             RebuildIntegrations();
 
-            if (save) SaveResourceFile(_resource, "config.json", _cfg.ToPrettyJson(), -1);
+            if (save)
+            {
+                try { _history.Push(LoadResourceFile(_resource, "config.json"), DateTime.UtcNow); }
+                catch (Exception ex) { Log("config history: " + ex.Message); }
+                SaveResourceFile(_resource, "config.json", _cfg.ToPrettyJson(), -1);
+            }
 
             var payload = MiniJson.Serialize(ClientSettings());
             foreach (var p in Players)

@@ -244,10 +244,15 @@ Applying a change takes effect at once: thresholds and limits, blacklists, honey
 the client scanner's settings (pushed to every connected player). Changing
 `dashboard.secretEnv` needs a restart, because the secret is read from the environment at start.
 
+Every save first copies the previous `config.json` to `data/config-history/` (the last 20 are
+kept). `jac history` lists them and `jac rollback [n]` (console) restores one, through the same
+validation as any other change.
+
 Console and admin commands:
 
 ```
 jac status | reload | panel | dryrun on|off | shield install|uninstall|status
+jac audit | info <id> | reset <id> | history | rollback [n]
 ```
 
 ```
