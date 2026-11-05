@@ -19,6 +19,11 @@ also be earned by playing.
 * Rojo 7 project, strict Luau (`--!strict`) in every file, no external dependencies
 * Security design: see **[THREAT_MATRIX.md](THREAT_MATRIX.md)**
 
+## Fastest way to play
+Open **`build/BazarFlippingSimulator.rbxl`** in Roblox Studio (double-click) and press **Play (F5)**.
+It is built from `src/` with Rojo; after changing code, rebuild it with
+`rojo build -o build/BazarFlippingSimulator.rbxl` (or use `rojo serve` below for live sync).
+
 ## Quick start
 
 1. Install the toolchain (pinned in `rokit.toml`):

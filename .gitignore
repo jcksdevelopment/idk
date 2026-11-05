@@ -9,3 +9,6 @@ sourcemap.json
 roblox.yml
 roblox.toml
 .DS_Store
+
+# The ready-to-open place file is versioned on purpose (rebuild with: rojo build -o build/BazarFlippingSimulator.rbxl)
+!build/BazarFlippingSimulator.rbxl
