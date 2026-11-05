@@ -453,7 +453,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-104 tests cover:
+110 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -463,6 +463,9 @@ cd server-src && dotnet test
 - the Claude request shape (structured output, image block, headers, fallbacks) and parsing of
   refusals, errors and OpenAI-compatible replies, all against a fake HTTP handler
 - screenshot chunk reassembly
+- repository consistency: every detection code documented in the threat matrix, every client
+  flag in the catalog, settings schema and `config.json` covering each other, the manifest
+  referencing only real files and the real DLL names, and no comments in code
 
 The interop tests need `lua5.4` on `PATH`; set `JCKS_AC_SKIP_LUA=1` to skip them.
 
@@ -479,7 +482,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 104 tests pass.
+- Both C# projects build with no warnings and the 110 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.
