@@ -71,9 +71,11 @@ local function vector3(x: number?, y: number?, z: number?)
 end
 local mocks = {
 	Vector3 = { new = vector3, zero = vector3() },
-	Vector2 = { new = function(x, y)
-		return { X = x, Y = y }
-	end },
+	Vector2 = {
+		new = function(x, y)
+			return { X = x, Y = y }
+		end,
+	},
 	Color3 = {
 		fromRGB = function(r, g, b)
 			return { R = r / 255, G = g / 255, B = b / 255 }
@@ -82,9 +84,11 @@ local mocks = {
 			return { R = r, G = g, B = b }
 		end,
 	},
-	UDim = { new = function(s, o)
-		return { Scale = s, Offset = o }
-	end },
+	UDim = {
+		new = function(s, o)
+			return { Scale = s, Offset = o }
+		end,
+	},
 	UDim2 = {
 		new = function(...)
 			return { ... }
@@ -201,9 +205,12 @@ function customRequire(node: any)
 	moduleEnv.game = {
 		GetService = function(_, name)
 			if name == "ReplicatedStorage" then
-				return { WaitForChild = function()
-					return shared
-				end, Shared = shared }
+				return {
+					WaitForChild = function()
+						return shared
+					end,
+					Shared = shared,
+				}
 			end
 			return services[name] or {}
 		end,
@@ -252,11 +259,14 @@ check(Config.Crates.JunkBox.Weights.Trash == 70 and Config.Crates.JunkBox.Weight
 Locale.SetLanguage("sk")
 check(Locale.ItemName("RustySpoon") == "Hrdzavá lyžica", "SK item name")
 check(Locale.T("N_Sold", { "@item:GoldenSamovar", "$800" }) == "Predané: Zlatý samovar za $800!", "SK formatting with @item")
-check(string.find(Locale.T("N_RewardClaimed", { Locale.EncodeReward({ Cash = 100, Tokens = 2 }) }), "$100", 1, true) ~= nil, "reward encode/decode")
+check(
+	string.find(Locale.T("N_RewardClaimed", { Locale.EncodeReward({ Cash = 100, Tokens = 2 }) }), "$100", 1, true) ~= nil,
+	"reward encode/decode"
+)
 check(Locale.T("Pet_Dragon") == "Drak", "SK pet name")
 Locale.SetLanguage("en")
 check(Locale.T("Pet_Dragon") == "Dragon", "EN pet name")
-check(Locale.Resolve("auto", "sk-sk") == "sk" and Locale.Resolve("auto", "cs-cz") == "sk" and Locale.Resolve("auto", "en-us") == "en", "language auto-detect")
+check(Locale.Resolve("auto", "sk-sk") == "en" and Locale.Resolve("sk", "en-us") == "sk", "English-first, Slovak only when chosen")
 check(Locale.T("Definitely_Missing_Key") == "Definitely_Missing_Key", "missing keys fall back to the key")
 
 -- Progression
@@ -299,7 +309,10 @@ end
 check(requestTotal == 100, "request rarity weights sum to 100")
 check(Config.Requests.Multiplier >= 1.5 and Config.Requests.DurationSeconds >= 180, "requests are worth it and last long enough")
 Locale.SetLanguage("sk")
-check(string.find(Locale.T("HUD_Request", { "@item:Gramophone", "2", "5:00" }), "Starý gramofón", 1, true) ~= nil, "request text names the item in SK")
+check(
+	string.find(Locale.T("HUD_Request", { "@item:Gramophone", "2", "5:00" }), "Starý gramofón", 1, true) ~= nil,
+	"request text names the item in SK"
+)
 Locale.SetLanguage("en")
 
 -- Pets & icons
@@ -319,7 +332,8 @@ local function crateStats(crate)
 		total += w
 	end
 	for rarity, w in crate.Weights do
-		local pool = if crate.Event then Items.GetEventPool(crate.Event, rarity) else Items.GetByRarity(rarity)
+		local poolName = crate.Event or crate.Set
+		local pool = if poolName then Items.GetEventPool(poolName, rarity) else Items.GetByRarity(rarity)
 		local sum = 0
 		for _, template in pool do
 			sum += template.BaseValue
@@ -328,13 +342,21 @@ local function crateStats(crate)
 		seconds += (w / total) * Config.Repair.SecondsByRarity[rarity]
 	end
 	seconds = seconds * 0.7 + 6
-	return value, (value - crate.Price) / seconds * 60
+	return value, (value - crate.Price) / seconds * 60, seconds
 end
 local regularCrates = {}
 for key, crate in Config.Crates do
 	local value, perMinute = crateStats(crate)
 	check(value > crate.Price, string.format("box %s is profitable (EV %.0f > price %d)", key, value, crate.Price))
-	print(string.format("  %-14s price %5s  avg value %6s  profit/min %5s", key, Format.Cash(crate.Price), Format.Cash(value), Format.Cash(perMinute)))
+	print(
+		string.format(
+			"  %-14s price %5s  avg value %6s  profit/min %5s",
+			key,
+			Format.Cash(crate.Price),
+			Format.Cash(value),
+			Format.Cash(perMinute)
+		)
+	)
 	if not crate.Event then
 		table.insert(regularCrates, { Key = key, Price = crate.Price, PerMinute = perMinute })
 	end
@@ -350,15 +372,23 @@ for i = 2, #regularCrates do
 end
 
 ------------------------------------------------------------------------
--- 4. Economy simulation: one kid, 60 minutes, 1 workbench slot
+-- 4. Ten-hour player simulation (no Robux, no pets/boosts/friends)
+--    Strategy: New Start when possible, buy cheap upgrades, open the most
+--    profitable unlocked box, repair everything, sell clean.
 ------------------------------------------------------------------------
-section("Economy simulation (60 min, no Robux, scrubbing ~30% of the time)")
+section("10-hour progression simulation")
 
-math.randomseed(7)
-local function roll(weights)
-	local r = math.random() * 100
+local Upgrades = customRequire(shared.Upgrades)
+math.randomseed(11)
+
+local function rollRarity(weights)
+	local total = 0
+	for _, w in weights do
+		total += w
+	end
+	local r = math.random() * total
 	for _, rarity in Items.Rarities do
-		r -= weights[rarity]
+		r -= weights[rarity] or 0
 		if r < 0 then
 			return rarity
 		end
@@ -366,57 +396,164 @@ local function roll(weights)
 	return "Trash"
 end
 
-local cash, xp, t, boxes = Config.Economy.StartingCash, 0, 0, 0
-local freeUsed = false
-local milestones = { [600] = true, [1800] = true, [3600] = true }
-while t < 3600 do
-	local lvl = Progression.LevelFromTotal(xp)
-	-- pick the best affordable unlocked non-event crate
-	local best, bestKey = nil, nil
-	for key, crate in Config.Crates do
-		if not crate.Event and lvl >= crate.UnlockLevel and (cash >= crate.Price or (key == "JunkBox" and not freeUsed)) then
-			if not best or crate.Price > best.Price then
-				best, bestKey = crate, key
+local sim = {
+	cash = Config.Economy.StartingCash,
+	xp = 0,
+	rebirths = 0,
+	upgrades = {} :: { [string]: number },
+	found = {} :: { [string]: boolean },
+	t = 0,
+	boxes = 0,
+}
+local function upgradeEffect(key)
+	return Upgrades.Effect(key, sim.upgrades[key] or 0)
+end
+local function moneyMultiplier()
+	return (1 + sim.rebirths * Config.Rebirth.MoneyBonusPerRebirth) * (1 + upgradeEffect("SellBonus"))
+end
+local function repairFactor()
+	return 1 - math.min(upgradeEffect("RepairSpeed"), Config.Upgrades.MaxRepairReduction)
+end
+local function slots()
+	return Config.Repair.BaseSlots + upgradeEffect("Workbench")
+end
+local function rebirthNeeds()
+	return Config.Rebirth.BaseLevel + sim.rebirths * Config.Rebirth.LevelPerRebirth,
+		math.floor(Config.Rebirth.BaseCash * Config.Rebirth.CashGrowth ^ sim.rebirths)
+end
+local function countFound(set: string?)
+	local n = 0
+	for id in sim.found do
+		local template = Items.Get(id)
+		if template and template.Set == set and not template.Event then
+			n += 1
+		end
+	end
+	return n
+end
+
+local timeline = {}
+local vaultAt, galaxyAt = nil, nil
+local nextReport = 3600
+while sim.t < 10 * 3600 do
+	local level = Progression.LevelFromTotal(sim.xp)
+
+	-- New Start
+	local needLevel, needCash = rebirthNeeds()
+	if sim.rebirths < Config.Rebirth.MaxRebirths and level >= needLevel and sim.cash >= needCash then
+		sim.rebirths += 1
+		sim.cash = Config.Economy.StartingCash
+		sim.xp = 0
+		level = 1
+		if sim.rebirths == 1 and not vaultAt then
+			vaultAt = sim.t
+		end
+		if sim.rebirths == 3 and not galaxyAt then
+			galaxyAt = sim.t
+		end
+	end
+
+	-- Upgrades: buy anything costing <= 30% of current cash
+	local bought = true
+	while bought do
+		bought = false
+		for _, key in Config.Upgrades.Order do
+			local cost = Upgrades.Cost(key, sim.upgrades[key] or 0)
+			if cost and cost <= sim.cash * 0.3 then
+				sim.cash -= cost
+				sim.upgrades[key] = (sim.upgrades[key] or 0) + 1
+				bought = true
+			end
+		end
+	end
+
+	-- Choose the most profitable affordable box
+	local best, bestScore = nil, -math.huge
+	for _, crate in Config.Crates do
+		local unlocked = not crate.Event
+			and level >= crate.UnlockLevel
+			and sim.rebirths >= (crate.UnlockRebirths or 0)
+			and sim.cash >= crate.Price
+		if unlocked then
+			local value, _, seconds = crateStats(crate)
+			-- profit per second of play, with this player's multipliers and slots
+			local score = (value * moneyMultiplier() - crate.Price) / (seconds * repairFactor() / slots() + 5)
+			if score > bestScore then
+				best, bestScore = crate, score
 			end
 		end
 	end
 	if not best then
-		break
+		break -- stuck: no box affordable
 	end
-	local price = if bestKey == "JunkBox" and not freeUsed then 0 else best.Price
-	if price == 0 then
-		freeUsed = true
-	end
-	cash -= price
-	boxes += 1
-	local rarity = roll(best.Weights)
-	local pool = Items.GetByRarity(rarity)
-	local template = pool[math.random(1, #pool)]
-	local rec = {
-		TemplateId = template.Id,
-		Rarity = rarity,
-		State = "Clean",
-		Quality = 0.8 + math.random() * 0.45,
-		Shiny = math.random() < Config.Shiny.Chance,
-	}
-	local repair = Valuation.RepairSeconds(rarity) * 0.7 -- some scrubbing
-	t += repair + 6 -- + walking between stalls
-	cash += Valuation.SellValue(rec, 1)
-	xp += Config.Progression.XP.CrateOpened + Config.Progression.XP.Repaired[rarity] + Config.Progression.XP.Sold[rarity]
-	local newLevel = Progression.LevelFromTotal(xp)
-	for l = lvl + 1, newLevel do
-		cash += l * Config.Progression.LevelUpCashPerLevel
-	end
-	for mark in milestones do
-		if t >= mark then
-			milestones[mark] = nil
-			print(string.format("  after %2d min: level %d, cash %s, boxes opened %d", mark // 60, newLevel, Format.Cash(cash), boxes))
+
+	-- Open up to `slots` boxes and repair them in parallel
+	local batch = math.min(slots(), math.max(1, math.floor(sim.cash / best.Price)))
+	local longest = 0
+	for _ = 1, batch do
+		sim.cash -= best.Price
+		sim.boxes += 1
+		local rarity = rollRarity(best.Weights)
+		local poolName = best.Event or best.Set
+		local pool = if poolName then Items.GetEventPool(poolName, rarity) else Items.GetByRarity(rarity)
+		local template = pool[math.random(1, #pool)]
+		sim.found[template.Id] = true
+		local item = {
+			TemplateId = template.Id,
+			Rarity = rarity,
+			State = "Clean",
+			Quality = Config.QualityRange.Min + math.random() * (Config.QualityRange.Max - Config.QualityRange.Min),
+			Shiny = math.random() < Config.Shiny.Chance + upgradeEffect("Luck"),
+		}
+		longest = math.max(longest, Config.Repair.SecondsByRarity[rarity] * repairFactor() * 0.7)
+		sim.cash = math.min(Config.Economy.MaxCash, sim.cash + Valuation.SellValue(item, moneyMultiplier()))
+		local before = Progression.LevelFromTotal(sim.xp)
+		sim.xp += Config.Progression.XP.CrateOpened + Config.Progression.XP.Repaired[rarity] + Config.Progression.XP.Sold[rarity]
+		for l = before + 1, Progression.LevelFromTotal(sim.xp) do
+			sim.cash += l * Config.Progression.LevelUpCashPerLevel
 		end
 	end
+	sim.t += longest + 5 * batch -- repair time + walking/clicking per box
+
+	if sim.t >= nextReport then
+		local upgradeTotal = 0
+		for _, l in sim.upgrades do
+			upgradeTotal += l
+		end
+		local line = string.format(
+			"  %2dh: level %2d, New Starts %d, cash %9s, upgrades %2d, book %2d/21 + vault %d/6 + galaxy %d/6",
+			math.floor(nextReport / 3600),
+			Progression.LevelFromTotal(sim.xp),
+			sim.rebirths,
+			Format.Cash(sim.cash),
+			upgradeTotal,
+			countFound(nil),
+			countFound("Vault"),
+			countFound("Galaxy")
+		)
+		print(line)
+		table.insert(timeline, { hour = math.floor(nextReport / 3600), rebirths = sim.rebirths, upgrades = upgradeTotal })
+		nextReport += 3600
+	end
 end
-local finalLevel = Progression.LevelFromTotal(xp)
-check(finalLevel >= 5, "a kid reaches at least level 5 in an hour (got " .. finalLevel .. ")")
-check(cash > Config.Economy.StartingCash, "economy is profitable without Robux")
+
+print(
+	string.format(
+		"  Treasure Vault unlocked after %s, Galaxy Junk after %s",
+		if vaultAt then string.format("%.1f h", vaultAt / 3600) else "never",
+		if galaxyAt then string.format("%.1f h", galaxyAt / 3600) else "never"
+	)
+)
+check(#timeline >= 10, "simulation runs the full 10 hours without getting stuck")
+check(vaultAt ~= nil and vaultAt >= 0.6 * 3600 and vaultAt <= 2.5 * 3600, "first New Start / Vault between 0.6 h and 2.5 h")
+check(galaxyAt ~= nil and galaxyAt >= 2.5 * 3600 and galaxyAt <= 7 * 3600, "Galaxy unlocks between 2.5 h and 7 h")
+local maxUpgradeTotal = 0
+for _, key in Config.Upgrades.Order do
+	maxUpgradeTotal += Config.Upgrades[key].MaxLevel
+end
+local final = timeline[#timeline]
+check(final ~= nil and final.upgrades < maxUpgradeTotal, "still upgrades left to buy after 10 h")
+check(final ~= nil and final.rebirths <= 15, "New Starts stay meaningful (<= 15 in 10 h)")
 
 ------------------------------------------------------------------------
 print(string.format("\nResult: %d checks passed, %d failed", passes, failures))

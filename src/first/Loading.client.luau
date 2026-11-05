@@ -86,7 +86,7 @@ task.spawn(function()
 	local ok, Locale = pcall(require, shared:WaitForChild("Locale") :: ModuleScript)
 	local okConfig, Config = pcall(require, shared:WaitForChild("Config") :: ModuleScript)
 	if ok then
-		Locale.SetLanguage(Locale.Resolve("auto", player.LocaleId))
+		Locale.SetLanguage("en")
 		title.Text = Locale.T("Load_Title")
 		status.Text = Locale.T("Load_Loading")
 		for i = 1, 4 do

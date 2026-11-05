@@ -80,6 +80,7 @@ export type PlayerData = {
 	LastFreeBoxDay: number,
 	Weekly: WeeklyState,
 	Request: RequestState,
+	Upgrades: { [string]: number },
 	LastSpinAt: number,
 	Pets: { [string]: PetRecord }, -- keyed by server GUID
 	Stats: PlayerStats,
@@ -161,6 +162,7 @@ export type Snapshot = {
 	FreeBoxAvailable: boolean,
 	Weekly: WeeklyView?,
 	Request: RequestState,
+	Upgrades: { [string]: number },
 	SocialBonus: number, -- group + Premium bonus, e.g. 0.2 = +20%
 	InGroup: boolean,
 	GroupEnabled: boolean,

@@ -37,11 +37,12 @@ local SettingsPanel = require(UI.SettingsPanel)
 local TrophyPanel = require(UI.TrophyPanel)
 local WheelPanel = require(UI.WheelPanel)
 local PetsPanel = require(UI.PetsPanel)
+local UpgradesPanel = require(UI.UpgradesPanel)
 
 local player = Players.LocalPlayer
 
--- Best guess before the first snapshot arrives.
-Locale.SetLanguage(Locale.Resolve("auto", player.LocaleId))
+-- English until the saved setting arrives with the first snapshot.
+Locale.SetLanguage("en")
 
 local function buildUI(gui: ScreenGui)
 	Effects.Build(gui)
@@ -54,6 +55,7 @@ local function buildUI(gui: ScreenGui)
 	TrophyPanel.Build(gui)
 	WheelPanel.Build(gui)
 	PetsPanel.Build(gui)
+	UpgradesPanel.Build(gui)
 	CashShopPanel.Build(gui)
 	SettingsPanel.Build(gui)
 end

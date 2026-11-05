@@ -35,6 +35,7 @@ type CrateButton = {
 	Button: TextButton,
 	Price: number,
 	UnlockLevel: number,
+	UnlockRebirths: number,
 	Lock: TextLabel,
 }
 
@@ -151,6 +152,10 @@ function BazaarPanel.Build(gui: ScreenGui)
 			Parent = card,
 		}, function()
 			local snapshot = StateController.Current
+			if snapshot and snapshot.Rebirths < (crate.UnlockRebirths or 0) then
+				Toast.Show("error", Locale.T("N_CrateNeedsRebirth", { tostring(crate.UnlockRebirths) }))
+				return
+			end
 			if snapshot and snapshot.Level < crate.UnlockLevel then
 				Toast.Show("error", Locale.T("N_CrateLocked", { tostring(crate.UnlockLevel) }))
 				return
@@ -191,6 +196,7 @@ function BazaarPanel.Build(gui: ScreenGui)
 			Button = button,
 			Price = crate.Price,
 			UnlockLevel = crate.UnlockLevel,
+			UnlockRebirths = crate.UnlockRebirths or 0,
 			Lock = lock,
 		})
 	end
@@ -203,7 +209,9 @@ function BazaarPanel.Build(gui: ScreenGui)
 			local visibleCount = 0
 			for _, entry in buttons do
 				local event = entry.Event
-				entry.Card.Visible = event == nil or table.find(snapshot.ActiveEvents, event) ~= nil
+				-- Events: only while running. Markets: shown as a teaser one New Start early.
+				entry.Card.Visible = (event == nil or table.find(snapshot.ActiveEvents, event) ~= nil)
+					and snapshot.Rebirths + 1 >= entry.UnlockRebirths
 				if entry.Card.Visible then
 					visibleCount += 1
 				end
@@ -211,7 +219,11 @@ function BazaarPanel.Build(gui: ScreenGui)
 			local width = 1 / math.max(visibleCount, 1) - 0.025
 			for _, entry in buttons do
 				entry.Card.Size = UDim2.fromScale(width, 1)
-				entry.Lock.Visible = snapshot.Level < entry.UnlockLevel
+				local needsRebirth = snapshot.Rebirths < entry.UnlockRebirths
+				entry.Lock.Visible = needsRebirth or snapshot.Level < entry.UnlockLevel
+				entry.Lock.Text = if needsRebirth
+					then Locale.T("Bazaar_NeedsRebirth", { tostring(entry.UnlockRebirths) })
+					else Locale.T("Bazaar_Locked", { tostring(entry.UnlockLevel) })
 				local free = snapshot.FreeBoxAvailable and entry.Key == Config.FreeDailyBox.Crate
 				entry.Button.Text = if free then Locale.T("Bazaar_Free") else Locale.T("Bazaar_Buy", { Format.Cash(entry.Price) })
 				Create.SetButtonEnabled(

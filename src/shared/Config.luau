@@ -135,6 +135,24 @@ Config.Crates = {
 		Event = "Halloween",
 		Weights = { Trash = 50, Rare = 38, Legendary = 12 },
 	},
+	VaultChest = {
+		Icon = "🏛️",
+		Price = 350,
+		Order = 4,
+		UnlockLevel = 1,
+		UnlockRebirths = 1, -- New Start market
+		Set = "Vault",
+		Weights = { Trash = 45, Rare = 40, Legendary = 15 },
+	},
+	GalaxyCapsule = {
+		Icon = "🚀",
+		Price = 900,
+		Order = 5,
+		UnlockLevel = 1,
+		UnlockRebirths = 3,
+		Set = "Galaxy",
+		Weights = { Trash = 45, Rare = 40, Legendary = 15 },
+	},
 	RoyalTreasure = {
 		Icon = "👑",
 		Price = 150,
@@ -283,8 +301,9 @@ Config.Debug = {
 -- Items, collection, quests and achievements are kept.
 Config.Rebirth = {
 	BaseLevel = 15, -- level needed for the first rebirth
-	LevelPerRebirth = 5, -- each further rebirth needs this many more levels
-	BaseCash = 25000, -- cash needed = BaseCash * (rebirths + 1)
+	LevelPerRebirth = 3, -- each further rebirth needs this many more levels
+	BaseCash = 25000, -- cash needed = BaseCash * CashGrowth ^ rebirths
+	CashGrowth = 3,
 	MoneyBonusPerRebirth = 0.25, -- +25% sell money forever, per rebirth
 	MaxRebirths = 50,
 }
@@ -310,6 +329,10 @@ Config.Achievements = {
 	{ Id = "StarTrainer", Icon = "⭐", Stat = "MaxPetStars", Goal = 1, Reward = { Tokens = 1 } },
 	{ Id = "SuperStar", Icon = "🌟", Stat = "MaxPetStars", Goal = 2, Reward = { Cash = 8000 } },
 	{ Id = "Festive", Icon = "🎉", Stat = "EventItemsFound", Goal = 6, Reward = { Cash = 5000 } },
+	{ Id = "Tinkerer", Icon = "🛠️", Stat = "UpgradeLevels", Goal = 10, Reward = { Tokens = 2 } },
+	{ Id = "MasterWorkshop", Icon = "🏭", Stat = "UpgradeLevels", Goal = 45, Reward = { Cash = 50000 } },
+	{ Id = "VaultKeeper", Icon = "🏛️", Stat = "VaultItems", Goal = 6, Reward = { Tokens = 5 } },
+	{ Id = "GalaxyExplorer", Icon = "🚀", Stat = "GalaxyItems", Goal = 6, Reward = { Cash = 250000 } },
 }
 
 -- Free Lucky Wheel. Never sold for Robux; one free spin per cooldown.
@@ -332,6 +355,12 @@ Config.Wheel = {
 Config.Friends = {
 	BonusPerFriend = 0.1,
 	MaxFriends = 3,
+}
+
+-- New Start markets: item sets unlocked by rebirths (see Config.Crates *.Set).
+Config.Sets = {
+	Vault = { Icon = "🏛️", UnlockRebirths = 1 },
+	Galaxy = { Icon = "🚀", UnlockRebirths = 3 },
 }
 
 -- Seasonal events (UTC month/day, inclusive). Wrapping over New Year is fine.
@@ -440,6 +469,18 @@ Config.Images = {
 		CatStatue = "", -- Lucky Cat Statue
 		PumpkinKing = "", -- Pumpkin King
 		MagicTopHat = "", -- Magician's Top Hat
+		SilverCutlery = "",
+		PorcelainDoll = "",
+		KnightHelmet = "",
+		GoldenHarp = "",
+		CrystalCrown = "",
+		PharaohMask = "",
+		MoonRock = "",
+		SatelliteDish = "",
+		RobotDog = "",
+		AlienLamp = "",
+		MiniUFO = "",
+		StarAtlas = "",
 	},
 	Pets = {
 		Puppy = "",
@@ -458,6 +499,8 @@ Config.Images = {
 		AntiqueChest = "",
 		WinterGift = "",
 		SpookyBox = "",
+		VaultChest = "",
+		GalaxyCapsule = "",
 		RoyalTreasure = "",
 	},
 	Eggs = {
@@ -495,6 +538,10 @@ Config.Badges = {
 	StarTrainer = 0,
 	SuperStar = 0,
 	Festive = 0,
+	Tinkerer = 0,
+	MasterWorkshop = 0,
+	VaultKeeper = 0,
+	GalaxyExplorer = 0,
 }
 
 -- Social bonuses (server-verified, stack with everything else).
@@ -512,6 +559,20 @@ Config.Weekly = {
 		{ Id = "OpenCrates", Event = "CrateOpened", Goal = 120, Reward = { Cash = 5000, Tokens = 3, XP = 150 } },
 		{ Id = "EarnCash", Event = "CashEarned", Goal = 60000, Reward = { Tokens = 5, BoostMinutes = 30, XP = 150 } },
 	},
+}
+
+-- Workshop upgrades: permanent (kept through New Starts), bought with in-game
+-- cash, each level costs Growth x more. Effects per level:
+--   SellBonus +5% sell money, RepairSpeed -4% repair time, Backpack +2 slots,
+--   Workbench +1 repair slot, Luck +0.3% shiny chance.
+Config.Upgrades = {
+	Order = { "SellBonus", "RepairSpeed", "Backpack", "Workbench", "Luck" },
+	SellBonus = { Icon = "🤝", MaxLevel = 30, BaseCost = 400, Growth = 1.5, PerLevel = 0.05 },
+	RepairSpeed = { Icon = "⚙️", MaxLevel = 15, BaseCost = 300, Growth = 1.75, PerLevel = 0.04 },
+	Backpack = { Icon = "🎒", MaxLevel = 15, BaseCost = 500, Growth = 1.55, PerLevel = 2 },
+	Workbench = { Icon = "🔧", MaxLevel = 3, BaseCost = 6000, Growth = 6, PerLevel = 1 },
+	Luck = { Icon = "🍀", MaxLevel = 15, BaseCost = 1500, Growth = 1.65, PerLevel = 0.003 },
+	MaxRepairReduction = 0.75, -- pets + upgrades together
 }
 
 -- Customer requests: a customer wants one specific item; sell it clean in

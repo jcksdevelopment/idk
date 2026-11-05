@@ -11,6 +11,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Pets = require(Shared.Pets)
 local Progression = require(Shared.Progression)
+local Upgrades = require(Shared.Upgrades)
 local Types = require(Shared.Types)
 local FriendService = require(script.Parent.FriendService)
 local GamePassService = require(script.Parent.GamePassService)
@@ -22,16 +23,20 @@ function Rules.Level(data: Types.PlayerData): number
 	return Progression.LevelFromTotal(data.XP)
 end
 
+function Rules.Upgrade(data: Types.PlayerData, key: string): number
+	return Upgrades.Effect(key, data.Upgrades[key] or 0)
+end
+
 function Rules.Capacity(player: Player, data: Types.PlayerData): number
-	local capacity = Config.Inventory.BaseCapacity + Progression.LevelCapacityBonus(Rules.Level(data))
+	local capacity = Config.Inventory.BaseCapacity + Progression.LevelCapacityBonus(Rules.Level(data)) + Rules.Upgrade(data, "Backpack")
 	if GamePassService.Has(player, "ExtraCapacity") then
 		capacity += Config.Inventory.ExtraCapacityBonus
 	end
 	return capacity
 end
 
-function Rules.RepairSlots(player: Player): number
-	local slots = Config.Repair.BaseSlots
+function Rules.RepairSlots(player: Player, data: Types.PlayerData): number
+	local slots = Config.Repair.BaseSlots + Rules.Upgrade(data, "Workbench")
 	if GamePassService.Has(player, "VIPAutoCleaner") then
 		slots += Config.Repair.VIPExtraSlots
 	end
@@ -48,6 +53,7 @@ function Rules.MoneyMultiplier(player: Player, data: Types.PlayerData): number
 	multiplier *= 1 + Rules.RebirthBonus(data)
 	multiplier *= 1 + FriendService.Bonus(player)
 	multiplier *= 1 + Rules.PetBonus(data, "Money")
+	multiplier *= 1 + Rules.Upgrade(data, "SellBonus")
 	multiplier *= 1 + SocialService.Bonus(player)
 	return multiplier
 end
@@ -75,12 +81,13 @@ end
 -- Repair duration after pet bonuses.
 function Rules.RepairSeconds(data: Types.PlayerData, rarity: Types.Rarity): number
 	local base = Config.Repair.SecondsByRarity[rarity] or 30
-	return math.max(1, base * (1 - Rules.PetBonus(data, "Repair")))
+	local reduction = 1 - (1 - Rules.PetBonus(data, "Repair")) * (1 - Rules.Upgrade(data, "RepairSpeed"))
+	return math.max(1, base * (1 - math.min(reduction, Config.Upgrades.MaxRepairReduction)))
 end
 
 function Rules.RebirthRequirement(data: Types.PlayerData): (number, number)
 	local r = Config.Rebirth
-	return r.BaseLevel + data.Rebirths * r.LevelPerRebirth, r.BaseCash * (data.Rebirths + 1)
+	return r.BaseLevel + data.Rebirths * r.LevelPerRebirth, math.floor(r.BaseCash * r.CashGrowth ^ data.Rebirths)
 end
 
 function Rules.InventoryCount(data: Types.PlayerData): number

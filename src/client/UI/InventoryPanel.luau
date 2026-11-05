@@ -15,6 +15,7 @@ local Config = require(Shared.Config)
 local Format = require(Shared.Format)
 local Items = require(Shared.Items)
 local Locale = require(Shared.Locale)
+local Upgrades = require(Shared.Upgrades)
 local Types = require(Shared.Types)
 local Valuation = require(Shared.Valuation)
 
@@ -335,7 +336,10 @@ function InventoryPanel.Build(gui: ScreenGui)
 			end
 			local request = snapshot.Request
 			local wanted = request.TemplateId == item.TemplateId and request.ExpiresAt > StateController.ServerNow()
-			updateCard(card, item, index, snapshot.InstantRepairTokens, snapshot.PetBonuses.Repair or 0, wanted)
+			local repairBonus = 1
+				- (1 - (snapshot.PetBonuses.Repair or 0)) * (1 - Upgrades.Effect("RepairSpeed", snapshot.Upgrades.RepairSpeed or 0))
+			repairBonus = math.min(repairBonus, Config.Upgrades.MaxRepairReduction)
+			updateCard(card, item, index, snapshot.InstantRepairTokens, repairBonus, wanted)
 		end
 		for id, card in cards do
 			if not seen[id] then

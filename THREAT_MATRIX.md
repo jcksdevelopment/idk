@@ -41,6 +41,8 @@ character's network physics. The server owns all state that matters.
 | 33 | Weekly challenge abuse | Claims twice or reports progress | Progress only from server events; claim flag set atomically with the grant; week derived from server UTC day | `ProgressService.onClaimWeekly` |
 | 34 | Badge spam | Triggers badge awards | Badges are awarded only by the server on achievement unlock; per-session de-dup + UserHasBadgeAsync check | `BadgeAwardService` |
 | 35 | Request spoofing | Claims a request for any item | The wanted item, expiry and multiplier live in the server profile; the bonus applies only when the sold, server-owned item matches and is clean, then the request clears atomically | `RequestService.TryFulfill` |
+| 36 | Upgrade abuse | Buys upgrades without cash or past max | Price and max come from `Config.Upgrades` on the server; cash check, payment and level-up in one block | `UpgradeService` |
+| 37 | Market skipping | Buys Vault/Galaxy boxes early | `UnlockRebirths` re-checked against the saved New Start count on the server | `ItemService.onBuyCrate` |
 | 19 | Client code theft | Decompiles LocalScripts | The client holds no secrets or authority: only rendering and requests | architecture |
 
 ## Flag scoring

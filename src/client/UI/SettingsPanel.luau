@@ -23,7 +23,6 @@ local Theme = require(script.Parent.Theme)
 local SettingsPanel = {}
 
 local LANGUAGE_OPTIONS = {
-	{ Value = "auto", Label = "Settings_Auto" },
 	{ Value = "en", Label = "English" },
 	{ Value = "sk", Label = "Slovenčina" },
 }
@@ -83,9 +82,9 @@ function SettingsPanel.Build(gui: ScreenGui)
 	local languageButtons: { [string]: TextButton } = {}
 	for index, option in LANGUAGE_OPTIONS do
 		languageButtons[option.Value] = Create.Button({
-			Text = if option.Value == "auto" then Locale.T(option.Label) else option.Label,
+			Text = option.Label,
 			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.fromScale(0.97 - (3 - index) * 0.175, 0.5),
+			Position = UDim2.fromScale(0.97 - (#LANGUAGE_OPTIONS - index) * 0.175, 0.5),
 			Size = UDim2.fromScale(0.165, 0.7),
 			MaxTextSize = 20,
 			Parent = languageRow,

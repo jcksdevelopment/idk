@@ -15,6 +15,7 @@ export type ItemTemplate = {
 	BaseValue: number,
 	Icon: string,
 	Event: string?, -- seasonal items only drop from their event box
+	Set: string?, -- New Start markets (Vault, Galaxy) only drop from their box
 }
 
 local Items = {}
@@ -62,6 +63,22 @@ local catalog: { ItemTemplate } = {
 	{ Id = "CatStatue", Name = "Lucky Cat Statue", Rarity = "Rare", BaseValue = 145, Icon = "🐈", Event = "Halloween" },
 	{ Id = "PumpkinKing", Name = "Pumpkin King", Rarity = "Legendary", BaseValue = 1250, Icon = "🎃", Event = "Halloween" },
 	{ Id = "MagicTopHat", Name = "Magician's Top Hat", Rarity = "Legendary", BaseValue = 1150, Icon = "🎩", Event = "Halloween" },
+
+	-- 🏛️ Treasure Vault market (unlocks after 1 New Start)
+	{ Id = "SilverCutlery", Name = "Silver Cutlery Set", Rarity = "Trash", BaseValue = 60, Icon = "🍴", Set = "Vault" },
+	{ Id = "PorcelainDoll", Name = "Porcelain Doll", Rarity = "Trash", BaseValue = 75, Icon = "🪆", Set = "Vault" },
+	{ Id = "KnightHelmet", Name = "Knight's Helmet", Rarity = "Rare", BaseValue = 380, Icon = "🪖", Set = "Vault" },
+	{ Id = "GoldenHarp", Name = "Golden Harp", Rarity = "Rare", BaseValue = 450, Icon = "🎻", Set = "Vault" },
+	{ Id = "CrystalCrown", Name = "Crystal Crown", Rarity = "Legendary", BaseValue = 3200, Icon = "👑", Set = "Vault" },
+	{ Id = "PharaohMask", Name = "Pharaoh's Mask", Rarity = "Legendary", BaseValue = 4000, Icon = "🗿", Set = "Vault" },
+
+	-- 🚀 Galaxy Junk market (unlocks after 3 New Starts)
+	{ Id = "MoonRock", Name = "Moon Rock", Rarity = "Trash", BaseValue = 180, Icon = "🌑", Set = "Galaxy" },
+	{ Id = "SatelliteDish", Name = "Old Satellite Dish", Rarity = "Trash", BaseValue = 220, Icon = "📡", Set = "Galaxy" },
+	{ Id = "RobotDog", Name = "Robot Dog", Rarity = "Rare", BaseValue = 1100, Icon = "🐕", Set = "Galaxy" },
+	{ Id = "AlienLamp", Name = "Alien Lava Lamp", Rarity = "Rare", BaseValue = 1300, Icon = "💡", Set = "Galaxy" },
+	{ Id = "MiniUFO", Name = "Mini UFO", Rarity = "Legendary", BaseValue = 9000, Icon = "🛸", Set = "Galaxy" },
+	{ Id = "StarAtlas", Name = "Star Atlas", Rarity = "Legendary", BaseValue = 11000, Icon = "🌌", Set = "Galaxy" },
 }
 
 local byId: { [string]: ItemTemplate } = {}
@@ -74,7 +91,7 @@ for _, template in catalog do
 	assert(byId[template.Id] == nil, "Duplicate item template id: " .. template.Id)
 	table.freeze(template)
 	byId[template.Id] = template
-	local event = template.Event
+	local event = template.Event or template.Set -- events and markets share the pool mechanism
 	if event then
 		eventPools[event] = eventPools[event] or { Trash = {}, Rare = {}, Legendary = {} }
 		eventOrdered[event] = eventOrdered[event] or {}

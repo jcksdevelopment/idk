@@ -258,6 +258,38 @@ local en: { [string]: string } = {
 	N_PetSold = "{1} went home happy. +{2}",
 	N_EggLocked = "Reach level {1} to hatch this egg!",
 	N_EventOver = "This event is over - see you next time!",
+	Set_Vault = "🏛️ Treasure Vault",
+	Set_Galaxy = "🚀 Galaxy Junk",
+	Crate_VaultChest = "Vault Chest",
+	Crate_GalaxyCapsule = "Galaxy Capsule",
+	Bazaar_NeedsRebirth = "🔒 New Start ×{1}",
+	N_CrateNeedsRebirth = "Do {1} New Start(s) to open this market!",
+	Ach_VaultKeeper = "Vault Keeper",
+	Ach_GalaxyExplorer = "Galaxy Explorer",
+	Stat_VaultItems = "Find Treasure Vault items: {1}",
+	Stat_GalaxyItems = "Find Galaxy Junk items: {1}",
+	Title_Upgrades = "🛠️ Workshop Upgrades",
+	Nav_Upgrades = "Upgrades",
+	Upg_Level = "Lv {1}/{2}",
+	Upg_Buy = "Upgrade {1}",
+	Upg_Max = "MAX ✓",
+	Upg_Note = "Upgrades are yours forever - even after a New Start!",
+	Upg_Next = "Now {1} → next {2}",
+	Upg_SellBonus = "Haggling",
+	Upg_SellBonus_Desc = "+{1}% sell money",
+	Upg_RepairSpeed = "Better Tools",
+	Upg_RepairSpeed_Desc = "-{1}% repair time",
+	Upg_Backpack = "Bigger Backpack",
+	Upg_Backpack_Desc = "+{1} bag slots",
+	Upg_Workbench = "Extra Workbench",
+	Upg_Workbench_Desc = "+{1} repair slots",
+	Upg_Luck = "Lucky Charm",
+	Upg_Luck_Desc = "+{1}% shiny chance",
+	Ach_Tinkerer = "Tinkerer",
+	Ach_MasterWorkshop = "Workshop Master",
+	Stat_UpgradeLevels = "Buy upgrade levels: {1}",
+	N_UpgradeBought = "🛠️ {1} is now level {2}!",
+	N_UpgradeMax = "That upgrade is already maxed!",
 	HUD_Request = "🧑‍💼 Wants: {1} ×{2} · {3}",
 	HUD_RequestNext = "🧑‍💼 Next customer in {1}",
 	Inv_Wanted = "🧑‍💼 WANTED ×{1}!",
@@ -527,6 +559,50 @@ local sk: { [string]: string } = {
 	N_PetSold = "{1} išlo šťastne domov. +{2}",
 	N_EggLocked = "Dosiahni úroveň {1} a vyliahneš toto vajíčko!",
 	N_EventOver = "Táto udalosť už skončila - uvidíme sa nabudúce!",
+	Set_Vault = "🏛️ Pokladnica",
+	Set_Galaxy = "🚀 Galaktický šrot",
+	Crate_VaultChest = "Truhla z pokladnice",
+	Crate_GalaxyCapsule = "Galaktická kapsula",
+	Bazaar_NeedsRebirth = "🔒 Nový začiatok ×{1}",
+	N_CrateNeedsRebirth = "Urob Nový začiatok ({1}×) a odomkneš tento trh!",
+	Ach_VaultKeeper = "Strážca pokladnice",
+	Ach_GalaxyExplorer = "Galaktický prieskumník",
+	Stat_VaultItems = "Nájdi predmety z Pokladnice: {1}",
+	Stat_GalaxyItems = "Nájdi predmety z Galaktického šrotu: {1}",
+	Item_SilverCutlery = "Strieborný príbor",
+	Item_PorcelainDoll = "Porcelánová bábika",
+	Item_KnightHelmet = "Rytierska prilba",
+	Item_GoldenHarp = "Zlatá harfa",
+	Item_CrystalCrown = "Krištáľová koruna",
+	Item_PharaohMask = "Faraónova maska",
+	Item_MoonRock = "Mesačný kameň",
+	Item_SatelliteDish = "Stará satelitná anténa",
+	Item_RobotDog = "Robotický pes",
+	Item_AlienLamp = "Mimozemská lampa",
+	Item_MiniUFO = "Mini UFO",
+	Item_StarAtlas = "Hviezdny atlas",
+	Title_Upgrades = "🛠️ Vylepšenia dielne",
+	Nav_Upgrades = "Vylepš.",
+	Upg_Level = "Úr. {1}/{2}",
+	Upg_Buy = "Vylepšiť {1}",
+	Upg_Max = "MAX ✓",
+	Upg_Note = "Vylepšenia ti ostanú navždy - aj po Novom začiatku!",
+	Upg_Next = "Teraz {1} → ďalej {2}",
+	Upg_SellBonus = "Zjednávanie",
+	Upg_SellBonus_Desc = "+{1}% peňazí z predaja",
+	Upg_RepairSpeed = "Lepšie náradie",
+	Upg_RepairSpeed_Desc = "-{1}% času opravy",
+	Upg_Backpack = "Väčší batoh",
+	Upg_Backpack_Desc = "+{1} miest v batohu",
+	Upg_Workbench = "Ďalší pracovný stôl",
+	Upg_Workbench_Desc = "+{1} miest v dielni",
+	Upg_Luck = "Talizman šťastia",
+	Upg_Luck_Desc = "+{1}% šanca na lesklé",
+	Ach_Tinkerer = "Kutil",
+	Ach_MasterWorkshop = "Majster dielne",
+	Stat_UpgradeLevels = "Kúp úrovne vylepšení: {1}",
+	N_UpgradeBought = "🛠️ {1} má teraz úroveň {2}!",
+	N_UpgradeMax = "Toto vylepšenie je už na maxime!",
 	HUD_Request = "🧑‍💼 Hľadá: {1} ×{2} · {3}",
 	HUD_RequestNext = "🧑‍💼 Ďalší zákazník o {1}",
 	Inv_Wanted = "🧑‍💼 ŽIADANÉ ×{1}!",
@@ -613,14 +689,11 @@ function Locale.GetLanguage(): string
 	return current
 end
 
--- "auto" picks Slovak for sk/cs Roblox locales, English otherwise.
-function Locale.Resolve(setting: string, robloxLocaleId: string): string
+-- The game is English-first: every player starts in English. Slovak is an
+-- optional language a player can pick in Settings (saved per player).
+function Locale.Resolve(setting: string, _robloxLocaleId: string): string
 	if tables[setting] then
 		return setting
-	end
-	local prefix = string.lower(string.sub(robloxLocaleId, 1, 2))
-	if prefix == "sk" or prefix == "cs" then
-		return "sk"
 	end
 	return "en"
 end
@@ -683,6 +756,10 @@ local function resolveArg(arg: string): string
 	local item = string.match(arg, "^@item:(.+)$")
 	if item then
 		return Locale.ItemName(item)
+	end
+	local upgrade = string.match(arg, "^@upg:(.+)$")
+	if upgrade then
+		return lookup("Upg_" .. upgrade)
 	end
 	local pet = string.match(arg, "^@pet:(.+)$")
 	if pet then

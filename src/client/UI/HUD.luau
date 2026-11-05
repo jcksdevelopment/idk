@@ -18,6 +18,7 @@ local Config = require(Shared.Config)
 local Format = require(Shared.Format)
 local Items = require(Shared.Items)
 local Locale = require(Shared.Locale)
+local Upgrades = require(Shared.Upgrades)
 local Types = require(Shared.Types)
 
 local Controllers = script.Parent.Parent.Controllers
@@ -218,19 +219,19 @@ function HUD.Build(gui: ScreenGui)
 		Name = "Nav",
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.fromScale(0.012, 0.52),
-		Size = UDim2.fromScale(0.075, 0.76),
+		Size = UDim2.fromScale(0.075, 0.8),
 		BackgroundTransparency = 1,
 		Parent = root,
 	}, {
-		Create.List(Enum.FillDirection.Vertical, 0.015),
-		Create.Aspect(0.15),
+		Create.List(Enum.FillDirection.Vertical, 0.012),
+		Create.Aspect(0.122),
 	})
 
 	local function navButton(order: number, icon: string, labelKey: string, key: string, color: Color3, panel: string): TextButton
 		local button = Create.Button({
 			Name = panel,
 			LayoutOrder = order,
-			Size = UDim2.fromScale(1, 0.128),
+			Size = UDim2.fromScale(1, 0.111),
 			BackgroundColor3 = color,
 			Text = icon .. "\n" .. Locale.T(labelKey) .. Device.KeyHint(key),
 			MaxTextSize = 22,
@@ -247,9 +248,11 @@ function HUD.Build(gui: ScreenGui)
 	local bazaarBadge = Create.Badge(bazaarButton)
 	local questsButton = navButton(3, "📜", "Nav_Quests", "Q", Theme.Colors.Pink, "Rewards")
 	local indexButton = navButton(4, "📖", "Nav_Index", "C", Theme.Colors.VIP, "Index")
-	local trophiesButton = navButton(5, "🏆", "Nav_Trophies", "T", Theme.Colors.Accent, "Trophies")
-	navButton(6, "🛒", "Nav_Shop", "P", Theme.Colors.Robux, "CashShop")
-	navButton(7, "⚙️", "Nav_Settings", "", Theme.Colors.PanelLight, "Settings")
+	local upgradesButton = navButton(5, "🛠️", "Nav_Upgrades", "U", Theme.Colors.Info, "Upgrades")
+	local trophiesButton = navButton(6, "🏆", "Nav_Trophies", "T", Theme.Colors.Accent, "Trophies")
+	navButton(7, "🛒", "Nav_Shop", "P", Theme.Colors.Robux, "CashShop")
+	navButton(8, "⚙️", "Nav_Settings", "", Theme.Colors.PanelLight, "Settings")
+	local upgradesBadge = Create.Badge(upgradesButton)
 	local questsBadge = Create.Badge(questsButton)
 	local indexBadge = Create.Badge(indexButton)
 	local trophiesBadge = Create.Badge(trophiesButton)
@@ -453,6 +456,11 @@ function HUD.Build(gui: ScreenGui)
 
 		questsBadge.Visible = hasClaimableQuest(snapshot)
 		bazaarBadge.Visible = snapshot.FreeBoxAvailable
+		local cheapest = math.huge
+		for _, key in Config.Upgrades.Order do
+			cheapest = math.min(cheapest, Upgrades.Cost(key, snapshot.Upgrades[key] or 0) or math.huge)
+		end
+		upgradesBadge.Visible = snapshot.Cash >= cheapest
 		indexBadge.Visible = hasClaimableCollection(snapshot)
 		trophiesBadge.Visible = snapshot.Rebirths < Config.Rebirth.MaxRebirths
 			and snapshot.Level >= snapshot.RebirthLevel

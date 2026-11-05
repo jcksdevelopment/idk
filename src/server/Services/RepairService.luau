@@ -73,7 +73,7 @@ local function onStartRepair(player: Player, itemId: string)
 		SyncService.Notify(player, "error", "N_NeedWorkbench")
 		return
 	end
-	if Rules.ActiveRepairs(data) >= Rules.RepairSlots(player) then
+	if Rules.ActiveRepairs(data) >= Rules.RepairSlots(player, data) then
 		SyncService.Notify(player, "error", "N_BenchBusy")
 		return
 	end
@@ -204,7 +204,7 @@ local function vipTick()
 			end
 		end
 
-		local freeSlots = Rules.RepairSlots(player) - Rules.ActiveRepairs(data)
+		local freeSlots = Rules.RepairSlots(player, data) - Rules.ActiveRepairs(data)
 		if freeSlots > 0 and #dirtyItems > 0 then
 			table.sort(dirtyItems, function(a, b)
 				return a.AcquiredAt < b.AcquiredAt

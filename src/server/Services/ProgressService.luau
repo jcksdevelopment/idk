@@ -223,7 +223,7 @@ end
 function ProgressService.Discover(player: Player, data: Types.PlayerData, item: Types.ItemRecord)
 	local templateId = item.TemplateId
 	local itemTemplate = Items.Get(templateId)
-	local isEventItem = itemTemplate ~= nil and itemTemplate.Event ~= nil
+	local isEventItem = itemTemplate ~= nil and (itemTemplate.Event ~= nil or itemTemplate.Set ~= nil)
 	if not data.Collection[templateId] then
 		data.Collection[templateId] = true
 		SyncService.Notify(player, "info", "N_NewDiscovery", { "@item:" .. templateId })
@@ -353,7 +353,7 @@ local function onSetSetting(player: Player, key: string, value: any)
 	local settings = profile.Data.Settings
 	if (key == "Sound" or key == "Music") and type(value) == "boolean" then
 		settings[key] = value
-	elseif key == "Language" and (value == "auto" or table.find(Config.Languages, value)) then
+	elseif key == "Language" and table.find(Config.Languages, value) then
 		settings.Language = value
 	else
 		return

@@ -126,7 +126,7 @@ local function newData(): Types.PlayerData
 		Quests = { Day = -1, Entries = {} },
 		Daily = { Streak = 0, LastClaimDay = -10 },
 		TutorialStep = 1,
-		Settings = { Sound = true, Music = true, Language = "auto" },
+		Settings = { Sound = true, Music = true, Language = "en" },
 		Rebirths = 0,
 		Achievements = {},
 		EquippedTitle = "",
@@ -134,6 +134,7 @@ local function newData(): Types.PlayerData
 		LastFreeBoxDay = -1,
 		Weekly = { Week = -1, Id = "", Progress = 0, Claimed = false },
 		Request = { TemplateId = "", ExpiresAt = 0, NextAt = 0 },
+		Upgrades = {},
 		LastSpinAt = 0,
 		Pets = {},
 		Stats = {
@@ -258,7 +259,7 @@ local function sanitize(raw: any): Types.PlayerData
 		data.Settings.Sound = raw.Settings.Sound ~= false
 		data.Settings.Music = raw.Settings.Music ~= false
 		local language = raw.Settings.Language
-		if language == "auto" or table.find(Config.Languages, language) then
+		if table.find(Config.Languages, language) then -- old "auto" saves become English
 			data.Settings.Language = language
 		end
 	end
@@ -276,6 +277,15 @@ local function sanitize(raw: any): Types.PlayerData
 		data.EquippedTitle = raw.EquippedTitle
 	end
 	data.LastFreeBoxDay = math.floor(readNumber(raw.LastFreeBoxDay, -1, -1, math.huge))
+	if type(raw.Upgrades) == "table" then
+		for _, key in Config.Upgrades.Order do
+			local def = (Config.Upgrades :: any)[key]
+			local level = math.floor(readNumber(raw.Upgrades[key], 0, 0, def.MaxLevel))
+			if level > 0 then
+				data.Upgrades[key] = level
+			end
+		end
+	end
 	if type(raw.Request) == "table" and type(raw.Request.TemplateId) == "string" then
 		local templateId = raw.Request.TemplateId
 		data.Request = {

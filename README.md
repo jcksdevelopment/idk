@@ -7,7 +7,7 @@ session-locked saves and a receipt handler that can't double-grant.
 **Kid-friendly edition (v2):** an interactive tutorial with a guide arrow, levels &
 XP, daily quests, a 7-day login gift, a collection book, ✨ shiny items, a
 "scrub" tap mini-game, sounds and confetti, a decorated market plaza, and full
-**Slovak + English** UI (auto-detected, switchable in Settings). Monetization is
+**English-first** UI (Slovak available in Settings). Monetization is
 pressure-free: no pop-up upsells by default, and everything sold for Robux can
 also be earned by playing.
 
@@ -83,7 +83,8 @@ src/
   shared/      → ReplicatedStorage.Shared
     Config.luau       ★ IDs, economy, quests, rewards, sounds, station layout
     Items.luau        item catalog (the only source of item value)
-    Locale.luau       all player-facing text (English + Slovak)
+    Locale.luau       all player-facing text (English, optional Slovak)
+    Upgrades.luau     workshop upgrade costs/effects
     Progression.luau  level curve
     Types.luau        shared type definitions
     Valuation.luau    pure price math (server-authoritative)
@@ -140,7 +141,9 @@ src/
 | 🏅 Roblox badges | `Config.Badges`: Welcome + one per trophy, awarded automatically (also for trophies earned before you added the badge) |
 | 👥 Group & ⭐ Premium | `Config.Social.GroupId`: group members +10% money; Roblox Premium members +10% (server-checked) |
 | 💌 Invite friends | HUD button opens Roblox's invite dialog (friends in the server give the friend bonus) |
-| ⏳ Loading screen | Branded loader in `src/first` with logo (`Config.Images.Logo`) and tips in SK/EN |
+| ⏳ Loading screen | Branded loader in `src/first` with logo (`Config.Images.Logo`) and tips |
+| 🛠️ Workshop upgrades | Permanent cash upgrades kept through New Starts: Haggling (+5% money/level, 30 levels), Better Tools (−4% repair time, 15), Bigger Backpack (+2 slots, 15), Extra Workbench (+1 slot, 3), Lucky Charm (+0.3% shiny, 15). Each level costs more (`Config.Upgrades`) |
+| 🏛️🚀 New Start markets | Treasure Vault (after 1 New Start) and Galaxy Junk (after 3) with 6 high-value items each, their own box, book section and trophy (`Config.Sets`) |
 | 🧑‍💼 Customer requests | Every few minutes a customer wants one specific item: sell it clean within 8 min for ×2 price (bar under the HUD, “WANTED” tag in the bag). Tune in `Config.Requests` |
 | 🎟️ Gift codes | Settings → type a code (e.g. `WELCOME`, `BAZAR`, `FLIPPER`; `SNOWDAY` only during Winter). Each works once per player. Add your own in `Config.Codes` |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
@@ -165,6 +168,20 @@ Add a table to `src/shared/Locale.luau`, register it in `tables`, and add its co
 
 ## Launch & monetization
 See **[docs/LAUNCH_PLAN.md](docs/LAUNCH_PLAN.md)** (costs, publishing, pricing, marketing, 30-day plan) and **[docs/ART_PROMPTS.md](docs/ART_PROMPTS.md)** (image prompts for every asset).
+
+## Progression (simulated, see tests)
+A simulated player (no Robux, no pets/boosts, plays optimally) gets roughly:
+
+| Time | Milestone |
+|---|---|
+| 1 h | Level ~17, base collection complete, ~18 upgrade levels |
+| ~1.8 h | 1st New Start → 🏛️ Treasure Vault |
+| ~4 h | 3rd New Start → 🚀 Galaxy Junk |
+| 10 h | ~5 New Starts, ~69/78 upgrade levels – still goals left |
+
+Real kids play slower and also chase pets, shinies, trophies, quests and events,
+so there is comfortably 10+ hours of content before the first content update.
+Tune `Config.Rebirth`, `Config.Upgrades` and box prices, then re-run the tests.
 
 ## Tests (no Roblox needed)
 ```bash

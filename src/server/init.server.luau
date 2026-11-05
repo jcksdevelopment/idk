@@ -26,6 +26,7 @@ local START_ORDER = {
 	"ProgressService",
 	"PetService",
 	"RequestService",
+	"UpgradeService",
 	"AntiExploitService",
 	"ItemService",
 	"RepairService",

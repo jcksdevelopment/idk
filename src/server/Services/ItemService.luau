@@ -69,7 +69,7 @@ function ItemService.CreateItem(data: Types.PlayerData, rarity: Types.Rarity, ev
 		Rarity = template.Rarity,
 		State = "Dirty",
 		Quality = quality,
-		Shiny = rng:NextNumber() < Config.Shiny.Chance + Rules.PetBonus(data, "Luck"),
+		Shiny = rng:NextNumber() < Config.Shiny.Chance + Rules.PetBonus(data, "Luck") + Rules.Upgrade(data, "Luck"),
 		AcquiredAt = os.time(),
 		RepairStartedAt = nil,
 		RepairEndsAt = nil,
@@ -99,6 +99,10 @@ local function onBuyCrate(player: Player, crateKey: string)
 	end
 
 	local data = profile.Data
+	if crate.UnlockRebirths and profile.Data.Rebirths < crate.UnlockRebirths then
+		SyncService.Notify(player, "error", "N_CrateNeedsRebirth", { tostring(crate.UnlockRebirths) })
+		return
+	end
 	if crate.Event and not Events.IsActive(crate.Event) then
 		SyncService.Notify(player, "error", "N_EventOver")
 		return
@@ -125,7 +129,7 @@ local function onBuyCrate(player: Player, crateKey: string)
 		data.LastFreeBoxDay = today
 		SyncService.Notify(player, "success", "N_FreeBox")
 	end
-	local item = ItemService.CreateItem(data, ItemService.RollRarity(crate.Weights), crate.Event)
+	local item = ItemService.CreateItem(data, ItemService.RollRarity(crate.Weights), crate.Event or crate.Set)
 	data.Inventory[item.Id] = item
 	data.Stats.CratesOpened += 1
 

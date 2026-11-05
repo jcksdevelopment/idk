@@ -153,11 +153,16 @@ function IndexPanel.Build(gui: ScreenGui)
 
 	-- Seasonal sections (not part of the rarity rewards; shown once you find one
 	-- or while the event is running).
-	local eventIds: { string } = {}
+	-- New Start markets come first (Vault, Galaxy), then seasonal events.
+	local eventIds: { string } = { "Vault", "Galaxy" }
+	local eventNames: { string } = {}
 	for eventId in Config.Events do
+		table.insert(eventNames, eventId)
+	end
+	table.sort(eventNames)
+	for _, eventId in eventNames do
 		table.insert(eventIds, eventId)
 	end
-	table.sort(eventIds)
 	for eventIndex, eventId in eventIds do
 		local templates = Items.EventItems(eventId)
 		if #templates > 0 then
@@ -270,10 +275,14 @@ function IndexPanel.Build(gui: ScreenGui)
 			local event = section.Event
 			local claim = section.Claim
 			if event then
-				section.Title.Text = Locale.T("Index_Event", { Locale.T("Event_" .. event), tostring(found), tostring(total) })
+				local setDef = (Config.Sets :: any)[event]
+				local titleKey = if setDef then "Set_" .. event else "Event_" .. event
+				section.Title.Text = Locale.T("Index_Event", { Locale.T(titleKey), tostring(found), tostring(total) })
 				local holder = section.Title.Parent and section.Title.Parent.Parent
 				if holder and holder:IsA("GuiObject") then
-					holder.Visible = found > 0 or table.find(snapshot.ActiveEvents, event) ~= nil
+					holder.Visible = found > 0
+						or table.find(snapshot.ActiveEvents, event) ~= nil
+						or (setDef ~= nil and snapshot.Rebirths + 1 >= setDef.UnlockRebirths)
 				end
 			else
 				section.Title.Text = Locale.T("Index_Progress", { Locale.RarityName(section.Rarity), tostring(found), tostring(total) })

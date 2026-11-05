@@ -20,6 +20,7 @@ local BINDINGS: { [Enum.KeyCode]: string } = {
 	[Enum.KeyCode.T] = "Trophies",
 	[Enum.KeyCode.L] = "Wheel",
 	[Enum.KeyCode.F] = "Pets",
+	[Enum.KeyCode.U] = "Upgrades",
 	[Enum.KeyCode.ButtonY] = "Inventory",
 	[Enum.KeyCode.ButtonX] = "Bazaar",
 	[Enum.KeyCode.ButtonL1] = "Rewards",

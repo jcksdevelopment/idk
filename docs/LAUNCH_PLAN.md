@@ -32,6 +32,12 @@ ako ju vydať, otestovať, propagovať a čo robiť prvých 30 dní.
 
 ## 1. Čo hra obsahuje
 
+> 🆕 **Aktualizácia:** hra je teraz **primárne v angličtine** (každý hráč začína v angličtine,
+> slovenčina je voliteľná v Nastaveniach). Pribudli **vylepšenia dielne** (trvalé, za herné peniaze)
+> a dva nové trhy po Novom začiatku – **🏛️ Treasure Vault** (1×) a **🚀 Galaxy Junk** (3×).
+> Simulácia v `tests/run.luau` ukazuje cca **10 hodín** obsahu (pozri README → Progression).
+
+
 **Bazar & Item Flipping Simulator** – deti kupujú za **herné peniaze** tajomné krabice s
 harabúrdami, predmety opravujú (časovo, s mini-hrou „drhnutie“ 🧽) a predávajú so ziskom.
 
