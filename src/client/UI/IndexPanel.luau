@@ -154,7 +154,13 @@ function IndexPanel.Build(gui: ScreenGui)
 	-- Seasonal sections (not part of the rarity rewards; shown once you find one
 	-- or while the event is running).
 	-- New Start markets come first (Vault, Galaxy), then seasonal events.
-	local eventIds: { string } = { "Vault", "Galaxy" }
+	local eventIds: { string } = {}
+	for setId in Config.Sets do
+		table.insert(eventIds, setId)
+	end
+	table.sort(eventIds, function(a, b)
+		return (Config.Sets :: any)[a].UnlockRebirths < (Config.Sets :: any)[b].UnlockRebirths
+	end)
 	local eventNames: { string } = {}
 	for eventId in Config.Events do
 		table.insert(eventNames, eventId)

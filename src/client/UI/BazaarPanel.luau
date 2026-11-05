@@ -53,12 +53,26 @@ function BazaarPanel.Build(gui: ScreenGui)
 		Parent = panel,
 	})
 
-	local row: Frame = Create.new("Frame", {
+	-- Horizontal scroller: up to 4 boxes fill the width, more boxes scroll sideways.
+	local row: ScrollingFrame = Create.new("ScrollingFrame", {
 		Position = UDim2.fromScale(0.03, 0.24),
-		Size = UDim2.fromScale(0.94, 0.72),
+		Size = UDim2.fromScale(0.94, 0.74),
 		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 8,
+		ScrollBarImageColor3 = Theme.Colors.Muted,
+		ScrollingDirection = Enum.ScrollingDirection.X,
+		CanvasSize = UDim2.fromScale(0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.X,
 		Parent = panel,
-	}, { Create.List(Enum.FillDirection.Horizontal, 0.025) })
+	}, {
+		Create.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			Padding = UDim.new(0, 12),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			VerticalAlignment = Enum.VerticalAlignment.Top,
+		}),
+	})
 
 	local crateKeys: { string } = {}
 	-- Event boxes are always built; refresh() shows them only while the SERVER
@@ -216,9 +230,12 @@ function BazaarPanel.Build(gui: ScreenGui)
 					visibleCount += 1
 				end
 			end
-			local width = 1 / math.max(visibleCount, 1) - 0.025
+			-- Offset sizes (scale inside an auto-sized canvas would be circular).
+			local perRow = math.min(math.max(visibleCount, 1), 4)
+			local width = math.floor((row.AbsoluteSize.X - 12 * (perRow - 1) - 4) / perRow)
+			local height = math.floor(row.AbsoluteSize.Y - (if visibleCount > 4 then 14 else 2))
 			for _, entry in buttons do
-				entry.Card.Size = UDim2.fromScale(width, 1)
+				entry.Card.Size = UDim2.fromOffset(width, height)
 				local needsRebirth = snapshot.Rebirths < entry.UnlockRebirths
 				entry.Lock.Visible = needsRebirth or snapshot.Level < entry.UnlockLevel
 				entry.Lock.Text = if needsRebirth
@@ -236,6 +253,9 @@ function BazaarPanel.Build(gui: ScreenGui)
 		end
 	end
 
+	UIController.Track(row:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		refresh()
+	end))
 	UIController.Track(StateController.Changed:Connect(function(_snapshot: Types.Snapshot)
 		refresh()
 	end))

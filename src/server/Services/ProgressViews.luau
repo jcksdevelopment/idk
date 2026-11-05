@@ -99,8 +99,9 @@ function ProgressViews.StatValue(data: Types.PlayerData, stat: string): number
 		return Progression.LevelFromTotal(data.XP)
 	elseif stat == "Rebirths" then
 		return data.Rebirths
-	elseif stat == "VaultItems" or stat == "GalaxyItems" then
-		local set = if stat == "VaultItems" then "Vault" else "Galaxy"
+	elseif string.match(stat, "^%a+Items$") and (Config.Sets :: any)[string.match(stat, "^(%a+)Items$") or ""] then
+		-- "<Set>Items" (VaultItems, GalaxyItems, DinoItems, …): market items found
+		local set = string.match(stat, "^(%a+)Items$")
 		local count = 0
 		for templateId in data.Collection do
 			local template = Items.Get(templateId)

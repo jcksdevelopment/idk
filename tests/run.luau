@@ -433,9 +433,9 @@ local function countFound(set: string?)
 end
 
 local timeline = {}
-local vaultAt, galaxyAt = nil, nil
+local vaultAt, galaxyAt, dinoAt = nil, nil, nil
 local nextReport = 3600
-while sim.t < 10 * 3600 do
+while sim.t < 14 * 3600 do -- 10 h target + 4 h of "after the update" content
 	local level = Progression.LevelFromTotal(sim.xp)
 
 	-- New Start
@@ -450,6 +450,9 @@ while sim.t < 10 * 3600 do
 		end
 		if sim.rebirths == 3 and not galaxyAt then
 			galaxyAt = sim.t
+		end
+		if sim.rebirths == 6 and not dinoAt then
+			dinoAt = sim.t
 		end
 	end
 
@@ -537,13 +540,11 @@ while sim.t < 10 * 3600 do
 	end
 end
 
-print(
-	string.format(
-		"  Treasure Vault unlocked after %s, Galaxy Junk after %s",
-		if vaultAt then string.format("%.1f h", vaultAt / 3600) else "never",
-		if galaxyAt then string.format("%.1f h", galaxyAt / 3600) else "never"
-	)
-)
+local function hours(t: number?): string
+	return if t then string.format("%.1f h", t / 3600) else "not within 14 h"
+end
+print(string.format("  Treasure Vault after %s, Galaxy Junk after %s, Dino Dig after %s", hours(vaultAt), hours(galaxyAt), hours(dinoAt)))
+check(dinoAt == nil or dinoAt >= 8 * 3600, "Dino Dig is late-game content (after 8 h)")
 check(#timeline >= 10, "simulation runs the full 10 hours without getting stuck")
 check(vaultAt ~= nil and vaultAt >= 0.6 * 3600 and vaultAt <= 2.5 * 3600, "first New Start / Vault between 0.6 h and 2.5 h")
 check(galaxyAt ~= nil and galaxyAt >= 2.5 * 3600 and galaxyAt <= 7 * 3600, "Galaxy unlocks between 2.5 h and 7 h")
@@ -551,7 +552,7 @@ local maxUpgradeTotal = 0
 for _, key in Config.Upgrades.Order do
 	maxUpgradeTotal += Config.Upgrades[key].MaxLevel
 end
-local final = timeline[#timeline]
+local final = timeline[10]
 check(final ~= nil and final.upgrades < maxUpgradeTotal, "still upgrades left to buy after 10 h")
 check(final ~= nil and final.rebirths <= 15, "New Starts stay meaningful (<= 15 in 10 h)")
 

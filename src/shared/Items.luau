@@ -79,6 +79,14 @@ local catalog: { ItemTemplate } = {
 	{ Id = "AlienLamp", Name = "Alien Lava Lamp", Rarity = "Rare", BaseValue = 1300, Icon = "💡", Set = "Galaxy" },
 	{ Id = "MiniUFO", Name = "Mini UFO", Rarity = "Legendary", BaseValue = 9000, Icon = "🛸", Set = "Galaxy" },
 	{ Id = "StarAtlas", Name = "Star Atlas", Rarity = "Legendary", BaseValue = 11000, Icon = "🌌", Set = "Galaxy" },
+
+	-- 🦖 Dino Dig market (unlocks after 6 New Starts)
+	{ Id = "FossilTooth", Name = "Fossil Tooth", Rarity = "Trash", BaseValue = 500, Icon = "🦷", Set = "Dino" },
+	{ Id = "AmberStone", Name = "Amber Stone", Rarity = "Trash", BaseValue = 600, Icon = "🔶", Set = "Dino" },
+	{ Id = "RaptorClaw", Name = "Raptor Claw", Rarity = "Rare", BaseValue = 3000, Icon = "🦴", Set = "Dino" },
+	{ Id = "Trilobite", Name = "Trilobite Fossil", Rarity = "Rare", BaseValue = 3500, Icon = "🐚", Set = "Dino" },
+	{ Id = "TRexSkull", Name = "T-Rex Skull", Rarity = "Legendary", BaseValue = 25000, Icon = "🦖", Set = "Dino" },
+	{ Id = "GoldenDino", Name = "Golden Dino Statue", Rarity = "Legendary", BaseValue = 30000, Icon = "🦕", Set = "Dino" },
 }
 
 local byId: { [string]: ItemTemplate } = {}

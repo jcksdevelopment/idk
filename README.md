@@ -143,7 +143,7 @@ src/
 | 💌 Invite friends | HUD button opens Roblox's invite dialog (friends in the server give the friend bonus) |
 | ⏳ Loading screen | Branded loader in `src/first` with logo (`Config.Images.Logo`) and tips |
 | 🛠️ Workshop upgrades | Permanent cash upgrades kept through New Starts: Haggling (+5% money/level, 30 levels), Better Tools (−4% repair time, 15), Bigger Backpack (+2 slots, 15), Extra Workbench (+1 slot, 3), Lucky Charm (+0.3% shiny, 15). Each level costs more (`Config.Upgrades`) |
-| 🏛️🚀 New Start markets | Treasure Vault (after 1 New Start) and Galaxy Junk (after 3) with 6 high-value items each, their own box, book section and trophy (`Config.Sets`) |
+| 🏛️🚀🦖 New Start markets | Treasure Vault (after 1 New Start), Galaxy Junk (after 3) and Dino Dig (after 6, the post-10-hour goal), each with 6 high-value items, its own box, book section and trophy (`Config.Sets`). The Bazaar scrolls sideways when there are more than 4 boxes |
 | 🧑‍💼 Customer requests | Every few minutes a customer wants one specific item: sell it clean within 8 min for ×2 price (bar under the HUD, “WANTED” tag in the bag). Tune in `Config.Requests` |
 | 🎟️ Gift codes | Settings → type a code (e.g. `WELCOME`, `BAZAR`, `FLIPPER`; `SNOWDAY` only during Winter). Each works once per player. Add your own in `Config.Codes` |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
@@ -178,6 +178,7 @@ A simulated player (no Robux, no pets/boosts, plays optimally) gets roughly:
 | ~1.8 h | 1st New Start → 🏛️ Treasure Vault |
 | ~4 h | 3rd New Start → 🚀 Galaxy Junk |
 | 10 h | ~5 New Starts, ~69/78 upgrade levels – still goals left |
+| ~10.2 h | 6th New Start → 🦖 Dino Dig (late-game market) |
 
 Real kids play slower and also chase pets, shinies, trophies, quests and events,
 so there is comfortably 10+ hours of content before the first content update.

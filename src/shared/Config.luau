@@ -153,6 +153,15 @@ Config.Crates = {
 		Set = "Galaxy",
 		Weights = { Trash = 45, Rare = 40, Legendary = 15 },
 	},
+	DinoDig = {
+		Icon = "🦖",
+		Price = 2500,
+		Order = 6,
+		UnlockLevel = 1,
+		UnlockRebirths = 6,
+		Set = "Dino",
+		Weights = { Trash = 45, Rare = 40, Legendary = 15 },
+	},
 	RoyalTreasure = {
 		Icon = "👑",
 		Price = 150,
@@ -333,6 +342,7 @@ Config.Achievements = {
 	{ Id = "MasterWorkshop", Icon = "🏭", Stat = "UpgradeLevels", Goal = 45, Reward = { Cash = 50000 } },
 	{ Id = "VaultKeeper", Icon = "🏛️", Stat = "VaultItems", Goal = 6, Reward = { Tokens = 5 } },
 	{ Id = "GalaxyExplorer", Icon = "🚀", Stat = "GalaxyItems", Goal = 6, Reward = { Cash = 250000 } },
+	{ Id = "DinoHunter", Icon = "🦖", Stat = "DinoItems", Goal = 6, Reward = { Tokens = 10 } },
 }
 
 -- Free Lucky Wheel. Never sold for Robux; one free spin per cooldown.
@@ -361,6 +371,7 @@ Config.Friends = {
 Config.Sets = {
 	Vault = { Icon = "🏛️", UnlockRebirths = 1 },
 	Galaxy = { Icon = "🚀", UnlockRebirths = 3 },
+	Dino = { Icon = "🦖", UnlockRebirths = 6 },
 }
 
 -- Seasonal events (UTC month/day, inclusive). Wrapping over New Year is fine.
@@ -481,6 +492,12 @@ Config.Images = {
 		AlienLamp = "",
 		MiniUFO = "",
 		StarAtlas = "",
+		FossilTooth = "",
+		AmberStone = "",
+		RaptorClaw = "",
+		Trilobite = "",
+		TRexSkull = "",
+		GoldenDino = "",
 	},
 	Pets = {
 		Puppy = "",
@@ -501,6 +518,7 @@ Config.Images = {
 		SpookyBox = "",
 		VaultChest = "",
 		GalaxyCapsule = "",
+		DinoDig = "",
 		RoyalTreasure = "",
 	},
 	Eggs = {
@@ -542,6 +560,7 @@ Config.Badges = {
 	MasterWorkshop = 0,
 	VaultKeeper = 0,
 	GalaxyExplorer = 0,
+	DinoHunter = 0,
 }
 
 -- Social bonuses (server-verified, stack with everything else).
