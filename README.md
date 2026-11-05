@@ -497,7 +497,14 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 110 tests pass.
+- `givePedScriptedTaskEvent`, `onPedDeath`, and the sync values read with `IsPlayerUsingSuperJump`,
+  `GetPlayerWeaponDamageModifier`, `GetPlayerWeaponDefenseModifier(_2)`, `GetPlayerMaxHealth`,
+  `GetEntityCollisionDisabled`, `GetEntityAttachedTo`, `IsEntityVisible` and `GetEntityScript` were
+  checked against FiveM's server source (`ServerGameState.cpp`, `ServerGameState_Scripting.cpp`,
+  `SyncTrees_Five.h`). `onPedDeath` only exists on recent server artifacts.
+- Every native the client Lua calls exists in `citizenfx/natives` or FiveM's `ext/native-decls`
+  (checked by script).
+- Both C# projects build with no warnings and the 125 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.
