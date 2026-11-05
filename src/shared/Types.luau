@@ -73,6 +73,7 @@ export type PlayerData = {
 	Rebirths: number,
 	Achievements: { [string]: boolean },
 	EquippedTitle: string, -- achievement id, "" = none
+	RedeemedCodes: { [string]: boolean },
 	LastSpinAt: number,
 	Pets: { [string]: PetRecord }, -- keyed by server GUID
 	Stats: PlayerStats,

@@ -350,6 +350,16 @@ Config.Pets = {
 	},
 }
 
+-- Gift codes (share them on your group / socials). Each works once per player.
+-- Codes are matched case-insensitively. Optional Event = "Winter" makes a code
+-- work only while that event runs.
+Config.Codes = {
+	WELCOME = { Reward = { Cash = 250, Tokens = 1 } },
+	BAZAR = { Reward = { Cash = 500 } },
+	FLIPPER = { Reward = { BoostMinutes = 10 } },
+	SNOWDAY = { Reward = { Cash = 1000, Tokens = 1 }, Event = "Winter" },
+}
+
 Config.Leaderboard = {
 	StoreName = "BazarTopEarners_v1",
 	RefreshSeconds = 120,

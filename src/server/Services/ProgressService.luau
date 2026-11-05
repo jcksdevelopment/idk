@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Events = require(Shared.Events)
 local Format = require(Shared.Format)
 local Items = require(Shared.Items)
 local Locale = require(Shared.Locale)
@@ -394,6 +395,28 @@ local function onSetTitle(player: Player, achievementId: string)
 	end
 end
 
+local function onRedeemCode(player: Player, rawCode: string)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	local code = string.upper((string.gsub(rawCode, "%s", "")))
+	local def = (Config.Codes :: any)[code]
+	if not def or (def.Event and not Events.IsActive(def.Event)) then
+		SyncService.Notify(player, "error", "N_CodeInvalid")
+		return
+	end
+	if data.RedeemedCodes[code] then
+		SyncService.Notify(player, "info", "N_CodeUsed")
+		return
+	end
+	-- Atomic: mark, then grant.
+	data.RedeemedCodes[code] = true
+	ProgressService.GrantReward(player, data, def.Reward)
+	SyncService.Notify(player, "levelup", "N_CodeOk", { Locale.EncodeReward(def.Reward) })
+end
+
 function ProgressService.Start()
 	local V = RemoteGuard.Validators
 	RemoteGuard.Bind("ClaimDaily", { RatePerSecond = 1, Burst = 3, Args = {} }, onClaimDaily)
@@ -414,6 +437,17 @@ function ProgressService.Start()
 		Args = { V.OneOf({ "Sound", "Music", "Language" }), V.BooleanOrShortString },
 	}, onSetSetting)
 
+	-- Slow rate limit: makes guessing codes by brute force pointless.
+	RemoteGuard.Bind("RedeemCode", {
+		RatePerSecond = 0.3,
+		Burst = 3,
+		Args = {
+			function(value: unknown): boolean
+				return type(value) == "string" and #value >= 1 and #value <= 24
+			end,
+		},
+		Silent = true,
+	}, onRedeemCode)
 	RemoteGuard.Bind("Rebirth", { RatePerSecond = 0.5, Burst = 2, Args = {} }, onRebirth)
 	RemoteGuard.Bind("SpinWheel", { RatePerSecond = 0.5, Burst = 2, Args = {} }, onSpinWheel)
 	RemoteGuard.Bind("SetTitle", {
