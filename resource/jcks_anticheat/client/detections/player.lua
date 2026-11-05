@@ -43,6 +43,9 @@ S.register("player.espblips", 5000, function()
   if not S.shieldActive() or S.allowed("blips") then return end
   local me, found = PlayerId(), {}
   local legit = S.legitBlips or {}
+  for ent in pairs(legit) do
+    if not DoesEntityExist(ent) then legit[ent] = nil end
+  end
   for _, p in ipairs(GetActivePlayers()) do
     if p ~= me then
       local ped = GetPlayerPed(p)

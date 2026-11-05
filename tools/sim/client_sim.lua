@@ -73,6 +73,7 @@ function N.GetVehicleCheatPowerIncrease() return W.vehicle.power or 1.0 end
 function N.GetVehicleTopSpeedModifier() return W.vehicle.topSpeed or -1.0 end
 function N.GetVehicleGravityAmount() return W.vehicle.gravity or 9.8 end
 function N.GetVehicleClass() return 0 end
+function N.DoesEntityExist(e) return W.blips[e] ~= nil or e == W.ped end
 function N.GetActivePlayers() return { 0, 1, 2, 3, 4, 5, 6 } end
 function N.GetPlayerPed(p) return p == 0 and W.ped or 1000 + p end
 function N.GetBlipFromEntity(e) return W.blips[e] or 0 end
