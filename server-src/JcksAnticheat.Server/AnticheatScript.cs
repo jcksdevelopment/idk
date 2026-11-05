@@ -361,6 +361,7 @@ namespace JcksAnticheat.Server
                 IsAudible = !(Get(data, "isAudible") is bool aud) || aud,
                 CameraShake = ToFloat(Get(data, "cameraShake")),
                 Position = new Vec3(ToFloat(Get(data, "posX")), ToFloat(Get(data, "posY")), ToFloat(Get(data, "posZ"))),
+                OwnerPlayer = OwnerPlayerOf(ToInt(Get(data, "ownerNetId"))),
             };
             var (found, cancel) = _explosions.Evaluate(info);
             foreach (var v in found) Punish(v);
@@ -410,6 +411,24 @@ namespace JcksAnticheat.Server
                     ["target"] = NetworkGetEntityOwner(ped), ["immediately"] = Get(data, "immediately"),
                 }));
             }
+        }
+
+        /// <summary>
+        /// Player behind an explosion owner: the player whose ped it is, or the driver of a vehicle
+        /// owner. 0 when there's no owner or it isn't tied to a player.
+        /// </summary>
+        private static int OwnerPlayerOf(int netId)
+        {
+            if (netId == 0) return 0;
+            int entity = NetworkGetEntityFromNetworkId(netId);
+            if (entity == 0) return 0;
+            if (IsPedAPlayer(entity)) return NetworkGetEntityOwner(entity);
+            if (GetEntityType(entity) == (int)EntityKind.Vehicle)
+            {
+                int driver = GetPedInVehicleSeat(entity, -1);
+                if (driver != 0 && IsPedAPlayer(driver)) return NetworkGetEntityOwner(driver);
+            }
+            return 0;
         }
 
         /// <summary>Player who owns the entity with this net id, if it's a player's ped; else 0.</summary>

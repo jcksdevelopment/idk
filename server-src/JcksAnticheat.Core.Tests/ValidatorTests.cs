@@ -518,3 +518,29 @@ public class VehicleOwnershipTests
         Assert.Equal(0, v.CreatorOf(7));
     }
 }
+
+public class ExplosionBlameTests
+{
+    [Fact]
+    public void ExplosionOwnedByAnotherPlayerIsCancelled()
+    {
+        var ev = new ExplosionValidator(new ExplosionPolicy());
+        var (v, cancel) = ev.Evaluate(new ExplosionInfo { Source = 1, ExplosionType = 2, DamageScale = 1, CameraShake = 1, OwnerPlayer = 7 });
+        Assert.True(cancel);
+        Assert.Contains(v, x => x.Code == "WPN_EXPLOSION_BLAME");
+    }
+
+    [Fact]
+    public void OwnExplosionIsFine()
+    {
+        var ev = new ExplosionValidator(new ExplosionPolicy());
+        Assert.Empty(ev.Evaluate(new ExplosionInfo { Source = 3, ExplosionType = 2, DamageScale = 1, CameraShake = 1, OwnerPlayer = 3 }).violations);
+        Assert.Empty(ev.Evaluate(new ExplosionInfo { Source = 4, ExplosionType = 7, DamageScale = 1, CameraShake = 1, OwnerPlayer = 0 }).violations);
+    }
+
+    [Fact]
+    public void DestroyedVehicleExplosionCreditingTheAttackerIsNotBlame()
+        // Player 8 owns the car player 9 shot; 8's client sends the car explosion with 9 as owner.
+        => Assert.Empty(new ExplosionValidator(new ExplosionPolicy()).Evaluate(
+            new ExplosionInfo { Source = 8, ExplosionType = 7, DamageScale = 1, CameraShake = 1, OwnerPlayer = 9 }).violations);
+}

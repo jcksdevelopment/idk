@@ -66,6 +66,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `WPN_RAPID_FIRE` | Rapid fire | Server-observed damage events per weapon exceed the weapon's max fire rate × 1.5 | S | `DamageValidator` | 30 |
 | `WPN_INFINITE_AMMO` | Infinite ammo | Shooting for > 2 s and clip count never decreases | C | `weapon.lua` | 20 |
 | `WPN_EXPLOSIVE_AMMO` | Explosive / fire ammo | `explosionEvent` from a player with `EXP_TAG_BULLET` (18), or more than 4/s or 12/10 s | S | `ExplosionValidator` | 50 |
+| `WPN_EXPLOSION_BLAME` | "Explode player" blamed on someone else | A weapon explosion (grenade, rocket, sticky bomb, molotov, explosive ammo, ...) whose `ownerNetId` belongs to a different player than the sender. Destroyed-vehicle/object explosions are excluded. Cancelled. | S | `ExplosionValidator` | 35 |
 | `WPN_EXPLOSION_BLACKLIST` | Explosion spam | Blacklisted explosion type, or invisible/no-sound/cam-shake-0 explosion | S | `ExplosionValidator` | 50 |
 
 ## Vehicle

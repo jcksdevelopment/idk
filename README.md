@@ -127,8 +127,9 @@ it for 0.00 ms idle in resmon, but I haven't measured it on a live server.
 
 ### AI vision
 
-When a player's score crosses `scoring.screenshotAt`, or a moderator clicks **Capture**, the server
-asks the client for a frame. The frame arrives as base64 chunks over a latent event. The server
+When a player's score crosses `scoring.screenshotAt`, every minute while it stays above that line
+(limited by `vision.cooldownSeconds`), or when a moderator clicks **Capture**, the server asks the
+client for a frame. The frame arrives as base64 chunks over a latent event. The server
 only accepts chunks for capture IDs it issued itself. It saves the frame to
 `resource/jcks_anticheat/data/vision/` and sends it to the vision model:
 
@@ -296,7 +297,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-60 tests cover:
+63 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -322,7 +323,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 60 tests pass.
+- Both C# projects build with no warnings and the 63 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

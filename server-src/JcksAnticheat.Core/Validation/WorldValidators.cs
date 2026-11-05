@@ -14,6 +14,8 @@ namespace JcksAnticheat.Core.Validation
         public bool IsAudible { get; set; } = true;
         public float CameraShake { get; set; }
         public Vec3 Position { get; set; }
+        /// <summary>Player who owns the explosion's owner entity (ownerNetId), or 0 if none/not a player.</summary>
+        public int OwnerPlayer { get; set; }
         public DateTime At { get; set; } = DateTime.UtcNow;
     }
 
@@ -39,6 +41,13 @@ namespace JcksAnticheat.Core.Validation
 
     public sealed class ExplosionValidator
     {
+        /// <summary>
+        /// eExplosionTag values created directly by a player's weapon: grenade, grenade launcher,
+        /// sticky bomb, molotov, rocket, tank shell, explosive ammo, plane rocket, vehicle bullet,
+        /// railgun, proximity mine.
+        /// </summary>
+        public static readonly HashSet<int> WeaponExplosionTypes = new HashSet<int> { 0, 1, 2, 3, 4, 5, 18, 32, 33, 36, 40 };
+
         private readonly ExplosionPolicy _policy;
         private readonly SlidingCounter _counter = new SlidingCounter();
 
@@ -58,6 +67,13 @@ namespace JcksAnticheat.Core.Validation
                 found.Add(new Violation(e.Source, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server, evidence));
             else if (_policy.Blacklist.Contains(e.ExplosionType))
                 found.Add(new Violation(e.Source, "WPN_EXPLOSION_BLACKLIST", ViolationSource.Server, evidence));
+
+            // Owned explosions blamed on someone else: the owner entity belongs to a different player.
+            // Only for weapon explosions, which the shooter's own client creates. When a vehicle or
+            // object is destroyed, the client that owns it sends the explosion with the attacker as
+            // owner, which legitimately differs from the sender.
+            if (e.OwnerPlayer > 0 && e.OwnerPlayer != e.Source && WeaponExplosionTypes.Contains(e.ExplosionType))
+                found.Add(new Violation(e.Source, "WPN_EXPLOSION_BLAME", ViolationSource.Server, With(evidence, "owner", e.OwnerPlayer)));
 
             // Stealth explosions (invisible + silent) are a menu signature; the game doesn't make these itself.
             if (e.IsInvisible && !e.IsAudible && e.CameraShake <= 0)

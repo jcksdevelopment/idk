@@ -45,6 +45,19 @@ namespace JcksAnticheat.Server
             }
 
             if (!_removing.IsEmpty) ProcessScheduledDrops(now);
+
+            // Keep capturing players who stay suspicious, not just at the moment they cross the line.
+            // RequestScreenshot enforces vision.cooldownSeconds per player.
+            if (_tickCount % 60 == 0 && _vision.IsConfigured && !_cfg.DryRun && players.Count > 0)
+            {
+                foreach (var p in players)
+                {
+                    int pid = ToId(p.Handle);
+                    double score = _ledger.ScoreOf(pid, now);
+                    if (score >= _cfg.Scoring.ScreenshotAt && !_removing.ContainsKey(pid))
+                        RequestScreenshot(pid, $"periodic: score {score:F0}");
+                }
+            }
             if (_tickCount % 10 == 0) _screenshots.Sweep(now);
             if (_tickCount % 600 == 0)
             {
