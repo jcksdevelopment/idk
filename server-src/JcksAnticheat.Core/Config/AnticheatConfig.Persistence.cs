@@ -30,6 +30,7 @@ namespace JcksAnticheat.Core.Config
             ["nameBlacklist"] = NameBlacklist.ToList(),
             ["chatSpoofCheck"] = ChatSpoofCheck,
             ["auditOnStart"] = AuditOnStart,
+            ["linkBanIdentifiers"] = LinkBanIdentifiers,
             ["protectedEvents"] = ProtectedEvents.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["scoring"] = new Dictionary<string, object?>
             {

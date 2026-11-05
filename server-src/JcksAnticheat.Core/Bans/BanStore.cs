@@ -80,6 +80,22 @@ namespace JcksAnticheat.Core.Bans
             return ban;
         }
 
+        public List<string> Link(Ban ban, IEnumerable<string> identifiers, int maxIdentifiers = 200)
+        {
+            var added = new List<string>();
+            foreach (var id in identifiers)
+            {
+                if (string.IsNullOrWhiteSpace(id) || IsIgnoredIdentifier(id) || ban.Identifiers.Count >= maxIdentifiers) continue;
+                if (ban.Identifiers.Contains(id, StringComparer.OrdinalIgnoreCase)) continue;
+                if (_byIdentifier.TryGetValue(id, out var other) && other != ban.Id && _byId.TryGetValue(other, out var o) && o.IsActive(DateTime.UtcNow)) continue;
+                ban.Identifiers.Add(id);
+                _byIdentifier[id] = ban.Id;
+                added.Add(id);
+            }
+            if (added.Count > 0) Save();
+            return added;
+        }
+
         public bool Remove(string banId)
         {
             if (!_byId.TryRemove(banId, out var ban)) return false;

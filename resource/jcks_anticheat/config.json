@@ -14,6 +14,7 @@
   "nameBlacklist": [],
   "chatSpoofCheck": true,
   "auditOnStart": true,
+  "linkBanIdentifiers": true,
   "eventBurst": 60,
   "eventRefillPerSecond": 25,
   "floodDeniedPer10s": 40,

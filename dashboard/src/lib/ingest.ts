@@ -181,6 +181,12 @@ export function applyEvent(serverId: string, ev: Obj) {
       }
       break;
     }
+    case "ban_linked": {
+      const d = obj(data);
+      const added = Array.isArray(d.added) ? d.added.filter((x): x is string => typeof x === "string").slice(0, 50) : [];
+      if (str(d.id) && added.length) store.linkBanIdentifiers(str(d.id), str(d.name), added);
+      break;
+    }
     case "connection_rejected": {
       const c = obj(data);
       store.pushLog({ level: "warn", kind: "connect", text: `rejected banned connection ${str(c.name)} (ban ${str(c.banId)})` });

@@ -368,6 +368,13 @@ from `autoActionMinSeverity`. The default is `none`. Against `cfx-server-data`, 
 `es_extended`, `ox_lib`, `ox_inventory` and `oxmysql` (662 files) it reports only the stock
 `runcode` resource, which really does execute arbitrary code behind the rcon password.
 
+### Ban evasion
+
+Bans store every identifier the player had (license, Discord, Steam, Xbox/Live and FiveM's hardware
+tokens; never IP addresses). With `linkBanIdentifiers` on (default), a banned player who comes back
+on a new Rockstar license or Discord account but with a matching token or other identifier is
+refused, and the new identifiers are added to the same ban.
+
 ### server.cfg audit
 
 On start (`auditOnStart`) and on `jac audit`, the server's own security convars are compared with

@@ -32,3 +32,29 @@ public class MessageTests
         Assert.Contains(cfg.Validate(), e => e.Contains("messages"));
     }
 }
+
+public class BanLinkTests
+{
+    [Fact]
+    public void NewIdentifiersJoinTheBanButNotIpsOrOtherBans()
+    {
+        var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "jac-bans-" + System.Guid.NewGuid().ToString("N") + ".json");
+        try
+        {
+            var store = new JcksAnticheat.Core.Bans.BanStore(path);
+            var ban = store.Add(new JcksAnticheat.Core.Bans.Ban { Name = "a", Identifiers = new List<string> { "license:old", "token:hw1" } });
+            var other = store.Add(new JcksAnticheat.Core.Bans.Ban { Name = "b", Identifiers = new List<string> { "discord:taken" } });
+            var connecting = new[] { "license:new", "token:hw1", "ip:1.2.3.4", "discord:taken", "discord:fresh" };
+            Assert.Same(ban, store.Find(connecting));
+            var added = store.Link(ban, connecting);
+            Assert.Equal(new[] { "license:new", "discord:fresh" }, added);
+            Assert.Same(ban, store.Find(new[] { "license:new" }));
+            Assert.Same(other, store.Find(new[] { "discord:taken" }));
+            Assert.Null(store.Find(new[] { "ip:1.2.3.4" }));
+            Assert.Empty(store.Link(ban, connecting));
+            var reloaded = new JcksAnticheat.Core.Bans.BanStore(path);
+            Assert.NotNull(reloaded.Find(new[] { "discord:fresh" }));
+        }
+        finally { System.IO.File.Delete(path); }
+    }
+}

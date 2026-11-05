@@ -844,6 +844,12 @@
           "label": "Audit server.cfg on start",
           "type": "bool",
           "help": "Checks security convars from the FiveM docs (onesync, sv_scriptHookAllowed, sv_filterRequestControl, sv_enableNetworkedSounds, sv_enableNetworkedPhoneExplosions, sv_entityLockdown, sv_pureLevel, …) and prints what to change in the console and dashboard. Nothing is changed automatically. Run 'jac audit' any time."
+        },
+        {
+          "key": "linkBanIdentifiers",
+          "label": "Extend bans to new accounts",
+          "type": "bool",
+          "help": "When a banned player connects and any identifier matches the ban (license, Discord, Steam, or FiveM hardware token), every other identifier they connect with is added to the same ban. A fresh Rockstar license or Discord account then stays banned too. IP addresses are never used."
         }
       ]
     },

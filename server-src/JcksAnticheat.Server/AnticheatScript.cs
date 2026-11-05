@@ -157,6 +157,15 @@ namespace JcksAnticheat.Server
             var ban = _bans.Find(ids);
             if (ban == null) return;
 
+            if (_cfg.LinkBanIdentifiers)
+            {
+                var added = _bans.Link(ban, ids);
+                if (added.Count > 0)
+                {
+                    Log($"ban {ban.Id}: linked {added.Count} new identifier(s) from {name}");
+                    _dashboard.Enqueue("ban_linked", new Dictionary<string, object?> { ["id"] = ban.Id, ["name"] = name, ["added"] = added.Cast<object?>().ToList() });
+                }
+            }
             var message = Msg(_cfg.Messages.Banned, ban.Code, ban.Reason, ban.Id, ExpiryText(ban.ExpiresAt), name);
             ((CallbackDelegate)deferrals["defer"])();
             ((CallbackDelegate)deferrals["done"])(message);

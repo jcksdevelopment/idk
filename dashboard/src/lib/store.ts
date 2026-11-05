@@ -120,6 +120,14 @@ class Store {
     this.scheduleSave();
   }
 
+  linkBanIdentifiers(id: string, name: string, added: string[]) {
+    const b = this.state.bans[id];
+    if (!b) return;
+    b.identifiers = Array.from(new Set([...b.identifiers, ...added])).slice(0, 200);
+    this.pushLog({ level: "warn", kind: "ban", text: `ban ${id}: ${name} tried to join; linked ${added.length} new identifier(s)` });
+    this.scheduleSave();
+  }
+
   removeBan(id: string, actor?: string) {
     const b = this.state.bans[id];
     if (!b) return;
