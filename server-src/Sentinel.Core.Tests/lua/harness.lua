@@ -120,13 +120,14 @@ function AddEventHandler(name, fn) handlers[name] = fn end
 function TriggerEvent(name, ...) if handlers[name] then handlers[name](...) end end
 
 local heartbeatsSent = 0
+local ackName, ackHandler -- declared before TriggerServerEvent, which reads ackHandler
 function TriggerServerEvent(name, ...)
   io.write(json.encode({ event = name, args = { ... } }), "\n")
   io.flush()
   if name ~= "sentinel:hello" then
     heartbeatsSent = heartbeatsSent + 1
     local ack = io.read("l")
-    if ack and ack ~= "-" and Sentinel.ackHandler then Sentinel.ackHandler(ack) end
+    if ack and ack ~= "-" and ackHandler then ackHandler(ack) end
   end
 end
 
@@ -152,11 +153,23 @@ function GetNumResources() return 12 end
 function GetHashKey(s) return #s end
 function exports(name, fn) end
 
+-- The scanner table may be renamed by scripts/obfuscate.py; find it by shape instead of by name.
+local S
+local function scanner()
+  if S then return S end
+  for _, v in pairs(_G) do
+    if type(v) == "table" and type(rawget(v, "flag")) == "function" and type(rawget(v, "drainFlags")) == "function" then
+      S = v
+      return S
+    end
+  end
+end
+
 -- Capture the ack handler the client registers on the random ack event.
 local realRegister = RegisterNetEvent
 function RegisterNetEvent(name, fn)
   realRegister(name, fn)
-  if Sentinel and Sentinel.server and Sentinel.ackName == name then Sentinel.ackHandler = fn end
+  if name == ackName then ackHandler = fn end
 end
 
 ---------------------------------------------------------------- load the real client code
@@ -165,11 +178,12 @@ dofile(root .. "/client/main.lua")
 dofile(root .. "/client/heartbeat.lua")
 
 local initPayload = io.read("l")
-Sentinel.ackName = json.decode(initPayload).ack
+ackName = json.decode(initPayload).ack
 handlers["sentinel:init"](initPayload)
 
 -- Queue a detection so the first heartbeat carries a flag.
-Sentinel.flag("PLY_GODMODE_FLAG", { inv = true })
+assert(scanner(), "scanner table not found")
+scanner().flag("PLY_GODMODE_FLAG", { inv = true })
 
 ---------------------------------------------------------------- run until enough heartbeats
 local guard = 0

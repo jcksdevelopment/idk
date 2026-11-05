@@ -12,8 +12,11 @@ namespace Sentinel.Core.Tests;
 /// </summary>
 public class HeartbeatInteropTests
 {
+    /// <summary>SENTINEL_RESOURCE_ROOT points the tests at another build, e.g. the obfuscated dist/sentinel.</summary>
     private static string ResourceRoot()
     {
+        var overrideRoot = Environment.GetEnvironmentVariable("SENTINEL_RESOURCE_ROOT");
+        if (!string.IsNullOrEmpty(overrideRoot)) return Path.GetFullPath(overrideRoot);
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null && !Directory.Exists(Path.Combine(dir.FullName, "resource", "sentinel"))) dir = dir.Parent;
         return dir == null ? throw new InvalidOperationException("resource/sentinel not found") : Path.Combine(dir.FullName, "resource", "sentinel");

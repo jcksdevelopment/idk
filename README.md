@@ -117,6 +117,11 @@ the one external dependency.
    ```
    On Windows: `powershell -ExecutionPolicy Bypass -File scripts\package.ps1`. This checks the Lua,
    builds the DLLs, runs the tests, and writes `dist/sentinel/` plus `dist/sentinel-<version>.zip`.
+   `package.sh` also hardens the shipped client Lua (`scripts/obfuscate.py`): it strips comments and
+   renames the scanner's global tables to random names chosen per build, so an executor can't find
+   them by a known name. It then reruns the heartbeat interop tests against that obfuscated build.
+   This is light obfuscation, not protection; `NO_OBFUSCATE=1` turns it off. The Windows script
+   doesn't obfuscate.
    CI (`.github/workflows/build.yml`) does the same on every push and uploads `dist/sentinel/`
    as the `sentinel-resource` artifact.
 2. Copy `dist/sentinel` into your server's `resources/` folder.

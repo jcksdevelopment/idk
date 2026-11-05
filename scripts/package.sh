@@ -28,5 +28,16 @@ rm -rf dist && mkdir -p dist/sentinel/server
 cp -r resource/sentinel/{fxmanifest.lua,config.json,client,shared,html} dist/sentinel/
 cp resource/sentinel/server/Sentinel.Core.net.dll resource/sentinel/server/Sentinel.Server.net.dll dist/sentinel/server/
 
+if [ "${NO_OBFUSCATE:-0}" != "1" ]; then
+  echo "==> Obfuscate client Lua (strip comments, randomise global names)"
+  python3 scripts/obfuscate.py dist/sentinel
+  if [ -n "$LUAC" ]; then find dist/sentinel -name '*.lua' -print0 | xargs -0 -n1 "$LUAC" -p; fi
+  if [ "${SKIP_TESTS:-0}" != "1" ]; then
+    echo "==> Heartbeat interop tests against the obfuscated build"
+    SENTINEL_RESOURCE_ROOT="$PWD/dist/sentinel" dotnet test server-src/Sentinel.Core.Tests --nologo -v quiet \
+      --filter "FullyQualifiedName~HeartbeatInteropTests"
+  fi
+fi
+
 (cd dist && zip -qr "sentinel-${VERSION}.zip" sentinel)
 echo "==> Done: dist/sentinel/ and dist/sentinel-${VERSION}.zip"
