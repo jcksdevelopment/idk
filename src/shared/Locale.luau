@@ -258,6 +258,11 @@ local en: { [string]: string } = {
 	N_PetSold = "{1} went home happy. +{2}",
 	N_EggLocked = "Reach level {1} to hatch this egg!",
 	N_EventOver = "This event is over - see you next time!",
+	Pets_Fuse = "✨ Fuse 3 → ⭐",
+	Pets_Stars = "⭐ x{1} bonus",
+	N_PetFused = "⭐ {1} got a star and is stronger now!",
+	N_FuseNeedThree = "You need 3 of the same pet (same stars) to fuse.",
+	N_FuseMax = "This pet already has the most stars!",
 }
 
 local sk: { [string]: string } = {
@@ -489,6 +494,11 @@ local sk: { [string]: string } = {
 	N_PetSold = "{1} išlo šťastne domov. +{2}",
 	N_EggLocked = "Dosiahni úroveň {1} a vyliahneš toto vajíčko!",
 	N_EventOver = "Táto udalosť už skončila - uvidíme sa nabudúce!",
+	Pets_Fuse = "✨ Spoj 3 → ⭐",
+	Pets_Stars = "⭐ bonus x{1}",
+	N_PetFused = "⭐ {1} získal hviezdičku a je silnejší!",
+	N_FuseNeedThree = "Na spojenie potrebuješ 3 rovnaké zvieratká (s rovnakými hviezdičkami).",
+	N_FuseMax = "Toto zvieratko už má najviac hviezdičiek!",
 	Item_GingerCookie = "Perníček",
 	Item_WoollyMitten = "Vlnená rukavica",
 	Item_SnowGlobe = "Snežná guľa",

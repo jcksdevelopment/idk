@@ -132,6 +132,7 @@ src/
 | 🏆 Trophies | 13 achievements that unlock automatically, each with a reward and a **title** shown above your head to everyone |
 | 🔄 New Start (rebirth) | From level 15 + $25,000 (rises each time): reset cash & level, keep items/book/trophies, **+25% money forever** per New Start. Two-tap confirm |
 | 🎡 Lucky Wheel | One **free** spin every 4 h (never for Robux); 7 prizes, cash scales with level; the server picks, the client only animates |
+| ✨ Pet fusion | 3 identical pets (same kind and stars) fuse into one with +1 ⭐ (max 2): ×2 bonus at ⭐, ×4 at ⭐⭐ |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
 | 📊 Leaderboard | Top 10 lifetime earners on a board in the plaza (OrderedDataStore, refreshed every 2 min) |
 | Selling | Clean items sell at full value; dirty items at 35% |

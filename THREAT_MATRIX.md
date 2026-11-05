@@ -34,6 +34,7 @@ character's network physics. The server owns all state that matters.
 | 26 | Fake achievements / titles | Sends `SetTitle` for a locked title | Achievements unlock only from server stats. `SetTitle` accepts only unlocked ids (or "") | `ProgressService` |
 | 27 | Rebirth abuse | Rebirths without meeting the requirement | Level + cash re-checked on the server; reset and bonus applied in one block; capped at `MaxRebirths` | `ProgressService.onRebirth` |
 | 28 | Fake friend bonus | Claims friends | Friendship checked by the server (`IsFriendsWith`); bonus capped at +30% | `FriendService` |
+| 29 | Fusion dupes | Fuses with forged/foreign pets or the same pet twice | Only ids in the caller's profile; the two consumed pets are distinct from the base and match kind + stars; removal and upgrade happen in one block | `PetService.onFusePets` |
 | 19 | Client code theft | Decompiles LocalScripts | The client holds no secrets or authority: only rendering and requests | architecture |
 
 ## Flag scoring

@@ -64,7 +64,7 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 	local rebirthLevel, rebirthCash = Rules.RebirthRequirement(data)
 	local pets: { Types.PetView } = {}
 	for _, pet in data.Pets do
-		table.insert(pets, { Id = pet.Id, PetId = pet.PetId, Equipped = pet.Equipped })
+		table.insert(pets, { Id = pet.Id, PetId = pet.PetId, Equipped = pet.Equipped, Stars = pet.Stars })
 	end
 	table.sort(pets, function(a, b)
 		if a.Equipped ~= b.Equipped then
@@ -154,7 +154,7 @@ local function updateLeaderstats(player: Player, data: Types.PlayerData)
 	local equipped = {}
 	for _, pet in data.Pets do
 		if pet.Equipped then
-			table.insert(equipped, pet.PetId)
+			table.insert(equipped, pet.PetId .. ":" .. tostring(pet.Stars))
 		end
 	end
 	table.sort(equipped)

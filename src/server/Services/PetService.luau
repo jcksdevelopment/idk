@@ -92,7 +92,7 @@ local function onBuyEgg(player: Player, eggKey: string)
 	while data.Pets[uid] do
 		uid = HttpService:GenerateGUID(false)
 	end
-	data.Pets[uid] = { Id = uid, PetId = def.Id, Equipped = equipped < Config.Pets.MaxEquipped }
+	data.Pets[uid] = { Id = uid, PetId = def.Id, Equipped = equipped < Config.Pets.MaxEquipped, Stars = 0 }
 	data.Stats.PetsHatched += 1
 
 	SyncService.Notify(player, "levelup", "N_PetHatched", { "@pet:" .. def.Id })
@@ -140,6 +140,46 @@ local function onSellPet(player: Player, uid: string)
 	SyncService.MarkDirty(player)
 end
 
+-- Fuse: the chosen pet + 2 more of the same kind and star level become one
+-- pet with +1 star. Unequipped duplicates are consumed first.
+local function onFusePets(player: Player, uid: string)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	local base = data.Pets[uid]
+	if not base then
+		return
+	end
+	if base.Stars >= Config.Pets.MaxStars then
+		SyncService.Notify(player, "info", "N_FuseMax")
+		return
+	end
+	local candidates: { Types.PetRecord } = {}
+	for otherUid, pet in data.Pets do
+		if otherUid ~= uid and pet.PetId == base.PetId and pet.Stars == base.Stars then
+			table.insert(candidates, pet)
+		end
+	end
+	if #candidates < 2 then
+		SyncService.Notify(player, "error", "N_FuseNeedThree")
+		return
+	end
+	table.sort(candidates, function(a, b)
+		if a.Equipped ~= b.Equipped then
+			return not a.Equipped -- consume resting pets first
+		end
+		return a.Id < b.Id
+	end)
+	-- Atomic: remove two, upgrade the base.
+	data.Pets[candidates[1].Id] = nil
+	data.Pets[candidates[2].Id] = nil
+	base.Stars += 1
+	SyncService.Notify(player, "levelup", "N_PetFused", { "@pet:" .. base.PetId })
+	SyncService.MarkDirty(player)
+end
+
 function PetService.Start()
 	local V = RemoteGuard.Validators
 	RemoteGuard.Bind("BuyEgg", {
@@ -158,6 +198,7 @@ function PetService.Start()
 		},
 	}, onEquipPet)
 	RemoteGuard.Bind("SellPet", { RatePerSecond = 3, Burst = 6, Args = { V.ItemId } }, onSellPet)
+	RemoteGuard.Bind("FusePets", { RatePerSecond = 2, Burst = 4, Args = { V.ItemId } }, onFusePets)
 end
 
 return PetService

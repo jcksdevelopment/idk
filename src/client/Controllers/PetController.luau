@@ -46,8 +46,10 @@ local function rebuild(player: Player)
 	end
 	local ids = string.split(attribute, ",")
 	local list: { Buddy } = {}
-	for index, petId in ids do
-		local def = Pets.Get(petId)
+	for index, entry in ids do
+		local petId, starText = string.match(entry, "^([^:]+):?(%d*)$")
+		local stars = tonumber(starText) or 0
+		local def = if petId then Pets.Get(petId) else nil
 		if def and index <= #OFFSETS then
 			local p = Instance.new("Part")
 			p.Name = petId
@@ -65,7 +67,7 @@ local function rebuild(player: Player)
 			local label = Instance.new("TextLabel")
 			label.Size = UDim2.fromScale(1, 1)
 			label.BackgroundTransparency = 1
-			label.Text = def.Icon
+			label.Text = def.Icon .. string.rep("⭐", stars)
 			label.TextScaled = true
 			label.Parent = gui
 			gui.Parent = p

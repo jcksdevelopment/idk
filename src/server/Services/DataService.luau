@@ -286,7 +286,12 @@ local function sanitize(raw: any): Types.PlayerData
 				if wantsEquip then
 					equipped += 1
 				end
-				data.Pets[uid] = { Id = uid, PetId = pet.PetId, Equipped = wantsEquip }
+				data.Pets[uid] = {
+					Id = uid,
+					PetId = pet.PetId,
+					Equipped = wantsEquip,
+					Stars = math.floor(readNumber(pet.Stars, 0, 0, Config.Pets.MaxStars)),
+				}
 			end
 		end
 	end

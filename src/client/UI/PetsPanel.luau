@@ -27,7 +27,16 @@ local Toast = require(script.Parent.Toast)
 local PetsPanel = {}
 
 type EggCard = { Key: string, Price: number, UnlockLevel: number, Button: TextButton, Lock: TextLabel }
-type PetCard = { Frame: Frame, Stroke: UIStroke, Icon: TextLabel, Name: TextLabel, Bonus: TextLabel, Equip: TextButton, Sell: TextButton }
+type PetCard = {
+	Frame: Frame,
+	Stroke: UIStroke,
+	Icon: TextLabel,
+	Name: TextLabel,
+	Bonus: TextLabel,
+	Equip: TextButton,
+	Sell: TextButton,
+	Fuse: TextButton,
+}
 
 local function bonusText(kind: string, amount: number): string
 	local percent = amount * 100
@@ -270,7 +279,20 @@ function PetsPanel.Build(gui: ScreenGui)
 				end
 			end)
 		end)
-		return { Frame = frame, Stroke = stroke, Icon = icon, Name = name, Bonus = bonus, Equip = equip, Sell = sell }
+		local fuse = Create.Button({
+			Text = Locale.T("Pets_Fuse"),
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.fromScale(0.98, 0.02),
+			Size = UDim2.fromScale(0.56, 0.13),
+			BackgroundColor3 = Theme.Colors.VIP,
+			Visible = false,
+			ZIndex = 3,
+			MaxTextSize = 14,
+			Parent = frame,
+		}, function()
+			StateController.Fire("FusePets", uid)
+		end)
+		return { Frame = frame, Stroke = stroke, Icon = icon, Name = name, Bonus = bonus, Equip = equip, Sell = sell, Fuse = fuse }
 	end
 
 	local function render(snapshot: Types.Snapshot)
@@ -301,6 +323,13 @@ function PetsPanel.Build(gui: ScreenGui)
 			.. (if #parts > 0 then "  ·  " .. Locale.T("Pets_Total", { table.concat(parts, ", ") }) else "")
 		empty.Visible = #snapshot.Pets == 0
 
+		-- How many pets share kind + star level (fusion needs 3).
+		local groupSize: { [string]: number } = {}
+		for _, pet in snapshot.Pets do
+			local groupKey = pet.PetId .. ":" .. tostring(pet.Stars or 0)
+			groupSize[groupKey] = (groupSize[groupKey] or 0) + 1
+		end
+
 		local seen: { [string]: boolean } = {}
 		for order, pet in snapshot.Pets do
 			local def = Pets.Get(pet.PetId)
@@ -316,9 +345,11 @@ function PetsPanel.Build(gui: ScreenGui)
 				card.Stroke.Color = if pet.Equipped then Theme.Colors.Success else color
 				card.Stroke.Thickness = if pet.Equipped then 4 else 3
 				card.Icon.Text = def.Icon
-				card.Name.Text = Locale.T("Pet_" .. def.Id)
+				local stars = pet.Stars or 0
+				card.Name.Text = Locale.T("Pet_" .. def.Id) .. (if stars > 0 then " " .. string.rep("⭐", stars) else "")
+				card.Fuse.Visible = stars < Config.Pets.MaxStars and (groupSize[def.Id .. ":" .. tostring(stars)] or 0) >= 3
 				card.Name.TextColor3 = color
-				card.Bonus.Text = bonusText(def.Bonus, def.Amount)
+				card.Bonus.Text = bonusText(def.Bonus, def.Amount * (Config.Pets.StarMultipliers[stars] or 1))
 				card.Equip.Text = Locale.T(if pet.Equipped then "Pets_Unequip" else "Pets_Equip")
 				card.Equip.BackgroundColor3 = if pet.Equipped then Theme.Colors.PanelDark else Theme.Colors.Info
 				if (confirmSell[pet.Id] or 0) <= os.clock() then

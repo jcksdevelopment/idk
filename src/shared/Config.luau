@@ -328,6 +328,9 @@ Config.Pets = {
 	MaxEquipped = 3,
 	MaxOwned = 30,
 	MaxRepairReduction = 0.5,
+	-- Fusion: 3 identical pets (same kind + stars) -> 1 pet with one more star.
+	MaxStars = 2,
+	StarMultipliers = { [0] = 1, [1] = 2, [2] = 4 }, -- bonus multiplier per star level
 	Eggs = {
 		BasicEgg = { Icon = "🥚", Price = 500, UnlockLevel = 2, Order = 1, Weights = { Trash = 70, Rare = 25, Legendary = 5 } },
 		GoldenEgg = { Icon = "🌟", Price = 5000, UnlockLevel = 6, Order = 2, Weights = { Trash = 35, Rare = 47, Legendary = 18 } },

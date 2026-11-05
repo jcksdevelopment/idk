@@ -39,7 +39,7 @@ export type PlayerStats = {
 	PetsHatched: number,
 }
 
-export type PetRecord = { Id: string, PetId: string, Equipped: boolean }
+export type PetRecord = { Id: string, PetId: string, Equipped: boolean, Stars: number } -- Stars 0..MaxStars (fusion)
 export type PetView = PetRecord
 
 export type Moderation = {
