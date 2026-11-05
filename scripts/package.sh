@@ -42,6 +42,31 @@ if missing:
     sys.exit(1)
 PY
 
+if [ "${OBFUSCATE_DLL:-0}" = "1" ]; then
+  echo "==> Obfuscate server DLLs (Obfuscar)"
+  OBF="$(command -v obfuscar.console || echo "$HOME/.dotnet/tools/obfuscar.console")"
+  TMP="$(mktemp -d)"
+  cat > "$TMP/obfuscar.xml" <<XML
+<?xml version="1.0"?>
+<Obfuscator>
+  <Var name="InPath" value="$PWD/dist/jcks_anticheat/server" />
+  <Var name="OutPath" value="$TMP/out" />
+  <Var name="KeepPublicApi" value="true" />
+  <Var name="HidePrivateApi" value="true" />
+  <Var name="HideStrings" value="true" />
+  <Var name="RenameProperties" value="true" />
+  <Var name="RenameEvents" value="true" />
+  <Var name="RenameFields" value="true" />
+  <AssemblySearchPath path="$HOME/.nuget/packages/citizenfx.core.server/1.0.26803/lib/netstandard20" />
+  <Module file="\$(InPath)/JcksAnticheat.Core.net.dll" />
+  <Module file="\$(InPath)/JcksAnticheat.Server.net.dll" />
+</Obfuscator>
+XML
+  "$OBF" "$TMP/obfuscar.xml" > "$TMP/log.txt"
+  cp "$TMP/out/JcksAnticheat.Core.net.dll" "$TMP/out/JcksAnticheat.Server.net.dll" dist/jcks_anticheat/server/
+  rm -rf "$TMP"
+fi
+
 if [ "${NO_OBFUSCATE:-0}" != "1" ]; then
   echo "==> Obfuscate client Lua (strip comments, randomise global names)"
   python3 scripts/obfuscate.py dist/jcks_anticheat

@@ -390,9 +390,12 @@ is rechecked every 6 hours. If the license server is down, the last activation k
 72 hours. Without a valid license nothing runs: no handshake, no checks, no punishments.
 
 **Limits.** A .NET DLL can be decompiled and patched, so this is a strong barrier, not an
-unbreakable one. Ship escrow for the Lua part, run an obfuscator over the server DLL (for example
-Obfuscar or ConfuserEx, as a build step), and keep the license server's private key off the
-build machine. Tebex can sell the keys: create a key in your Tebex delivery step through the
+unbreakable one. Build sale packages with `OBFUSCATE_DLL=1 ./scripts/package.sh`. This runs
+Obfuscar over both server DLLs: private names are scrambled and string literals (event names, the
+license URL) are encrypted, while the public API that FiveM loads stays intact. Install it once
+with `dotnet tool install --global Obfuscar.GlobalTool`. The obfuscated DLLs were checked to
+parse, validate and round-trip the config and to run the backdoor scanner. Ship escrow for the Lua
+part, and keep the license server's private key off the build machine. Tebex can sell the keys: create a key in your Tebex delivery step through the
 admin API.
 
 ## Dashboard
