@@ -12,6 +12,34 @@ S.server = {
   maxHealth = 200,
 }
 
+local DEFAULTS = {
+  freecamGameplayDistance = 30,
+  freecamDistance = 50,
+  freecamSeconds = 8,
+  noclipRiseSpeed = 15,
+  noclipFloatHeight = 5,
+  noclipFloatSeconds = 3,
+  godmodeProofs = 2,
+  healthJump = 25,
+  armorJump = 10,
+  footSpeed = 12,
+  superjumpVelocity = 9,
+  superjumpHeight = 3.5,
+  staminaSeconds = 25,
+  repairFromHealth = 600,
+  rainbowChanges = 12,
+  aimSnapDegrees = 70,
+  triggerbotMs = 60,
+  triggerbotCount = 5,
+  infiniteAmmoShots = 10,
+}
+
+function S.t(name)
+  local v = S.server.thresholds and S.server.thresholds[name]
+  if type(v) == "number" then return v end
+  return DEFAULTS[name]
+end
+
 local checks = {}
 
 function S.register(name, intervalMs, fn)

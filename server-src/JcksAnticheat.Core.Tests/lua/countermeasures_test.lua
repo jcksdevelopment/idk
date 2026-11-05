@@ -71,4 +71,7 @@ S.server.countermeasures = true
 S.flag("PLY_GODMODE_FLAG", {})
 S.flag("PLY_GODMODE_FLAG", {})
 expect(#log == 6, "countermeasure must apply on every detection, not only outside the flag cooldown (" .. #log .. ")")
+expect(S.t("footSpeed") == 12, "default threshold")
+S.server.thresholds = { footSpeed = 20 }
+expect(S.t("footSpeed") == 20 and S.t("healthJump") == 25, "server threshold override")
 print("COUNTERMEASURES OK")

@@ -285,6 +285,165 @@
       ]
     },
     {
+      "id": "client",
+      "title": "Client checks",
+      "fields": [
+        {
+          "key": "client.freecamGameplayDistance",
+          "label": "Freecam: gameplay camera distance (m)",
+          "type": "number",
+          "min": 5,
+          "max": 500,
+          "step": 1,
+          "help": "Thresholds of the client checks. Raise one if a legitimate script on your server trips it; lower it to be stricter."
+        },
+        {
+          "key": "client.freecamDistance",
+          "label": "Freecam: rendered camera distance (m)",
+          "type": "number",
+          "min": 5,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "key": "client.freecamSeconds",
+          "label": "Freecam: seconds away before flagging",
+          "type": "number",
+          "min": 1,
+          "max": 120,
+          "step": 1
+        },
+        {
+          "key": "client.noclipRiseSpeed",
+          "label": "NoClip: on-foot rise speed (m/s)",
+          "type": "number",
+          "min": 3,
+          "max": 100,
+          "step": 0.5
+        },
+        {
+          "key": "client.noclipFloatHeight",
+          "label": "NoClip: floating height (m)",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 0.5
+        },
+        {
+          "key": "client.noclipFloatSeconds",
+          "label": "NoClip: floating seconds",
+          "type": "number",
+          "min": 1,
+          "max": 60,
+          "step": 0.5
+        },
+        {
+          "key": "client.godmodeProofs",
+          "label": "Godmode: damage proofs set (count)",
+          "type": "number",
+          "min": 1,
+          "max": 6,
+          "step": 1
+        },
+        {
+          "key": "client.healthJump",
+          "label": "Health jump per 0.5 s",
+          "type": "number",
+          "min": 5,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "key": "client.armorJump",
+          "label": "Armour jump per 0.5 s",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "client.footSpeed",
+          "label": "On-foot speed (m/s)",
+          "type": "number",
+          "min": 5,
+          "max": 100,
+          "step": 0.5
+        },
+        {
+          "key": "client.superjumpVelocity",
+          "label": "Super jump: upward speed (m/s)",
+          "type": "number",
+          "min": 3,
+          "max": 50,
+          "step": 0.5
+        },
+        {
+          "key": "client.superjumpHeight",
+          "label": "Super jump: jump height (m)",
+          "type": "number",
+          "min": 1,
+          "max": 50,
+          "step": 0.5
+        },
+        {
+          "key": "client.staminaSeconds",
+          "label": "Infinite stamina: sprint seconds at full stamina",
+          "type": "number",
+          "min": 5,
+          "max": 600,
+          "step": 1
+        },
+        {
+          "key": "client.repairFromHealth",
+          "label": "Instant repair: from engine/body health below",
+          "type": "number",
+          "min": 100,
+          "max": 999,
+          "step": 10
+        },
+        {
+          "key": "client.rainbowChanges",
+          "label": "Rainbow paint: colour changes in 5 s",
+          "type": "number",
+          "min": 3,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "client.aimSnapDegrees",
+          "label": "Aim snap: degrees in one frame",
+          "type": "number",
+          "min": 10,
+          "max": 180,
+          "step": 1
+        },
+        {
+          "key": "client.triggerbotMs",
+          "label": "Triggerbot: reaction under (ms)",
+          "type": "number",
+          "min": 10,
+          "max": 500,
+          "step": 5
+        },
+        {
+          "key": "client.triggerbotCount",
+          "label": "Triggerbot: fast reactions per minute",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "client.infiniteAmmoShots",
+          "label": "Infinite ammo: shots without clip change",
+          "type": "number",
+          "min": 3,
+          "max": 200,
+          "step": 1
+        }
+      ]
+    },
+    {
       "id": "combat",
       "title": "Combat",
       "fields": [

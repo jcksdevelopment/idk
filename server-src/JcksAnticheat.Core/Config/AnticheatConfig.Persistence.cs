@@ -24,6 +24,7 @@ namespace JcksAnticheat.Core.Config
             ["adminAce"] = AdminAce.ToList(),
             ["maxWeapons"] = MaxWeapons,
             ["textureBlacklist"] = TextureBlacklist.ToList(),
+            ["client"] = ClientThresholds.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["blockHtmlNames"] = BlockHtmlNames,
             ["nameBlacklist"] = NameBlacklist.ToList(),
             ["chatSpoofCheck"] = ChatSpoofCheck,
@@ -176,6 +177,8 @@ namespace JcksAnticheat.Core.Config
                 "backdoorScanner severities must be low, medium or high");
             Require(new[] { "none", "remove", "quarantine" }.Contains(Backdoor.AutoAction), "backdoorScanner.autoAction must be none, remove or quarantine");
             Require(new[] { "log", "screenshot", "kick", "ban" }.Contains(Discord.MinAction), "discord.minAction must be log, screenshot, kick or ban");
+            foreach (var kv in ClientThresholds)
+                Require(kv.Value > 0 && kv.Value < 100000, "client." + kv.Key + " must be positive");
             Require(MaxWeapons >= 5 && MaxWeapons <= 200, "maxWeapons must be 5–200");
             Require(AdminAce.Count > 0, "adminAce needs at least one entry");
             return errors;

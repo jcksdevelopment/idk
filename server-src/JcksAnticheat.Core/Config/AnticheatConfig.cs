@@ -107,6 +107,29 @@ namespace JcksAnticheat.Core.Config
         public bool DryRun { get; set; }
         public int MaxWeapons { get; set; } = 25;
         public List<string> TextureBlacklist { get; set; } = new List<string>();
+        public static readonly Dictionary<string, double> ClientThresholdDefaults = new Dictionary<string, double>(StringComparer.Ordinal)
+        {
+            ["freecamGameplayDistance"] = 30,
+            ["freecamDistance"] = 50,
+            ["freecamSeconds"] = 8,
+            ["noclipRiseSpeed"] = 15,
+            ["noclipFloatHeight"] = 5,
+            ["noclipFloatSeconds"] = 3,
+            ["godmodeProofs"] = 2,
+            ["healthJump"] = 25,
+            ["armorJump"] = 10,
+            ["footSpeed"] = 12,
+            ["superjumpVelocity"] = 9,
+            ["superjumpHeight"] = 3.5,
+            ["staminaSeconds"] = 25,
+            ["repairFromHealth"] = 600,
+            ["rainbowChanges"] = 12,
+            ["aimSnapDegrees"] = 70,
+            ["triggerbotMs"] = 60,
+            ["triggerbotCount"] = 5,
+            ["infiniteAmmoShots"] = 10,
+        };
+        public Dictionary<string, double> ClientThresholds { get; set; } = new Dictionary<string, double>(ClientThresholdDefaults, StringComparer.Ordinal);
         public bool BlockHtmlNames { get; set; } = true;
         public List<string> NameBlacklist { get; set; } = new List<string>();
         public bool ChatSpoofCheck { get; set; } = true;
@@ -135,6 +158,9 @@ namespace JcksAnticheat.Core.Config
             cfg.AdminAce = Strings(root, "adminAce") ?? cfg.AdminAce;
             cfg.MaxWeapons = (int)(root.Num("maxWeapons") ?? cfg.MaxWeapons);
             cfg.TextureBlacklist = Strings(root, "textureBlacklist") ?? cfg.TextureBlacklist;
+            if (root.Obj("client") is { } ct)
+                foreach (var kv in ct)
+                    if (kv.Value is double d && ClientThresholdDefaults.ContainsKey(kv.Key)) cfg.ClientThresholds[kv.Key] = d;
             cfg.BlockHtmlNames = root.Bool("blockHtmlNames") ?? cfg.BlockHtmlNames;
             cfg.NameBlacklist = Strings(root, "nameBlacklist") ?? cfg.NameBlacklist;
             cfg.ChatSpoofCheck = root.Bool("chatSpoofCheck") ?? cfg.ChatSpoofCheck;

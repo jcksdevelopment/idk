@@ -23,14 +23,14 @@ do
     end
     local pos = GetEntityCoords(ped)
     local gameplay = vdist(GetGameplayCamCoord(), pos)
-    if gameplay > 30.0 and GetRenderingCam() == -1 and not IsPedInAnyVehicle(ped, false) then
+    if gameplay > S.t("freecamGameplayDistance") and GetRenderingCam() == -1 and not IsPedInAnyVehicle(ped, false) then
       S.flag("MOV_FREECAM", { d = math.floor(gameplay), kind = "gameplay" })
     end
 
     local rendered = vdist(GetFinalRenderedCamCoord(), pos)
-    if rendered > 50.0 then
+    if rendered > S.t("freecamDistance") then
       farSince = farSince or GetGameTimer()
-      if GetGameTimer() - farSince > 8000 then
+      if GetGameTimer() - farSince > S.t("freecamSeconds") * 1000 then
         S.flag("MOV_FREECAM", { d = math.floor(rendered), kind = "rendered" })
         farSince = GetGameTimer()
       end
@@ -60,7 +60,7 @@ do
     end
 
     local vel = GetEntityVelocity(subject)
-    if veh == 0 and vel.z > 15.0 then
+    if veh == 0 and vel.z > S.t("noclipRiseSpeed") then
       S.flag("MOV_NOCLIP_ZVEL", { vz = math.floor(vel.z * 10) / 10 })
     end
 
@@ -69,9 +69,9 @@ do
       local c = GetEntityCoords(subject)
       S.lastGround = { x = c.x, y = c.y, z = c.z }
     end
-    if height > 5.0 and math.abs(vel.z) < 0.5 and not IsPedFalling(ped) then
+    if height > S.t("noclipFloatHeight") and math.abs(vel.z) < 0.5 and not IsPedFalling(ped) then
       floatSince = floatSince or GetGameTimer()
-      if GetGameTimer() - floatSince > 3000 then
+      if GetGameTimer() - floatSince > S.t("noclipFloatSeconds") * 1000 then
         S.flag("MOV_NOCLIP_FLOAT", { h = math.floor(height), veh = veh ~= 0 })
         floatSince = GetGameTimer()
       end

@@ -63,6 +63,7 @@ local function applySettings(data)
   for _, code in ipairs(data.ig or {}) do S.server.ignore[code] = true end
   if data.iv then session.interval = data.iv end
   S.server.maxWeapons = data.mw or 25
+  S.server.thresholds = data.ct or {}
   S.server.integrations = {}
   for resource, kinds in pairs(data.it or {}) do
     local set = {}

@@ -626,3 +626,17 @@ public class AlwaysBanTests
         Assert.Contains("WPN_EXPLOSION_BLAME", AnticheatConfig.Parse(c.ToPrettyJson()).Scoring.AlwaysBan);
     }
 }
+
+public class ClientThresholdTests
+{
+    [Fact]
+    public void ThresholdsRoundTripValidateAndIgnoreUnknownKeys()
+    {
+        var cfg = AnticheatConfig.Parse("{\"client\":{\"footSpeed\":20,\"madeUp\":5}}");
+        Assert.Equal(20, cfg.ClientThresholds["footSpeed"]);
+        Assert.False(cfg.ClientThresholds.ContainsKey("madeUp"));
+        Assert.Equal(AnticheatConfig.ClientThresholdDefaults.Count, cfg.ClientThresholds.Count);
+        Assert.Equal(20, AnticheatConfig.Parse(cfg.ToPrettyJson()).ClientThresholds["footSpeed"]);
+        Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{\"client\":{\"footSpeed\":0}}"));
+    }
+}

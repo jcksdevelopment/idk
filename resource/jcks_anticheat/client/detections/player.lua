@@ -13,7 +13,7 @@ S.register("player.state", 2000, function()
   for _, v in ipairs({ bullet, fire, explosion, melee, steam, drown }) do
     if v == 1 or v == true then proofs = proofs + 1 end
   end
-  if proofs >= 2 then
+  if proofs >= S.t("godmodeProofs") then
     S.flag("PLY_GODMODE_PROOFS", { n = proofs })
   end
 
@@ -48,16 +48,16 @@ end)
 
 do
   local lastHealth, lastArmor
-  local HEALTH_JUMP = 25
-  local ARMOR_JUMP = 10
+  local HEALTH_JUMP = function() return S.t("healthJump") end
+  local ARMOR_JUMP = function() return S.t("armorJump") end
 
   S.register("player.regen", 500, function()
     local ped = PlayerPedId()
     local health, armor = GetEntityHealth(ped), GetPedArmour(ped)
-    if lastHealth and health > lastHealth + HEALTH_JUMP and not S.allowed("heal") then
+    if lastHealth and health > lastHealth + HEALTH_JUMP() and not S.allowed("heal") then
       S.flag("PLY_HEALTH_REGEN", { from = lastHealth, to = health })
     end
-    if lastArmor and armor > lastArmor + ARMOR_JUMP and not S.allowed("armor") then
+    if lastArmor and armor > lastArmor + ARMOR_JUMP() and not S.allowed("armor") then
       S.flag("PLY_ARMOR_REGEN", { from = lastArmor, to = armor })
     end
     lastHealth, lastArmor = health, armor
@@ -84,7 +84,7 @@ do
 
     local vel = GetEntityVelocity(ped)
     local horizontal = math.sqrt(vel.x * vel.x + vel.y * vel.y)
-    if horizontal > 12.0 and not IsPedSwimmingUnderWater(ped) and not S.allowed("teleport") then
+    if horizontal > S.t("footSpeed") and not IsPedSwimmingUnderWater(ped) and not S.allowed("teleport") then
       S.flag("PLY_SPEED_FOOT", { v = math.floor(horizontal * 10) / 10 })
     end
 
@@ -92,11 +92,11 @@ do
       jumpActive = true
       local h = GetEntityHeightAboveGround(ped)
       if h > jumpPeak then jumpPeak = h end
-      if vel.z > 9.0 then
+      if vel.z > S.t("superjumpVelocity") then
         S.flag("PLY_SUPERJUMP", { vz = math.floor(vel.z * 10) / 10 })
       end
     elseif jumpActive then
-      if jumpPeak > 3.5 then
+      if jumpPeak > S.t("superjumpHeight") then
         S.flag("PLY_SUPERJUMP", { peak = math.floor(jumpPeak * 10) / 10 })
       end
       jumpActive, jumpPeak = false, 0.0
@@ -110,7 +110,7 @@ do
     local ped, pid = PlayerPedId(), PlayerId()
     if IsPedSprinting(ped) and GetPlayerSprintStaminaRemaining(pid) <= 0.0 then
       sprintStart = sprintStart or GetGameTimer()
-      if GetGameTimer() - sprintStart > 25000 then
+      if GetGameTimer() - sprintStart > S.t("staminaSeconds") * 1000 then
         S.flag("PLY_STAMINA", { ms = GetGameTimer() - sprintStart })
         sprintStart = GetGameTimer()
       end

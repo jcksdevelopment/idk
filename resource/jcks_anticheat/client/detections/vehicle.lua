@@ -12,7 +12,7 @@ S.register("vehicle.repair", 500, function()
   if veh == 0 or GetPedInVehicleSeat(veh, -1) ~= ped then lastVeh = nil return end
   local engine, body, plate = GetVehicleEngineHealth(veh), GetVehicleBodyHealth(veh), GetVehicleNumberPlateText(veh)
   if veh == lastVeh and not S.allowed("vehicle") then
-    if (lastEngine < 600 and engine >= 990) or (lastBody < 600 and body >= 990) then
+    if (lastEngine < S.t("repairFromHealth") and engine >= 990) or (lastBody < S.t("repairFromHealth") and body >= 990) then
       S.flag("VEH_REPAIR", { e0 = math.floor(lastEngine), e1 = math.floor(engine), b0 = math.floor(lastBody), b1 = math.floor(body) })
     end
     if lastPlate and plate ~= lastPlate then
@@ -34,7 +34,7 @@ S.register("vehicle.rainbow", 250, function()
   if now - paintWindowStart > 5000 then paintChanges, paintWindowStart = 0, now end
   if lastPaint and paint ~= lastPaint then
     paintChanges = paintChanges + 1
-    if paintChanges >= 12 then
+    if paintChanges >= S.t("rainbowChanges") then
       S.flag("VEH_RAINBOW", { changes = paintChanges })
       paintChanges = 0
     end

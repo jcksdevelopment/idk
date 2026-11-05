@@ -241,7 +241,10 @@ entry there to appear in both.
 
 ### Configuration
 
-Everything lives in `resource/jcks_anticheat/config.json`: scoring thresholds and half-life, per-code
+Everything lives in `resource/jcks_anticheat/config.json`. The thresholds of every client check
+(freecam distance, super jump height, on-foot speed, aim snap angle, triggerbot reaction time,
+health jump, noclip float height, rainbow paint, and so on) are under `client` and in the
+"Client checks" section of the panel and dashboard. The file also holds: scoring thresholds and half-life, per-code
 severity overrides, `ignore` codes (switched off entirely; the client stops sending them), `logOnly` codes, movement and damage limits, explosion and entity rules,
 weapon/vehicle/object blacklists, honeypot event names, and vision and dashboard settings. Codes
 and default severities are listed in `docs/THREAT_MATRIX.md`.
@@ -449,7 +452,7 @@ Run one dashboard instance per deployment.
 cd server-src && dotnet test
 ```
 
-103 tests cover:
+104 tests cover:
 
 - the real Lua client's heartbeats verified by the C# server, plus tamper, replay and forgery
   rejection
@@ -475,7 +478,7 @@ Verified in this repository:
   definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
   handlers accept a string or a number.
 
-- Both C# projects build with no warnings and the 103 tests pass.
+- Both C# projects build with no warnings and the 104 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
 - The dashboard type-checks and builds.

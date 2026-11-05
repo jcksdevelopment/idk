@@ -81,7 +81,7 @@ CreateThread(function()
       local rot = GetGameplayCamRot(2)
       if lastRot then
         local delta = math.max(angleDelta(rot.z, lastRot.z), angleDelta(rot.x, lastRot.x))
-        if delta > 70.0 then lastSnapAt = now end
+        if delta > S.t("aimSnapDegrees") then lastSnapAt = now end
       end
       lastRot = rot
       if shooting and now - lastSnapAt < 150 then
@@ -96,13 +96,13 @@ CreateThread(function()
         acquiredAt = nil
       end
       if shooting then
-        if acquiredAt and now - acquiredAt < 60 and now - lastShotAt > 300 then
+        if acquiredAt and now - acquiredAt < S.t("triggerbotMs") and now - lastShotAt > 300 then
           fastReactions = fastReactions + 1
         end
         lastShotAt = now
       end
       if now - windowStart > 60000 then fastReactions, windowStart = 0, now end
-      if fastReactions >= 5 then
+      if fastReactions >= S.t("triggerbotCount") then
         S.flag("WPN_TRIGGERBOT", { n = fastReactions })
         fastReactions = 0
       end
@@ -113,7 +113,7 @@ CreateThread(function()
         ammoWeapon, ammoClip, ammoShots, ammoStart = weapon, clip, 0, now
       elseif shooting then
         ammoShots = ammoShots + 1
-        if ammoShots >= 10 and now - ammoStart > 2000 and GetWeaponDamageType(weapon) == 3 then
+        if ammoShots >= S.t("infiniteAmmoShots") and now - ammoStart > 2000 and GetWeaponDamageType(weapon) == 3 then
           S.flag("WPN_INFINITE_AMMO", { shots = ammoShots, clip = clip })
           ammoShots = 0
         end
