@@ -91,6 +91,7 @@ namespace JcksAnticheat.Server
             if (_tickCount % 3 == 0) _ = _discord.FlushAsync();
             if (_tickCount % 30 == 0) PushIntegrationSuggestions(false);
             if (_tickCount % 3 == 0 && players.Count > 1) CheckAttachments(players);
+            if (_tickCount == 12 && _cfg.AuditOnStart) Log(RunAudit());
             if (_tickCount == 15 && _cfg.Backdoor.ScanOnStart) StartBackdoorScan("server start");
             if (_tickCount == 20)
             {

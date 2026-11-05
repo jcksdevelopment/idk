@@ -117,6 +117,8 @@ on the server-side checks, the heartbeat and AI vision.
 | `GameEventValidator` | `startProjectileEvent` (projectiles spawned away from the shooter or as another player, blacklisted launchers, spam), `fireEvent` (fires on other players, spam), `ptFxEvent` (particle spam, oversized or attached to other players). Offending events are cancelled. |
 | `StateConsistencyValidator` | Hooked natives and forged heartbeats: the health, armour and position the client reports must match the server's own view (3 heartbeats in a row before reporting) |
 | `PlayerStateValidator` | Health and armour jumps without a server-granted heal, max-health tampering |
+| `PlayerFlagsValidator` | Values the server reads straight from the player's OneSync state: super-jump flag (`IsPlayerUsingSuperJump`), weapon and melee damage modifiers, weapon defense modifiers, max health, and collision turned off on foot for `server.collisionStreakSeconds`. The client can't hide these from the server; when one fires, the server also tells the client to undo it. |
+| `AttachmentWatch` | Props, cages or vehicles created by one player and attached to other players' peds (`ENT_ATTACH_PLAYER`, above `entities.maxAttachedToOthers`); they are deleted. Peds attached to peds (carry/escort) are not counted. |
 | Game events | `giveWeaponEvent` / `removeWeaponEvent` / `removeAllWeaponsEvent` (always cancelled), `clearPedTasksEvent` against other players |
 | Honeypots | Decoy net events no real resource fires (`honeypotEvents` in config) |
 | Protected events | `protectedEvents` (event = max per minute) rate-limits sensitive server events of other resources (payouts, transfers, item grants) per player; over the limit they're reported (`NET_EVENT_SPAM`) and cancelled. Editable live in the panel and dashboard. |
@@ -349,6 +351,16 @@ the work.
 from `autoActionMinSeverity`. The default is `none`. Against `cfx-server-data`, `qb-core`,
 `es_extended`, `ox_lib`, `ox_inventory` and `oxmysql` (662 files) it reports only the stock
 `runcode` resource, which really does execute arbitrary code behind the rcon password.
+
+### server.cfg audit
+
+On start (`auditOnStart`) and on `jac audit`, the server's own security convars are compared with
+the FiveM documentation: `onesync`, `sv_scriptHookAllowed`, `sv_enableNetworkedPhoneExplosions`,
+`sv_filterRequestControl`, `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`,
+`sv_entityLockdown`, `sv_pureLevel` and `sv_stateBagStrictMode`. Each suggestion is printed with
+the `set` line to add and why; nothing is changed automatically. Some (`sv_entityLockdown relaxed`,
+`sv_stateBagStrictMode true`) break scripts that create entities or write state bags from the
+client, so they are listed as low/info.
 
 ### Discord logs
 

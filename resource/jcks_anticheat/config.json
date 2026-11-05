@@ -13,6 +13,7 @@
   "blockHtmlNames": true,
   "nameBlacklist": [],
   "chatSpoofCheck": true,
+  "auditOnStart": true,
   "eventBurst": 60,
   "eventRefillPerSecond": 25,
   "floodDeniedPer10s": 40,

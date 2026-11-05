@@ -151,6 +151,7 @@ namespace JcksAnticheat.Core.Config
         public bool BlockHtmlNames { get; set; } = true;
         public List<string> NameBlacklist { get; set; } = new List<string>();
         public bool ChatSpoofCheck { get; set; } = true;
+        public bool AuditOnStart { get; set; } = true;
         public Dictionary<string, int> ProtectedEvents { get; set; } = new Dictionary<string, int>(StringComparer.Ordinal);
         public List<string> AdminAce { get; set; } = new List<string> { "jcks_anticheat.bypass" };
 
@@ -185,6 +186,7 @@ namespace JcksAnticheat.Core.Config
             cfg.BlockHtmlNames = root.Bool("blockHtmlNames") ?? cfg.BlockHtmlNames;
             cfg.NameBlacklist = Strings(root, "nameBlacklist") ?? cfg.NameBlacklist;
             cfg.ChatSpoofCheck = root.Bool("chatSpoofCheck") ?? cfg.ChatSpoofCheck;
+            cfg.AuditOnStart = root.Bool("auditOnStart") ?? cfg.AuditOnStart;
             if (root.Obj("protectedEvents") is { } pe)
             {
                 cfg.ProtectedEvents = new Dictionary<string, int>(StringComparer.Ordinal);

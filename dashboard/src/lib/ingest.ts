@@ -168,6 +168,19 @@ export function applyEvent(serverId: string, ev: Obj) {
       );
       break;
     }
+    case "server_audit": {
+      const list = Array.isArray(data) ? data.map(obj) : [];
+      if (list.length === 0) store.pushLog({ level: "info", kind: "audit", text: "server.cfg audit: nothing to change" });
+      for (const f of list.slice(0, 50)) {
+        const sev = str(f.severity);
+        store.pushLog({
+          level: sev === "high" ? "crit" : sev === "medium" ? "warn" : "info",
+          kind: "audit",
+          text: `[${sev.toUpperCase()}] set ${str(f.convar)} ${str(f.recommended)} (now '${str(f.current)}'): ${str(f.why)}`,
+        });
+      }
+      break;
+    }
     case "connection_rejected": {
       const c = obj(data);
       store.pushLog({ level: "warn", kind: "connect", text: `rejected banned connection ${str(c.name)} (ban ${str(c.banId)})` });

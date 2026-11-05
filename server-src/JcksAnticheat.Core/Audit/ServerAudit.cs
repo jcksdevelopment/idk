@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+
+namespace JcksAnticheat.Core.Audit
+{
+    public sealed class AuditFinding
+    {
+        public AuditFinding(string severity, string convar, string current, string recommended, string why)
+        {
+            Severity = severity; Convar = convar; Current = current; Recommended = recommended; Why = why;
+        }
+        public string Severity { get; }
+        public string Convar { get; }
+        public string Current { get; }
+        public string Recommended { get; }
+        public string Why { get; }
+        public override string ToString() => $"[{Severity.ToUpperInvariant()}] {Convar} = '{Current}' -> set {Convar} {Recommended}: {Why}";
+    }
+
+    public static class ServerAudit
+    {
+        private static bool Truthy(string v) => v == "true" || v == "1" || v == "on" || v == "yes";
+
+        public static List<AuditFinding> Evaluate(Func<string, string, string> convar)
+        {
+            var found = new List<AuditFinding>();
+            string Get(string name, string fallback) => (convar(name, fallback) ?? fallback).Trim().ToLowerInvariant();
+
+            var onesync = Get("onesync", "off");
+            if (onesync != "on")
+                found.Add(new AuditFinding("high", "onesync", onesync, "on",
+                    "Server-side checks (movement, health, entities, game events, sync flags) read OneSync state and do nothing without it."));
+
+            if (Truthy(Get("sv_scriptHookAllowed", "false")))
+                found.Add(new AuditFinding("high", "sv_scriptHookAllowed", "true", "false",
+                    "Lets clients with Script Hook V join; the FiveM docs mark this as not recommended."));
+
+            if (Truthy(Get("sv_enableNetworkedPhoneExplosions", "false")))
+                found.Add(new AuditFinding("high", "sv_enableNetworkedPhoneExplosions", "true", "false",
+                    "Routes REQUEST_PHONE_EXPLOSION_EVENT, which the docs say malicious actors use."));
+
+            var filter = Get("sv_filterRequestControl", "0");
+            if (filter == "0" || filter == "")
+                found.Add(new AuditFinding("medium", "sv_filterRequestControl", filter == "" ? "0" : filter, "2",
+                    "Stops players taking control of entities other players control (vehicle hijack/delete menus). Mode 1 is gentler if a script needs control requests."));
+
+            if (Truthy(Get("sv_enableNetworkedSounds", "true")))
+                found.Add(new AuditFinding("medium", "sv_enableNetworkedSounds", "true", "false",
+                    "NETWORK_PLAY_SOUND_EVENT is commonly abused for sound spam; turn it off unless a script plays networked sounds."));
+
+            if (Truthy(Get("sv_enableNetworkedScriptEntityStates", "true")))
+                found.Add(new AuditFinding("low", "sv_enableNetworkedScriptEntityStates", "true", "false",
+                    "SCRIPT_ENTITY_STATE_CHANGE_EVENT is commonly abused; test your scripts after turning it off."));
+
+            var lockdown = Get("sv_entityLockdown", "inactive");
+            if (lockdown == "inactive" || lockdown == "")
+                found.Add(new AuditFinding("low", "sv_entityLockdown", "inactive", "relaxed",
+                    "Clients can create any networked entity. 'relaxed' blocks client script-created entities, but only use it when all your resources spawn entities on the server."));
+
+            var pure = Get("sv_pureLevel", "0");
+            if (pure != "1" && pure != "2")
+                found.Add(new AuditFinding("low", "sv_pureLevel", pure, "1",
+                    "Blocks modified client game files (level 1 still allows audio and known graphics mods)."));
+
+            if (!Truthy(Get("sv_stateBagStrictMode", "false")))
+                found.Add(new AuditFinding("info", "sv_stateBagStrictMode", "false", "true",
+                    "Clients can write the state bags of entities they own and of their player; strict mode makes them server-only. Breaks scripts that set state from the client."));
+
+            return found;
+        }
+    }
+}

@@ -29,6 +29,7 @@ namespace JcksAnticheat.Core.Config
             ["blockHtmlNames"] = BlockHtmlNames,
             ["nameBlacklist"] = NameBlacklist.ToList(),
             ["chatSpoofCheck"] = ChatSpoofCheck,
+            ["auditOnStart"] = AuditOnStart,
             ["protectedEvents"] = ProtectedEvents.OrderBy(k => k.Key, StringComparer.Ordinal).ToDictionary(k => k.Key, k => (object?)k.Value),
             ["scoring"] = new Dictionary<string, object?>
             {

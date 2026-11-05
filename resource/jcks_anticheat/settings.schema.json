@@ -823,6 +823,12 @@
           "label": "Detect chat spoofing",
           "type": "bool",
           "help": "Reports and cancels chat messages sent under another player's name (cfx chat)."
+        },
+        {
+          "key": "auditOnStart",
+          "label": "Audit server.cfg on start",
+          "type": "bool",
+          "help": "Checks security convars from the FiveM docs (onesync, sv_scriptHookAllowed, sv_filterRequestControl, sv_enableNetworkedSounds, sv_enableNetworkedPhoneExplosions, sv_entityLockdown, sv_pureLevel, …) and prints what to change in the console and dashboard. Nothing is changed automatically. Run 'jac audit' any time."
         }
       ]
     },

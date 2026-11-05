@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CitizenFX.Core;
+using JcksAnticheat.Core.Audit;
 using JcksAnticheat.Core.Config;
 using JcksAnticheat.Core.Detection;
 using JcksAnticheat.Core.Heartbeat;
@@ -74,6 +75,9 @@ namespace JcksAnticheat.Server
                     if (source != 0) { Reply("Run shield commands from the server console."); break; }
                     Reply(ShieldCommand(args.Count > 1 ? args[1]?.ToString() ?? "status" : "status"));
                     break;
+                case "audit":
+                    Reply(RunAudit());
+                    break;
                 case "status":
                 default:
                     var (shielded, withClient) = ShieldCoverage();
@@ -81,9 +85,22 @@ namespace JcksAnticheat.Server
                           $"integrations={_integrations.Count} rules, countermeasures={(_cfg.Countermeasures.Enabled ? "on" : "off")}, backdoor findings={_lastFindings.Count}, " +
                           $"dryRun={_cfg.DryRun}, players={Players.Count()}, bans={_bans.All.Count}, " +
                           $"kick/ban at {_cfg.Scoring.KickAt}/{_cfg.Scoring.BanAt}, vision={(_vision.IsConfigured ? "on" : "off")}, " +
-                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status");
+                          $"dashboard={(_dashboard.Enabled ? "on" : "off")}. Commands: /jac reload | panel | dryrun on|off | status | shield install|uninstall|status | scan [list|remove|quarantine|ignore <id>] | integrations [list|suggest|apply|clear] | antidump protect|unprotect <res>|status | audit");
                     break;
             }
+        }
+
+        private string RunAudit()
+        {
+            var findings = ServerAudit.Evaluate((name, fallback) => GetConvar(name, fallback));
+            foreach (var f in findings) Log("  " + f);
+            _dashboard.Enqueue("server_audit", findings.Select(f => (object?)new Dictionary<string, object?>
+            {
+                ["severity"] = f.Severity, ["convar"] = f.Convar, ["current"] = f.Current, ["recommended"] = f.Recommended, ["why"] = f.Why,
+            }).ToList());
+            int serious = findings.Count(f => f.Severity == "high" || f.Severity == "medium");
+            return findings.Count == 0 ? "server.cfg audit: nothing to change."
+                : $"server.cfg audit: {findings.Count} suggestion(s), {serious} high/medium (listed above). Add the 'set' lines to server.cfg and restart.";
         }
 
         private (int shielded, int withClient) ShieldCoverage()
