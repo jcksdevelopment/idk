@@ -87,6 +87,8 @@ namespace JcksAnticheat.Core.Validation
     {
         public HashSet<uint> BlacklistedModels { get; set; } = new HashSet<uint>();
         public HashSet<uint> AllowedPedModels { get; set; } = new HashSet<uint>();
+        /// <summary>Names behind AllowedPedModels, kept so the config can be written back.</summary>
+        public List<string> AllowedPedModelNames { get; set; } = new List<string>();
         public int MaxVehiclesPer10s { get; set; } = 5;
         public int MaxEntitiesPer10s { get; set; } = 15;
     }

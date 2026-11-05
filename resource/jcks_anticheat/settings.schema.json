@@ -1,0 +1,429 @@
+{
+  "version": 1,
+  "sections": [
+    {
+      "id": "general",
+      "title": "General",
+      "fields": [
+        {
+          "key": "dryRun",
+          "label": "Dry run",
+          "type": "bool",
+          "help": "Log every detection but never kick or ban. Use it while tuning."
+        },
+        {
+          "key": "adminAce",
+          "label": "Bypass ACE permissions",
+          "type": "list",
+          "help": "Players with any of these ACEs are logged but never punished."
+        },
+        {
+          "key": "maxHealth",
+          "label": "Max health",
+          "type": "number",
+          "help": "Highest health a player may legitimately have.",
+          "min": 100,
+          "max": 10000,
+          "step": 1
+        },
+        {
+          "key": "expectedDamageModifier",
+          "label": "Expected weapon damage modifier",
+          "type": "number",
+          "help": "Set if your server changes SetPlayerWeaponDamageModifier.",
+          "min": 0.1,
+          "max": 10,
+          "step": 0.05
+        }
+      ]
+    },
+    {
+      "id": "scoring",
+      "title": "Scoring & punishment",
+      "fields": [
+        {
+          "key": "scoring.screenshotAt",
+          "label": "Screenshot at score",
+          "type": "number",
+          "min": 1,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "key": "scoring.kickAt",
+          "label": "Kick at score",
+          "type": "number",
+          "min": 1,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "key": "scoring.banAt",
+          "label": "Ban at score",
+          "type": "number",
+          "help": "Bans always need server-side evidence; client flags alone stop at a kick.",
+          "min": 1,
+          "max": 2000,
+          "step": 1
+        },
+        {
+          "key": "scoring.halfLifeMinutes",
+          "label": "Score half-life (minutes)",
+          "type": "number",
+          "min": 1,
+          "max": 1440,
+          "step": 1
+        },
+        {
+          "key": "scoring.ignore",
+          "label": "Ignored codes",
+          "type": "codes",
+          "help": "Switched off entirely. The client stops reporting them."
+        },
+        {
+          "key": "scoring.logOnly",
+          "label": "Log-only codes",
+          "type": "codes",
+          "help": "Recorded and shown, never punished."
+        },
+        {
+          "key": "scoring.dropImmediately",
+          "label": "Disconnect-immediately codes",
+          "type": "codes",
+          "help": "Kick at once regardless of score (never a ban by themselves)."
+        }
+      ]
+    },
+    {
+      "id": "heartbeat",
+      "title": "Heartbeat & network",
+      "fields": [
+        {
+          "key": "heartbeatIntervalMs",
+          "label": "Heartbeat interval (ms)",
+          "type": "number",
+          "min": 1000,
+          "max": 30000,
+          "step": 500
+        },
+        {
+          "key": "heartbeatMissingSeconds",
+          "label": "Missing heartbeat after (s)",
+          "type": "number",
+          "min": 5,
+          "max": 300,
+          "step": 1
+        },
+        {
+          "key": "handshakeTimeoutSeconds",
+          "label": "Handshake timeout (s)",
+          "type": "number",
+          "help": "Time in the world before a client must have handshaked.",
+          "min": 30,
+          "max": 600,
+          "step": 5
+        },
+        {
+          "key": "eventBurst",
+          "label": "Event burst per player",
+          "type": "number",
+          "min": 5,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "key": "eventRefillPerSecond",
+          "label": "Events per second per player",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "floodDeniedPer10s",
+          "label": "Flood: denied events per 10 s",
+          "type": "number",
+          "min": 5,
+          "max": 1000,
+          "step": 1
+        },
+        {
+          "key": "honeypotEvents",
+          "label": "Honeypot event names",
+          "type": "list",
+          "help": "Decoy events nothing legitimate triggers."
+        }
+      ]
+    },
+    {
+      "id": "movement",
+      "title": "Movement",
+      "fields": [
+        {
+          "key": "movement.onFootMaxSpeed",
+          "label": "On-foot max speed (m/s)",
+          "type": "number",
+          "min": 5,
+          "max": 100,
+          "step": 0.5
+        },
+        {
+          "key": "movement.landMaxSpeed",
+          "label": "Land vehicle max speed (m/s)",
+          "type": "number",
+          "min": 20,
+          "max": 300,
+          "step": 1
+        },
+        {
+          "key": "movement.boatMaxSpeed",
+          "label": "Boat max speed (m/s)",
+          "type": "number",
+          "min": 10,
+          "max": 200,
+          "step": 1
+        },
+        {
+          "key": "movement.airMaxSpeed",
+          "label": "Aircraft max speed (m/s)",
+          "type": "number",
+          "min": 20,
+          "max": 400,
+          "step": 1
+        },
+        {
+          "key": "movement.teleportMinDistance",
+          "label": "Teleport min distance (m)",
+          "type": "number",
+          "min": 10,
+          "max": 1000,
+          "step": 5
+        },
+        {
+          "key": "movement.speedSlack",
+          "label": "Speed slack multiplier",
+          "type": "number",
+          "min": 1,
+          "max": 3,
+          "step": 0.05
+        }
+      ]
+    },
+    {
+      "id": "combat",
+      "title": "Combat",
+      "fields": [
+        {
+          "key": "damage.bodyDamageMultiplier",
+          "label": "Max body damage \u00d7 baseline",
+          "type": "number",
+          "min": 1,
+          "max": 10,
+          "step": 0.1
+        },
+        {
+          "key": "damage.headDamageMultiplier",
+          "label": "Max headshot damage \u00d7 baseline",
+          "type": "number",
+          "min": 1,
+          "max": 20,
+          "step": 0.1
+        },
+        {
+          "key": "damage.rangeMultiplier",
+          "label": "Max range \u00d7 weapon range",
+          "type": "number",
+          "min": 1,
+          "max": 5,
+          "step": 0.05
+        },
+        {
+          "key": "damage.maxAimAngle",
+          "label": "Silent aim: max facing angle (\u00b0)",
+          "type": "number",
+          "min": 10,
+          "max": 180,
+          "step": 1
+        },
+        {
+          "key": "damage.maxTrajectoryAngle",
+          "label": "Max bullet trajectory deviation (\u00b0)",
+          "type": "number",
+          "min": 5,
+          "max": 90,
+          "step": 1
+        },
+        {
+          "key": "damage.headshotRatioMax",
+          "label": "Max headshot ratio",
+          "type": "number",
+          "min": 0.1,
+          "max": 1,
+          "step": 0.01
+        },
+        {
+          "key": "weaponBlacklist",
+          "label": "Blacklisted weapons",
+          "type": "list",
+          "help": "Weapon names, e.g. WEAPON_RPG."
+        }
+      ]
+    },
+    {
+      "id": "world",
+      "title": "Entities & explosions",
+      "fields": [
+        {
+          "key": "entities.maxVehiclesPer10s",
+          "label": "Max spawned vehicles per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "key": "entities.maxEntitiesPer10s",
+          "label": "Max spawned entities per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 500,
+          "step": 1
+        },
+        {
+          "key": "entities.allowedPedModels",
+          "label": "Allowed ped models",
+          "type": "list",
+          "help": "Empty allows every model."
+        },
+        {
+          "key": "vehicleBlacklist",
+          "label": "Blacklisted vehicles",
+          "type": "list"
+        },
+        {
+          "key": "objectBlacklist",
+          "label": "Blacklisted objects",
+          "type": "list"
+        },
+        {
+          "key": "explosions.blacklist",
+          "label": "Blacklisted explosion types",
+          "type": "numbers",
+          "help": "eExplosionTag ids, e.g. 18 = explosive ammo."
+        },
+        {
+          "key": "explosions.maxPerSecond",
+          "label": "Max explosions per second",
+          "type": "number",
+          "min": 1,
+          "max": 50,
+          "step": 1
+        },
+        {
+          "key": "explosions.maxPer10Seconds",
+          "label": "Max explosions per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 200,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "vision",
+      "title": "AI vision",
+      "fields": [
+        {
+          "key": "vision.enabled",
+          "label": "Enabled",
+          "type": "bool"
+        },
+        {
+          "key": "vision.provider",
+          "label": "Provider",
+          "type": "select",
+          "options": [
+            "anthropic",
+            "openai-compatible"
+          ]
+        },
+        {
+          "key": "vision.endpoint",
+          "label": "Endpoint",
+          "type": "string"
+        },
+        {
+          "key": "vision.model",
+          "label": "Model",
+          "type": "string"
+        },
+        {
+          "key": "vision.apiKeyEnv",
+          "label": "API key environment variable",
+          "type": "string",
+          "help": "The key itself is never stored in config."
+        },
+        {
+          "key": "vision.effort",
+          "label": "Effort",
+          "type": "select",
+          "options": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        {
+          "key": "vision.flagConfidence",
+          "label": "Flag at confidence",
+          "type": "number",
+          "min": 0,
+          "max": 1,
+          "step": 0.01
+        },
+        {
+          "key": "vision.cooldownSeconds",
+          "label": "Capture cooldown (s)",
+          "type": "number",
+          "min": 10,
+          "max": 3600,
+          "step": 5
+        },
+        {
+          "key": "vision.maxStoredCaptures",
+          "label": "Captures kept on disk",
+          "type": "number",
+          "min": 10,
+          "max": 100000,
+          "step": 10
+        }
+      ]
+    },
+    {
+      "id": "dashboard",
+      "title": "Web dashboard",
+      "fields": [
+        {
+          "key": "dashboard.enabled",
+          "label": "Enabled",
+          "type": "bool"
+        },
+        {
+          "key": "dashboard.url",
+          "label": "Dashboard URL",
+          "type": "string"
+        },
+        {
+          "key": "dashboard.secretEnv",
+          "label": "Secret environment variable",
+          "type": "string"
+        },
+        {
+          "key": "dashboard.serverId",
+          "label": "Server ID",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

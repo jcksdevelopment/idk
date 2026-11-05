@@ -35,7 +35,7 @@ namespace JcksAnticheat.Core.Config
         public string ServerId { get; set; } = "main";
     }
 
-    public sealed class AnticheatConfig
+    public sealed partial class AnticheatConfig
     {
         public ScoringPolicy Scoring { get; set; } = new ScoringPolicy();
         public MovementLimits Movement { get; set; } = new MovementLimits();
@@ -151,7 +151,10 @@ namespace JcksAnticheat.Core.Config
                 cfg.Entities.MaxVehiclesPer10s = (int)(en.Num("maxVehiclesPer10s") ?? cfg.Entities.MaxVehiclesPer10s);
                 cfg.Entities.MaxEntitiesPer10s = (int)(en.Num("maxEntitiesPer10s") ?? cfg.Entities.MaxEntitiesPer10s);
                 if (Strings(en, "allowedPedModels") is { } peds)
+                {
+                    cfg.Entities.AllowedPedModelNames = peds;
                     cfg.Entities.AllowedPedModels = new HashSet<uint>(peds.Select(Joaat.Hash));
+                }
             }
 
             if (root.Obj("vision") is { } v)

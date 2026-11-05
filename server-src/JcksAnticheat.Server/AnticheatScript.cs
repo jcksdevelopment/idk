@@ -27,7 +27,7 @@ namespace JcksAnticheat.Server
         private readonly AnticheatConfig _cfg;
         private readonly ViolationLedger _ledger;
         private readonly RateLimiter _limiter = new RateLimiter();
-        private readonly RateLimiter.Rule _eventRule;
+        private RateLimiter.Rule _eventRule; // rebuilt on settings reload
         private readonly RateLimiter.Rule _helloRule = new RateLimiter.Rule(3, 0.05);
         private readonly SlidingCounter _denied = new SlidingCounter();
         private readonly HeartbeatManager _heartbeats = new HeartbeatManager();
@@ -42,7 +42,7 @@ namespace JcksAnticheat.Server
         private readonly ScreenshotAssembler _screenshots = new ScreenshotAssembler();
         private readonly AIVisionEvaluator _vision;
         private readonly DashboardBridge _dashboard;
-        private readonly HashSet<uint> _weaponBlacklist;
+        private HashSet<uint> _weaponBlacklist; // rebuilt on settings reload
         private readonly string _dataDir;
 
         // Per-boot random event names. Only "jcks_anticheat:hello" and "jcks_anticheat:init" are fixed.
@@ -84,6 +84,7 @@ namespace JcksAnticheat.Server
             // Players already connected when the resource (re)starts must handshake too.
             foreach (var p in Players) OnPlayerJoining(p, "");
             RegisterExports();
+            RegisterSettings();
             Tick += OnTick;
 
             Log($"started: {_bans.All.Count} bans, vision={(_vision.IsConfigured ? _cfg.Vision.Provider + "/" + _cfg.Vision.Model : "off")}, " +
@@ -100,11 +101,7 @@ namespace JcksAnticheat.Server
             EventHandlers[_hbEvent] += new Action<Player, object, string, string, string>(OnHeartbeat);
             EventHandlers[_ssUploadEvent] += new Action<Player, string, int, int, string>(OnScreenshotChunk);
 
-            foreach (var name in _cfg.HoneypotEvents)
-            {
-                var eventName = name;
-                EventHandlers[eventName] += new Action<Player>(p => OnHoneypot(p, eventName));
-            }
+            RegisterHoneypots();
 
             // OneSync game events.
             EventHandlers["weaponDamageEvent"] += new Action<object, object>(OnWeaponDamage);
@@ -208,6 +205,7 @@ namespace JcksAnticheat.Server
                 ["sr"] = _ssRequestEvent, ["su"] = _ssUploadEvent, ["ru"] = _resourceEvent, ["iv"] = _cfg.HeartbeatIntervalMs,
                 ["wb"] = _cfg.WeaponBlacklist, ["rs"] = StartedResources(), ["mh"] = _cfg.MaxHealth,
                 ["dm"] = _cfg.ExpectedDamageModifier, ["ig"] = _cfg.Scoring.Ignore.ToList(),
+                ["se"] = _settingsEvent, ["po"] = _panelOpenEvent,
             };
             player.TriggerEvent("jcks_anticheat:init", MiniJson.Serialize(init));
             _dashboard.Enqueue("player_joined", PlayerSnapshot(player));
@@ -270,8 +268,23 @@ namespace JcksAnticheat.Server
             if (v != null) Punish(v);
         }
 
+        private readonly HashSet<string> _honeypotsRegistered = new HashSet<string>(StringComparer.Ordinal);
+
+        /// <summary>Registers handlers for honeypot names not yet registered (also after a settings reload).</summary>
+        private void RegisterHoneypots()
+        {
+            foreach (var name in _cfg.HoneypotEvents)
+            {
+                if (string.IsNullOrWhiteSpace(name) || !_honeypotsRegistered.Add(name)) continue;
+                var eventName = name;
+                EventHandlers[eventName] += new Action<Player>(p => OnHoneypot(p, eventName));
+            }
+        }
+
         private void OnHoneypot([FromSource] Player player, string eventName)
         {
+            // A name removed from the config in a live reload stays registered but goes quiet.
+            if (!_cfg.HoneypotEvents.Contains(eventName)) return;
             int id = ToId(player.Handle);
             if (id <= 0) return; // server-side TriggerEvent of the same name, not a client
             Punish(new Violation(id, "NET_HONEYPOT", ViolationSource.Server, new Dictionary<string, object?> { ["event"] = eventName }));

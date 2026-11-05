@@ -377,3 +377,58 @@ public class LedgerPersistenceTests
         Assert.Equal(0, ledger.ScoreOf(3, T0));
     }
 }
+
+public class LiveSettingsTests
+{
+    private static string ShippedConfig()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "resource", "jcks_anticheat", "config.json"))) dir = dir.Parent;
+        return File.ReadAllText(Path.Combine(dir!.FullName, "resource", "jcks_anticheat", "config.json"));
+    }
+
+    [Fact]
+    public void ShippedConfigIsValid() => Assert.Empty(AnticheatConfig.Parse(ShippedConfig()).Validate());
+
+    [Fact]
+    public void SerialisationRoundTrips()
+    {
+        var cfg = AnticheatConfig.Parse(ShippedConfig());
+        cfg.Scoring.SeverityOverrides["MOV_TELEPORT"] = 55;
+        cfg.Scoring.Ignore.Add("VEH_HANDLING");
+        cfg.Entities.AllowedPedModelNames = new List<string> { "mp_m_freemode_01" };
+        var again = AnticheatConfig.Parse(cfg.ToPrettyJson());
+        Assert.Equal(MiniJson.Serialize(cfg.ToJson()), MiniJson.Serialize(again.ToJson()));
+        Assert.Contains(Joaat.Hash("rhino"), again.Entities.BlacklistedModels);
+    }
+
+    [Fact]
+    public void CopyFromUpdatesNestedObjectsInPlace()
+    {
+        var live = AnticheatConfig.Parse("{}");
+        var scoringRef = live.Scoring;
+        var movementRef = live.Movement;
+        var ledger = new ViolationLedger(live.Scoring);
+
+        var edited = AnticheatConfig.Parse("{\"dryRun\":true,\"scoring\":{\"kickAt\":60,\"banAt\":90},\"movement\":{\"onFootMaxSpeed\":20}}");
+        live.CopyFrom(edited);
+
+        Assert.Same(scoringRef, live.Scoring);
+        Assert.Same(movementRef, live.Movement);
+        Assert.True(live.DryRun);
+        Assert.Equal(20f, movementRef.OnFootMaxSpeed);
+        // The ledger built before the reload sees the new thresholds.
+        var v = new Violation(1, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server);
+        ledger.Record(v, DateTime.UtcNow);
+        ledger.Record(v = new Violation(1, "WPN_EXPLOSIVE_AMMO", ViolationSource.Server), DateTime.UtcNow);
+        Assert.Equal(EnforcementAction.Ban, v.Action);
+    }
+
+    [Fact]
+    public void InvalidConfigIsRejectedWithReasons()
+    {
+        var ex = Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{\"scoring\":{\"kickAt\":200,\"banAt\":100}}"));
+        Assert.Contains("kickAt must be below", ex.Message);
+        Assert.Throws<FormatException>(() => AnticheatConfig.ParseValidated("{not json"));
+    }
+}

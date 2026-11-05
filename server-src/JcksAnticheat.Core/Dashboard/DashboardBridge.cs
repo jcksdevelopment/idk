@@ -23,6 +23,8 @@ namespace JcksAnticheat.Core.Dashboard
         /// <summary>For bans of players who already left: the identifiers the dashboard last saw.</summary>
         public List<string> Identifiers { get; set; } = new List<string>();
         public string? Name { get; set; }
+        /// <summary>For "config": the full settings JSON to validate, apply and save.</summary>
+        public string? Config { get; set; }
     }
 
     /// <summary>
@@ -126,6 +128,7 @@ namespace JcksAnticheat.Core.Dashboard
                             Actor = c.Str("actor"),
                             Identifiers = (c.Arr("identifiers") ?? new List<object?>()).OfType<string>().ToList(),
                             Name = c.Str("name"),
+                            Config = c.Str("config"),
                         });
                     }
                 }

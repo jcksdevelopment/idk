@@ -1,0 +1,179 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using JcksAnticheat.Core.Json;
+
+namespace JcksAnticheat.Core.Config
+{
+    /// <summary>Live settings support: serialise back to config.json, copy in place, validate.</summary>
+    public sealed partial class AnticheatConfig
+    {
+        /// <summary>The config as a JSON object, in exactly the shape Parse reads.</summary>
+        public Dictionary<string, object?> ToJson() => new Dictionary<string, object?>
+        {
+            ["dryRun"] = DryRun,
+            ["heartbeatIntervalMs"] = HeartbeatIntervalMs,
+            ["heartbeatMissingSeconds"] = HeartbeatMissingSeconds,
+            ["handshakeTimeoutSeconds"] = HandshakeTimeoutSeconds,
+            ["maxHealth"] = MaxHealth,
+            ["expectedDamageModifier"] = ExpectedDamageModifier,
+            ["eventBurst"] = EventBurst,
+            ["eventRefillPerSecond"] = EventRefillPerSecond,
+            ["floodDeniedPer10s"] = FloodDeniedPer10s,
+            ["adminAce"] = AdminAce.ToList(),
+            ["scoring"] = new Dictionary<string, object?>
+            {
+                ["screenshotAt"] = Scoring.ScreenshotAt,
+                ["kickAt"] = Scoring.KickAt,
+                ["banAt"] = Scoring.BanAt,
+                ["halfLifeMinutes"] = Scoring.HalfLifeMinutes,
+                ["severity"] = Scoring.SeverityOverrides.OrderBy(k => k.Key, StringComparer.Ordinal)
+                    .ToDictionary(k => k.Key, k => (object?)k.Value),
+                ["ignore"] = Sorted(Scoring.Ignore),
+                ["logOnly"] = Sorted(Scoring.LogOnly),
+                ["dropImmediately"] = Sorted(Scoring.DropImmediately),
+            },
+            ["movement"] = new Dictionary<string, object?>
+            {
+                ["onFootMaxSpeed"] = Movement.OnFootMaxSpeed, ["landMaxSpeed"] = Movement.LandMaxSpeed,
+                ["airMaxSpeed"] = Movement.AirMaxSpeed, ["boatMaxSpeed"] = Movement.BoatMaxSpeed,
+                ["teleportMinDistance"] = Movement.TeleportMinDistance, ["speedSlack"] = Movement.SpeedSlack,
+            },
+            ["damage"] = new Dictionary<string, object?>
+            {
+                ["bodyDamageMultiplier"] = Damage.BodyDamageMultiplier, ["headDamageMultiplier"] = Damage.HeadDamageMultiplier,
+                ["rangeMultiplier"] = Damage.RangeMultiplier, ["maxAimAngle"] = Damage.MaxAimAngle,
+                ["maxTrajectoryAngle"] = Damage.MaxTrajectoryAngle, ["headshotRatioMax"] = Damage.HeadshotRatioMax,
+            },
+            ["explosions"] = new Dictionary<string, object?>
+            {
+                ["blacklist"] = Explosions.Blacklist.OrderBy(x => x).Cast<object?>().ToList(),
+                ["maxPerSecond"] = Explosions.MaxPerSecond, ["maxPer10Seconds"] = Explosions.MaxPer10Seconds,
+            },
+            ["entities"] = new Dictionary<string, object?>
+            {
+                ["maxVehiclesPer10s"] = Entities.MaxVehiclesPer10s, ["maxEntitiesPer10s"] = Entities.MaxEntitiesPer10s,
+                ["allowedPedModels"] = Entities.AllowedPedModelNames.ToList(),
+            },
+            ["weaponBlacklist"] = WeaponBlacklist.ToList(),
+            ["vehicleBlacklist"] = VehicleBlacklist.ToList(),
+            ["objectBlacklist"] = ObjectBlacklist.ToList(),
+            ["honeypotEvents"] = HoneypotEvents.ToList(),
+            ["vision"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = Vision.Enabled, ["provider"] = Vision.Provider, ["endpoint"] = Vision.Endpoint,
+                ["model"] = Vision.Model, ["apiKeyEnv"] = Vision.ApiKeyEnv, ["effort"] = Vision.Effort,
+                ["flagConfidence"] = Vision.FlagConfidence, ["cooldownSeconds"] = Vision.CooldownSeconds,
+                ["maxStoredCaptures"] = Vision.MaxStoredCaptures,
+            },
+            ["dashboard"] = new Dictionary<string, object?>
+            {
+                ["enabled"] = Dashboard.Enabled, ["url"] = Dashboard.Url, ["secretEnv"] = Dashboard.SecretEnv, ["serverId"] = Dashboard.ServerId,
+            },
+        };
+
+        /// <summary>Human-editable JSON (2-space indent), as written to config.json.</summary>
+        public string ToPrettyJson() => Pretty(MiniJson.Serialize(ToJson()));
+
+        /// <summary>
+        /// Overwrites this instance's values with <paramref name="other"/>'s, recursing into the nested
+        /// policy objects instead of replacing them. Validators hold references to those objects, so a
+        /// reload takes effect immediately without rebuilding them (and without losing their state).
+        /// </summary>
+        public void CopyFrom(AnticheatConfig other) => CopyInto(this, other);
+
+        private static void CopyInto(object target, object source)
+        {
+            foreach (var prop in target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!prop.CanRead || !prop.CanWrite || prop.GetIndexParameters().Length > 0) continue;
+                var value = prop.GetValue(source);
+                var type = prop.PropertyType;
+                bool nestedPolicy = type.IsClass && type != typeof(string) && !typeof(IEnumerable).IsAssignableFrom(type)
+                                    && type.Namespace != null && type.Namespace.StartsWith("JcksAnticheat", StringComparison.Ordinal);
+                if (nestedPolicy && value != null && prop.GetValue(target) is { } existing) CopyInto(existing, value);
+                else prop.SetValue(target, value);
+            }
+        }
+
+        /// <summary>Problems that make a config unsafe to apply. Empty when valid.</summary>
+        public List<string> Validate()
+        {
+            var errors = new List<string>();
+            void Require(bool ok, string message) { if (!ok) errors.Add(message); }
+
+            Require(Scoring.ScreenshotAt > 0 && Scoring.KickAt > 0 && Scoring.BanAt > 0, "scoring thresholds must be positive");
+            Require(Scoring.ScreenshotAt <= Scoring.KickAt, "scoring.screenshotAt must not exceed scoring.kickAt");
+            Require(Scoring.KickAt < Scoring.BanAt, "scoring.kickAt must be below scoring.banAt");
+            Require(Scoring.HalfLifeMinutes > 0, "scoring.halfLifeMinutes must be positive");
+            Require(HeartbeatIntervalMs >= 1000 && HeartbeatIntervalMs <= 30000, "heartbeatIntervalMs must be 1000–30000");
+            Require(HeartbeatMissingSeconds * 1000 > HeartbeatIntervalMs * 2, "heartbeatMissingSeconds must cover at least two heartbeat intervals");
+            Require(HandshakeTimeoutSeconds >= 30, "handshakeTimeoutSeconds must be at least 30");
+            Require(MaxHealth >= 100 && MaxHealth <= 10000, "maxHealth must be 100–10000");
+            Require(EventBurst >= 5 && EventRefillPerSecond >= 1, "eventBurst ≥ 5 and eventRefillPerSecond ≥ 1");
+            Require(FloodDeniedPer10s >= 5, "floodDeniedPer10s must be at least 5");
+            Require(Movement.OnFootMaxSpeed > 0 && Movement.LandMaxSpeed > 0 && Movement.AirMaxSpeed > 0 && Movement.BoatMaxSpeed > 0, "movement speeds must be positive");
+            Require(Movement.SpeedSlack >= 1, "movement.speedSlack must be at least 1");
+            Require(Damage.BodyDamageMultiplier >= 1 && Damage.HeadDamageMultiplier >= 1 && Damage.RangeMultiplier >= 1, "damage multipliers must be at least 1");
+            Require(Damage.MaxAimAngle > 0 && Damage.MaxAimAngle <= 180 && Damage.MaxTrajectoryAngle > 0 && Damage.MaxTrajectoryAngle <= 90, "damage angles out of range");
+            Require(Damage.HeadshotRatioMax > 0 && Damage.HeadshotRatioMax <= 1, "damage.headshotRatioMax must be 0–1");
+            Require(Explosions.MaxPerSecond >= 1 && Explosions.MaxPer10Seconds >= Explosions.MaxPerSecond, "explosion limits invalid");
+            Require(Entities.MaxVehiclesPer10s >= 1 && Entities.MaxEntitiesPer10s >= Entities.MaxVehiclesPer10s, "entity limits invalid");
+            Require(Vision.Provider == "anthropic" || Vision.Provider == "openai-compatible", "vision.provider must be anthropic or openai-compatible");
+            Require(Vision.FlagConfidence >= 0 && Vision.FlagConfidence <= 1, "vision.flagConfidence must be 0–1");
+            Require(Uri.TryCreate(Vision.Endpoint, UriKind.Absolute, out _), "vision.endpoint must be an absolute URL");
+            Require(Uri.TryCreate(Dashboard.Url, UriKind.Absolute, out _), "dashboard.url must be an absolute URL");
+            Require(!string.IsNullOrWhiteSpace(Dashboard.ServerId), "dashboard.serverId is required");
+            Require(AdminAce.Count > 0, "adminAce needs at least one entry");
+            return errors;
+        }
+
+        /// <summary>Parses and validates; throws FormatException with every problem listed.</summary>
+        public static AnticheatConfig ParseValidated(string json)
+        {
+            var cfg = Parse(json);
+            var errors = cfg.Validate();
+            if (errors.Count > 0) throw new FormatException(string.Join("; ", errors));
+            return cfg;
+        }
+
+        private static List<object?> Sorted(IEnumerable<string> items) => items.OrderBy(x => x, StringComparer.Ordinal).Cast<object?>().ToList();
+
+        private static string Pretty(string json)
+        {
+            var sb = new StringBuilder(json.Length * 2);
+            int indent = 0;
+            bool inString = false;
+            for (int i = 0; i < json.Length; i++)
+            {
+                char c = json[i];
+                if (inString)
+                {
+                    sb.Append(c);
+                    if (c == '\\' && i + 1 < json.Length) sb.Append(json[++i]);
+                    else if (c == '"') inString = false;
+                    continue;
+                }
+                switch (c)
+                {
+                    case '"': inString = true; sb.Append(c); break;
+                    case '{':
+                    case '[':
+                        char close = c == '{' ? '}' : ']';
+                        if (i + 1 < json.Length && json[i + 1] == close) { sb.Append(c).Append(close); i++; break; }
+                        sb.Append(c).Append('\n').Append(' ', ++indent * 2);
+                        break;
+                    case '}':
+                    case ']': sb.Append('\n').Append(' ', --indent * 2).Append(c); break;
+                    case ',': sb.Append(",\n").Append(' ', indent * 2); break;
+                    case ':': sb.Append(": "); break;
+                    default: sb.Append(c); break;
+                }
+            }
+            return sb.Append('\n').ToString();
+        }
+    }
+}

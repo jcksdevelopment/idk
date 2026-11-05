@@ -127,6 +127,12 @@ namespace JcksAnticheat.Server
                     var p = Players[cmd.Player];
                     if (p != null) DropPlayer(p.Handle, "[JCKS Anticheat] Kicked by staff: " + (cmd.Reason ?? "no reason given"));
                     break;
+                case "config":
+                    Log("dashboard settings: " + SaveFromJson(cmd.Config, (cmd.Actor ?? "dashboard") + " (web)"));
+                    break;
+                case "reload":
+                    Log("dashboard reload: " + ReloadFromDisk((cmd.Actor ?? "dashboard") + " (web)"));
+                    break;
                 case "screenshot":
                     _lastCapture.TryRemove(cmd.Player, out _);
                     RequestScreenshot(cmd.Player, "manual request by " + (cmd.Actor ?? "staff"));

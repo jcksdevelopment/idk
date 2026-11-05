@@ -12,6 +12,7 @@ client_scripts {
   "client/main.lua",
   "client/heartbeat.lua",
   "client/screenshot.lua",
+  "client/panel.lua",
   "client/detections/*.lua",
 }
 
@@ -22,7 +23,7 @@ server_scripts {
 }
 
 ui_page "html/index.html"
-files { "html/index.html" }
+files { "html/index.html", "html/panel.js", "html/panel.css" }
 
 -- config.json is read by the server with LoadResourceFile; it is not sent to clients.
 

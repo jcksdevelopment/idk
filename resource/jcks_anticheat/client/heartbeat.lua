@@ -64,6 +64,19 @@ local function sendHeartbeat()
   session.key = C.sha256(session.key .. mac)
 end
 
+--- Settings the server can change live (/jac reload, in-game panel, web dashboard).
+local function applySettings(data)
+  S.server.weaponBlacklist = {}
+  for _, name in ipairs(data.wb or {}) do
+    S.server.weaponBlacklist[GetHashKey(name)] = name
+  end
+  S.server.maxHealth = data.mh or 200
+  S.server.damageModifier = data.dm or 1.0
+  S.server.ignore = {}
+  for _, code in ipairs(data.ig or {}) do S.server.ignore[code] = true end
+  if data.iv then session.interval = data.iv end
+end
+
 RegisterNetEvent("jcks_anticheat:init", function(payload)
   if S.ready then return end -- the handshake happens exactly once per session
   local data = json.decode(payload)
@@ -75,18 +88,19 @@ RegisterNetEvent("jcks_anticheat:init", function(payload)
   session.ackEvent = data.ack
   session.interval = data.iv or 5000
 
-  S.server.weaponBlacklist = {}
-  for _, name in ipairs(data.wb or {}) do
-    S.server.weaponBlacklist[GetHashKey(name)] = name
-  end
+  applySettings(data)
   S.server.resources = data.rs or {}
-  S.server.maxHealth = data.mh or 200
-  S.server.damageModifier = data.dm or 1.0
   S.server.graceEvent = data.gr
   S.server.ssRequest = data.sr
   S.server.ssUpload = data.su
-  S.server.ignore = {}
-  for _, code in ipairs(data.ig or {}) do S.server.ignore[code] = true end
+  S.server.panelEvent = data.po
+
+  if data.se then
+    RegisterNetEvent(data.se, function(raw)
+      local d = json.decode(raw)
+      if type(d) == "table" then applySettings(d) end
+    end)
+  end
 
   -- Resources the server starts after we joined; integrity.lua waits for these before flagging.
   if data.ru then
