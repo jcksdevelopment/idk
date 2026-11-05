@@ -157,6 +157,6 @@ export type Snapshot = {
 	ServerTime: number,
 }
 
-export type NotifyKind = "success" | "error" | "info" | "reveal" | "levelup" | "wheel"
+export type NotifyKind = "success" | "error" | "info" | "reveal" | "levelup" | "wheel" | "petreveal"
 
 return nil

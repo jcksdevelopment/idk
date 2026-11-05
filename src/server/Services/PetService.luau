@@ -95,7 +95,7 @@ local function onBuyEgg(player: Player, eggKey: string)
 	data.Pets[uid] = { Id = uid, PetId = def.Id, Equipped = equipped < Config.Pets.MaxEquipped, Stars = 0 }
 	data.Stats.PetsHatched += 1
 
-	SyncService.Notify(player, "levelup", "N_PetHatched", { "@pet:" .. def.Id })
+	SyncService.Notify(player, "petreveal", "N_PetHatched", { def.Id, "0" })
 	ProgressService.Record(player, data, "PetHatched", 1)
 	SyncService.MarkDirty(player)
 end
@@ -176,7 +176,7 @@ local function onFusePets(player: Player, uid: string)
 	data.Pets[candidates[1].Id] = nil
 	data.Pets[candidates[2].Id] = nil
 	base.Stars += 1
-	SyncService.Notify(player, "levelup", "N_PetFused", { "@pet:" .. base.PetId })
+	SyncService.Notify(player, "petreveal", "N_PetFused", { base.PetId, tostring(base.Stars) })
 	ProgressService.CheckAchievements(player, data)
 	SyncService.MarkDirty(player)
 end

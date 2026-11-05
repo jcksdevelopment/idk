@@ -13,6 +13,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Items)
 local Locale = require(Shared.Locale)
 local Net = require(Shared.Net)
+local Pets = require(Shared.Pets)
 
 local Controllers = script.Parent.Parent.Controllers
 local SoundController = require(Controllers.SoundController)
@@ -98,7 +99,8 @@ function Toast.Show(kind: string, text: string)
 	end)
 end
 
-function Toast.Reveal(rarity: string, templateId: string, shiny: boolean)
+-- iconOverride / nameOverride let pets reuse the same reveal popup.
+function Toast.Reveal(rarity: string, templateId: string, shiny: boolean, iconOverride: string?, nameOverride: string?)
 	local frame = reveal
 	if not frame then
 		return
@@ -120,7 +122,7 @@ function Toast.Reveal(rarity: string, templateId: string, shiny: boolean)
 	local rarityLabel = frame:FindFirstChild("Rarity") :: TextLabel?
 	local nameLabel = frame:FindFirstChild("ItemName") :: TextLabel?
 	if iconLabel then
-		iconLabel.Text = if template then template.Icon else "📦"
+		iconLabel.Text = iconOverride or (if template then template.Icon else "📦")
 	end
 	if rarityLabel then
 		local suffix = if rarity == "Legendary" then "!!!" elseif rarity == "Rare" then "!" else ""
@@ -128,7 +130,7 @@ function Toast.Reveal(rarity: string, templateId: string, shiny: boolean)
 		rarityLabel.TextColor3 = color
 	end
 	if nameLabel then
-		nameLabel.Text = Locale.ItemName(templateId)
+		nameLabel.Text = nameOverride or Locale.ItemName(templateId)
 	end
 
 	SoundController.Play("Reveal")
@@ -281,6 +283,16 @@ function Toast.Build(gui: ScreenGui)
 			if type(rarity) == "string" and type(templateId) == "string" then
 				Toast.Reveal(rarity, templateId, shiny == "1")
 				Toast.Show("success", Locale.T("N_Found", { "@item:" .. templateId }))
+			end
+			return
+		end
+		if kind == "petreveal" then
+			local def = if type(argList[1]) == "string" then Pets.Get(argList[1]) else nil
+			if def then
+				local stars = tonumber(argList[2]) or 0
+				local starsText = string.rep("⭐", stars)
+				Toast.Reveal(def.Rarity, "", stars >= 2, def.Icon .. starsText, Locale.T("Pet_" .. def.Id) .. " " .. starsText)
+				Toast.Show("success", Locale.T(key, { "@pet:" .. def.Id }))
 			end
 			return
 		end
