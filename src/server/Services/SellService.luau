@@ -62,6 +62,7 @@ local function onSellItem(player: Player, itemId: string)
 	ProgressService.Record(player, data, "CashEarned", earned)
 	SyncService.MarkDirty(player)
 	SyncService.Notify(player, "success", "N_Sold", { "@item:" .. item.TemplateId, Format.Cash(value) })
+	WorldService.Burst("SellCounter", Color3.fromRGB(255, 215, 60), 15)
 end
 
 local function onSellAllClean(player: Player)
@@ -104,6 +105,7 @@ local function onSellAllClean(player: Player)
 	ProgressService.Record(player, data, "CashEarned", earned)
 	SyncService.MarkDirty(player)
 	SyncService.Notify(player, "success", "N_SoldMany", { tostring(#toSell), Format.Cash(total) })
+	WorldService.Burst("SellCounter", Color3.fromRGB(255, 215, 60), 15 + #toSell * 3)
 end
 
 function SellService.Start()

@@ -133,6 +133,12 @@ local function onBuyCrate(player: Player, crateKey: string)
 	if item.Shiny then
 		SyncService.Notify(player, "levelup", "N_ShinyFound")
 	end
+	if item.Rarity == "Legendary" or item.Shiny then
+		SyncService.Broadcast(player, "info", "N_GlobalFind", { player.DisplayName, "@item:" .. item.TemplateId })
+		WorldService.Burst("Bazaar", Color3.fromRGB(255, 205, 40), 40)
+	else
+		WorldService.Burst("Bazaar", Color3.fromRGB(255, 140, 40), 12)
+	end
 
 	ProgressService.Discover(player, data, item)
 	ProgressService.AddXP(player, data, Config.Progression.XP.CrateOpened)

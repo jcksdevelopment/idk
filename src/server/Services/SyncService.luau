@@ -192,6 +192,16 @@ function SyncService.Notify(player: Player, kind: Types.NotifyKind, key: string,
 	Net.Get("Notify"):FireClient(player, kind, key, args or {})
 end
 
+-- Same notification to everyone except `except` (e.g. "X found a Legendary!").
+function SyncService.Broadcast(except: Player?, kind: Types.NotifyKind, key: string, args: { string }?)
+	local remote = Net.Get("Notify")
+	for _, other in Players:GetPlayers() do
+		if other ~= except then
+			remote:FireClient(other, kind, key, args or {})
+		end
+	end
+end
+
 function SyncService.OpenPanel(player: Player, panel: string)
 	Net.Get("OpenPanel"):FireClient(player, panel)
 end

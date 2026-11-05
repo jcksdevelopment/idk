@@ -530,6 +530,36 @@ local function setupLighting()
 	rays.Spread = 0.6
 end
 
+-- One-shot particle burst at a stall, visible to everyone (social proof:
+-- "people are trading here!"). Purely cosmetic.
+function WorldService.Burst(key: StationKey, color: Color3, count: number)
+	local folder = Workspace:FindFirstChild("Bazaar")
+	local model = folder and folder:FindFirstChild(key)
+	local counter = model and model:FindFirstChild("Counter")
+	if not counter then
+		return
+	end
+	local emitter = counter:FindFirstChild("Burst") :: ParticleEmitter?
+	if not emitter then
+		local newEmitter = Instance.new("ParticleEmitter")
+		newEmitter.Name = "Burst"
+		newEmitter.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+		newEmitter.Rate = 0
+		newEmitter.Lifetime = NumberRange.new(0.8, 1.4)
+		newEmitter.Speed = NumberRange.new(8, 14)
+		newEmitter.SpreadAngle = Vector2.new(60, 60)
+		newEmitter.EmissionDirection = Enum.NormalId.Top
+		newEmitter.Acceleration = Vector3.new(0, -20, 0)
+		newEmitter.Size = NumberSequence.new(0.6, 0)
+		newEmitter.LightEmission = 0.8
+		newEmitter.Parent = counter
+		emitter = newEmitter
+	end
+	local burst = emitter :: ParticleEmitter
+	burst.Color = ColorSequence.new(color)
+	burst:Emit(math.clamp(count, 1, 60))
+end
+
 function WorldService.IsNear(player: Player, key: StationKey): boolean
 	if not Config.Stations.RequireProximity then
 		return true
