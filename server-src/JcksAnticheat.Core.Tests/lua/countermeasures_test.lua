@@ -21,7 +21,11 @@ RemoveAllPedWeapons = rec("RemoveAllPedWeapons")
 
 dofile(root .. "/client/main.lua")
 dofile(root .. "/client/countermeasures.lua")
-local S = JcksAC
+local S
+for _, v in pairs(_G) do
+  if type(v) == "table" and type(rawget(v, "flag")) == "function" and type(rawget(v, "counter")) == "function" then S = v end
+end
+assert(S, "scanner table not found")
 local function expect(c, m) if not c then print("FAIL: " .. m .. " | " .. table.concat(log, " ")) os.exit(1) end end
 local function reset() log = {} S.lastFlagAt = {} end
 
