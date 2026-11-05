@@ -16,3 +16,6 @@ dashboard/.data/
 next-env.d.ts
 .env*.local
 .env
+
+# Packaged resource (scripts/package.sh)
+dist/

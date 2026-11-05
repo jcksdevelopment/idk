@@ -105,15 +105,15 @@ The API key is read from the environment variable named in `vision.apiKeyEnv` (d
 Requirements: OneSync enabled. `screenshot-basic` is optional and only needed for AI vision; it's
 the one external dependency.
 
-1. Build the server DLLs (this needs the .NET SDK 8 or newer; the repo uses 10):
+1. Build the ready-to-install package (needs the .NET SDK 8 or newer; the repo uses 10):
    ```bash
-   cd server-src
+   ./scripts/package.sh
    ```
-   ```bash
-   dotnet build Sentinel.Server -c Release
-   ```
-   This writes `Sentinel.Core.net.dll` and `Sentinel.Server.net.dll` into `resource/sentinel/server/`.
-2. Copy `resource/sentinel` into your server's `resources/` folder.
+   On Windows: `powershell -ExecutionPolicy Bypass -File scripts\package.ps1`. This checks the Lua,
+   builds the DLLs, runs the tests, and writes `dist/sentinel/` plus `dist/sentinel-<version>.zip`.
+   CI (`.github/workflows/build.yml`) does the same on every push and uploads `dist/sentinel/`
+   as the `sentinel-resource` artifact.
+2. Copy `dist/sentinel` into your server's `resources/` folder.
 3. Add to `server.cfg`, after your framework:
    ```
    ensure sentinel
@@ -226,6 +226,11 @@ cd dashboard && npm run lint && npm run build
 
 Verified in this repository:
 
+- The OneSync event field names the server reads (`weaponDamageEvent`, `explosionEvent`,
+  `clearPedTasksEvent`, `giveWeaponEvent` and the remove-weapon events) match the GTA V
+  definitions in FiveM's `ServerGameState.cpp`. FiveM passes the sender as a string net ID; the
+  handlers accept a string or a number.
+
 - Both C# projects build with no warnings and the 27 tests pass.
 - Every Lua file compiles with `luac5.4`. The heartbeat path runs for real under Lua 5.4 with
   stubbed FiveM natives.
@@ -238,8 +243,6 @@ Verified in this repository:
 Not verified, because no FiveM server or game client was available:
 
 - The client detection modules calling real game natives.
-- The OneSync event payload field names (`weaponDamageEvent`, `explosionEvent`, and others). These
-  follow the documented CitizenFX field names.
 - Resmon numbers.
 - `screenshot-basic` capture.
 - A real call to a vision API.
