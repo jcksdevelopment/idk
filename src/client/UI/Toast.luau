@@ -20,6 +20,7 @@ local SoundController = require(Controllers.SoundController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Icons = require(Shared.Icons)
 local Effects = require(script.Parent.Effects)
 local Theme = require(script.Parent.Theme)
 
@@ -100,7 +101,14 @@ function Toast.Show(kind: string, text: string)
 end
 
 -- iconOverride / nameOverride let pets reuse the same reveal popup.
-function Toast.Reveal(rarity: string, templateId: string, shiny: boolean, iconOverride: string?, nameOverride: string?)
+function Toast.Reveal(
+	rarity: string,
+	templateId: string,
+	shiny: boolean,
+	iconOverride: string?,
+	nameOverride: string?,
+	imageOverride: string?
+)
 	local frame = reveal
 	if not frame then
 		return
@@ -122,7 +130,8 @@ function Toast.Reveal(rarity: string, templateId: string, shiny: boolean, iconOv
 	local rarityLabel = frame:FindFirstChild("Rarity") :: TextLabel?
 	local nameLabel = frame:FindFirstChild("ItemName") :: TextLabel?
 	if iconLabel then
-		iconLabel.Text = iconOverride or (if template then template.Icon else "📦")
+		local image = imageOverride or (if template then Icons.Lookup("Items", templateId) else nil)
+		Icons.Set(iconLabel, image, iconOverride or (if template then template.Icon else "📦"))
 	end
 	if rarityLabel then
 		local suffix = if rarity == "Legendary" then "!!!" elseif rarity == "Rare" then "!" else ""
@@ -291,7 +300,14 @@ function Toast.Build(gui: ScreenGui)
 			if def then
 				local stars = tonumber(argList[2]) or 0
 				local starsText = string.rep("⭐", stars)
-				Toast.Reveal(def.Rarity, "", stars >= 2, def.Icon .. starsText, Locale.T("Pet_" .. def.Id) .. " " .. starsText)
+				Toast.Reveal(
+					def.Rarity,
+					"",
+					stars >= 2,
+					def.Icon .. starsText,
+					Locale.T("Pet_" .. def.Id) .. " " .. starsText,
+					Icons.Lookup("Pets", def.Id)
+				)
 				Toast.Show("success", Locale.T(key, { "@pet:" .. def.Id }))
 			end
 			return

@@ -7,7 +7,9 @@
 	scrubs it (the server caps how much that helps).
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SocialService = game:GetService("SocialService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
@@ -34,6 +36,10 @@ type Slot = { Button: TextButton, Label: TextLabel, Fill: Frame, ItemId: string?
 
 local function hasClaimableQuest(snapshot: Types.Snapshot): boolean
 	if snapshot.Daily.CanClaim then
+		return true
+	end
+	local weekly = snapshot.Weekly
+	if weekly and not weekly.Claimed and weekly.Progress >= weekly.Goal then
 		return true
 	end
 	for _, quest in snapshot.Quests do
@@ -268,6 +274,25 @@ function HUD.Build(gui: ScreenGui)
 	end)
 	Create.Aspect(1).Parent = petsButton
 
+	-- Invite friends (Roblox's own invite dialog; friends in the server give +10% money each)
+	local inviteButton = Create.Button({
+		Name = "InviteButton",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.985, 0.54),
+		Size = UDim2.fromScale(0.085, 0.15),
+		BackgroundColor3 = Theme.Colors.Info,
+		Text = "💌\n" .. Locale.T("HUD_Invite"),
+		MaxTextSize = 22,
+		Parent = root,
+	}, function()
+		local player = Players.LocalPlayer
+		local ok, canInvite = pcall(SocialService.CanSendGameInviteAsync, SocialService, player)
+		if ok and canInvite then
+			pcall(SocialService.PromptGameInvite, SocialService, player)
+		end
+	end)
+	Create.Aspect(1).Parent = inviteButton
+
 	local bonusChip = chip("Bonus", Theme.Colors.VIP, 4)
 	local bonusFrame = bonusChip.Parent :: Frame
 	bonusFrame.Size = UDim2.fromScale(0.18, 1)
@@ -413,11 +438,13 @@ function HUD.Build(gui: ScreenGui)
 			and snapshot.Level >= snapshot.RebirthLevel
 			and snapshot.Cash >= snapshot.RebirthCash
 
-		local permanent = (1 + snapshot.RebirthBonus) * (1 + snapshot.FriendsBonus)
+		local permanent = (1 + snapshot.RebirthBonus) * (1 + snapshot.FriendsBonus) * (1 + snapshot.SocialBonus)
 		bonusFrame.Visible = permanent > 1.001
 		if bonusFrame.Visible then
 			bonusChip.Text = Locale.T("HUD_Bonus", { (string.gsub(string.format("%.2f", permanent), "%.?0+$", "")) })
 				.. (if snapshot.FriendsBonus > 0 then " 👫" else "")
+				.. (if snapshot.InGroup then " 👥" else "")
+				.. (if snapshot.IsPremium then " ⭐" else "")
 		end
 
 		local step = snapshot.TutorialStep

@@ -25,6 +25,7 @@ local Locale = require(Shared.Locale)
 local Progression = require(Shared.Progression)
 local Types = require(Shared.Types)
 
+local BadgeAwardService = require(script.Parent.BadgeAwardService)
 local DataService = require(script.Parent.DataService)
 local ProgressViews = require(script.Parent.ProgressViews)
 local RemoteGuard = require(script.Parent.RemoteGuard)
@@ -94,6 +95,7 @@ checkAchievements = function(player: Player, data: Types.PlayerData)
 			if not data.Achievements[def.Id] and ProgressViews.StatValue(data, def.Stat) >= ProgressViews.AchievementGoal(def) then
 				unlockedAny = true
 				data.Achievements[def.Id] = true
+				BadgeAwardService.Award(player, def.Id)
 				ProgressService.GrantReward(player, data, def.Reward)
 				SyncService.Notify(player, "levelup", "N_Achievement", { "@ach:" .. def.Id, Locale.EncodeReward(def.Reward) })
 				if data.EquippedTitle == "" then
@@ -142,6 +144,19 @@ function ProgressService.EnsureQuests(player: Player, data: Types.PlayerData): b
 	return true
 end
 
+-- Weekly challenge: one per UTC week, deterministic per player + week.
+function ProgressService.EnsureWeekly(player: Player, data: Types.PlayerData): boolean
+	local week = ProgressViews.ThisWeek()
+	if data.Weekly.Week == week and ProgressViews.WeeklyDef(data.Weekly.Id) then
+		return false
+	end
+	local pool = Config.Weekly.Pool
+	local pick = pool[Random.new(player.UserId * 13 + week):NextInteger(1, #pool)]
+	data.Weekly = { Week = week, Id = pick.Id, Progress = 0, Claimed = false }
+	SyncService.MarkDirty(player)
+	return true
+end
+
 ------------------------------------------------------------------------
 -- Tutorial
 ------------------------------------------------------------------------
@@ -181,6 +196,15 @@ end
 -- Called by other services AFTER a validated action. Synchronous.
 function ProgressService.Record(player: Player, data: Types.PlayerData, event: string, amount: number)
 	ProgressService.EnsureQuests(player, data)
+	ProgressService.EnsureWeekly(player, data)
+	local weekly = data.Weekly
+	local weeklyDef = ProgressViews.WeeklyDef(weekly.Id)
+	if weeklyDef and weeklyDef.Event == event and not weekly.Claimed and weekly.Progress < weeklyDef.Goal then
+		weekly.Progress = math.min(weeklyDef.Goal, weekly.Progress + amount)
+		if weekly.Progress >= weeklyDef.Goal then
+			SyncService.Notify(player, "levelup", "N_WeeklyDone")
+		end
+	end
 	for _, entry in data.Quests.Entries do
 		local def = ProgressViews.QuestDef(entry.Id)
 		if def and def.Event == event and not entry.Claimed and entry.Progress < def.Goal then
@@ -293,6 +317,24 @@ local function onClaimCollection(player: Player, rarity: string)
 	data.CollectionClaims[rarity] = true
 	ProgressService.GrantReward(player, data, reward)
 	SyncService.Notify(player, "levelup", "N_RewardClaimed", { Locale.EncodeReward(reward) })
+end
+
+local function onClaimWeekly(player: Player)
+	local profile = DataService.GetProfile(player)
+	if not profile then
+		return
+	end
+	local data = profile.Data
+	ProgressService.EnsureWeekly(player, data)
+	local weekly = data.Weekly
+	local def = ProgressViews.WeeklyDef(weekly.Id)
+	if not def or weekly.Claimed or weekly.Progress < def.Goal then
+		return
+	end
+	-- Atomic: mark, then grant.
+	weekly.Claimed = true
+	ProgressService.GrantReward(player, data, def.Reward)
+	SyncService.Notify(player, "levelup", "N_RewardClaimed", { Locale.EncodeReward(def.Reward) })
 end
 
 local function onSkipTutorial(player: Player)
@@ -430,6 +472,7 @@ function ProgressService.Start()
 		Burst = 3,
 		Args = { V.OneOf(Items.Rarities :: any) },
 	}, onClaimCollection)
+	RemoteGuard.Bind("ClaimWeekly", { RatePerSecond = 1, Burst = 3, Args = {} }, onClaimWeekly)
 	RemoteGuard.Bind("SkipTutorial", { RatePerSecond = 0.5, Burst = 2, Args = {} }, onSkipTutorial)
 	RemoteGuard.Bind("SetSetting", {
 		RatePerSecond = 2,
@@ -462,7 +505,13 @@ function ProgressService.Start()
 
 	DataService.ProfileLoaded:Connect(function(player, profile)
 		ProgressService.EnsureQuests(player, profile.Data)
+		ProgressService.EnsureWeekly(player, profile.Data)
 		checkAchievements(player, profile.Data) -- catches stats from older saves
+		-- Badges: welcome + every trophy already earned (no-op if not configured).
+		BadgeAwardService.Award(player, "Welcome")
+		for id in profile.Data.Achievements do
+			BadgeAwardService.Award(player, id)
+		end
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		checkingAchievements[player] = nil
@@ -476,6 +525,7 @@ function ProgressService.Start()
 				local profile = DataService.GetProfile(player)
 				if profile then
 					ProgressService.EnsureQuests(player, profile.Data)
+					ProgressService.EnsureWeekly(player, profile.Data)
 				end
 			end
 		end

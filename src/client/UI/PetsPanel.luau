@@ -21,6 +21,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Icons = require(Shared.Icons)
 local Theme = require(script.Parent.Theme)
 local Toast = require(script.Parent.Toast)
 
@@ -86,13 +87,17 @@ function PetsPanel.Build(gui: ScreenGui)
 			BackgroundColor3 = Theme.Colors.PanelLight,
 			Parent = eggRow,
 		}, { Create.Corner(UDim.new(0.15, 0)), Create.Stroke(Theme.Colors.Accent, 2) })
-		Create.Label({
-			Text = egg.Icon,
-			Size = UDim2.fromScale(0.2, 0.8),
-			Position = UDim2.fromScale(0.02, 0.1),
-			MaxTextSize = 60,
-			Parent = card,
-		})
+		Icons.Apply(
+			Create.Label({
+				Text = egg.Icon,
+				Size = UDim2.fromScale(0.2, 0.8),
+				Position = UDim2.fromScale(0.02, 0.1),
+				MaxTextSize = 60,
+				Parent = card,
+			}),
+			"Eggs",
+			key
+		)
 		Create.Label({
 			Text = Locale.T("Egg_" .. key),
 			Font = Theme.Fonts.Display,
@@ -344,7 +349,7 @@ function PetsPanel.Build(gui: ScreenGui)
 				card.Frame.LayoutOrder = order
 				card.Stroke.Color = if pet.Equipped then Theme.Colors.Success else color
 				card.Stroke.Thickness = if pet.Equipped then 4 else 3
-				card.Icon.Text = def.Icon
+				Icons.Set(card.Icon, Icons.Lookup("Pets", def.Id), def.Icon)
 				local stars = pet.Stars or 0
 				card.Name.Text = Locale.T("Pet_" .. def.Id) .. (if stars > 0 then " " .. string.rep("⭐", stars) else "")
 				card.Fuse.Visible = stars < Config.Pets.MaxStars and (groupSize[def.Id .. ":" .. tostring(stars)] or 0) >= 3

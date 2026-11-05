@@ -22,6 +22,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Icons = require(Shared.Icons)
 local Theme = require(script.Parent.Theme)
 local Toast = require(script.Parent.Toast)
 
@@ -98,13 +99,17 @@ function BazaarPanel.Build(gui: ScreenGui)
 			})
 		end
 
-		Create.Label({
-			Text = crate.Icon,
-			Size = UDim2.fromScale(1, 0.24),
-			Position = UDim2.fromScale(0, 0.03),
-			MaxTextSize = 80,
-			Parent = card,
-		})
+		Icons.Apply(
+			Create.Label({
+				Text = crate.Icon,
+				Size = UDim2.fromScale(1, 0.24),
+				Position = UDim2.fromScale(0, 0.03),
+				MaxTextSize = 80,
+				Parent = card,
+			}),
+			"Crates",
+			key
+		)
 		Create.Label({
 			Text = Locale.T("Crate_" .. key),
 			Font = Theme.Fonts.Display,

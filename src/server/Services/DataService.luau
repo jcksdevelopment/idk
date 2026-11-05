@@ -132,6 +132,7 @@ local function newData(): Types.PlayerData
 		EquippedTitle = "",
 		RedeemedCodes = {},
 		LastFreeBoxDay = -1,
+		Weekly = { Week = -1, Id = "", Progress = 0, Claimed = false },
 		LastSpinAt = 0,
 		Pets = {},
 		Stats = {
@@ -274,6 +275,14 @@ local function sanitize(raw: any): Types.PlayerData
 		data.EquippedTitle = raw.EquippedTitle
 	end
 	data.LastFreeBoxDay = math.floor(readNumber(raw.LastFreeBoxDay, -1, -1, math.huge))
+	if type(raw.Weekly) == "table" and type(raw.Weekly.Id) == "string" then
+		data.Weekly = {
+			Week = math.floor(readNumber(raw.Weekly.Week, -1, -1, math.huge)),
+			Id = string.sub(raw.Weekly.Id, 1, 40),
+			Progress = readNumber(raw.Weekly.Progress, 0, 0, 1e12),
+			Claimed = raw.Weekly.Claimed == true,
+		}
+	end
 	readFlags(raw.RedeemedCodes, data.RedeemedCodes, function(key: string): boolean
 		return #key <= 24 -- keep history even for codes that were later removed
 	end)

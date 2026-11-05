@@ -22,6 +22,7 @@ local Config = require(Shared.Config)
 
 local DataService = require(script.Parent.DataService)
 local FriendService = require(script.Parent.FriendService)
+local SocialService = require(script.Parent.SocialService)
 local GamePassService = require(script.Parent.GamePassService)
 local ProgressViews = require(script.Parent.ProgressViews)
 local RemoteGuard = require(script.Parent.RemoteGuard)
@@ -120,6 +121,11 @@ local function buildSnapshot(player: Player, data: Types.PlayerData): Types.Snap
 		},
 		ActiveEvents = Events.ActiveList(),
 		FreeBoxAvailable = Config.FreeDailyBox.Enabled and data.LastFreeBoxDay ~= today,
+		Weekly = ProgressViews.Weekly(data),
+		SocialBonus = SocialService.Bonus(player),
+		InGroup = SocialService.InGroup(player),
+		GroupEnabled = SocialService.GroupEnabled(),
+		IsPremium = SocialService.IsPremium(player),
 		ServerTime = os.time(),
 	}
 end
@@ -208,6 +214,9 @@ function SyncService.Start()
 		SyncService.MarkDirty(player)
 	end)
 	GamePassService.Changed:Connect(function(player)
+		SyncService.MarkDirty(player)
+	end)
+	SocialService.Changed:Connect(function(player)
 		SyncService.MarkDirty(player)
 	end)
 	local lastFriendBonus: { [Player]: number } = {}

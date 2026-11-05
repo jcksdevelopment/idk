@@ -63,6 +63,34 @@ function ProgressViews.Daily(data: Types.PlayerData): Types.DailyView
 	}
 end
 
+local weeklyDefs: { [string]: any } = {}
+for _, def in Config.Weekly.Pool do
+	weeklyDefs[def.Id] = def
+end
+
+function ProgressViews.WeeklyDef(id: string): any
+	return weeklyDefs[id]
+end
+
+function ProgressViews.ThisWeek(): number
+	return ProgressViews.Today() // 7
+end
+
+function ProgressViews.Weekly(data: Types.PlayerData): Types.WeeklyView?
+	local def = weeklyDefs[data.Weekly.Id]
+	if not def then
+		return nil
+	end
+	return {
+		Id = def.Id,
+		Goal = def.Goal,
+		Progress = math.min(data.Weekly.Progress, def.Goal),
+		Claimed = data.Weekly.Claimed,
+		Reward = def.Reward,
+		ResetsAt = (data.Weekly.Week + 1) * 7 * 86400,
+	}
+end
+
 -- Current value of an achievement stat (all server-owned data).
 function ProgressViews.StatValue(data: Types.PlayerData, stat: string): number
 	if stat == "LifetimeEarned" then

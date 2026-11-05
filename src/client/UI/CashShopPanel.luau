@@ -21,6 +21,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Icons = require(Shared.Icons)
 local Theme = require(script.Parent.Theme)
 
 local CashShopPanel = {}
@@ -108,13 +109,17 @@ local function buildCard(
 	local description = Locale.T(prefix .. key .. "_Desc")
 
 	if wide then
-		Create.Label({
-			Text = display.Icon,
-			Size = UDim2.fromScale(0.24, 0.7),
-			Position = UDim2.fromScale(0.02, 0.15),
-			MaxTextSize = 80,
-			Parent = card,
-		})
+		Icons.Apply(
+			Create.Label({
+				Text = display.Icon,
+				Size = UDim2.fromScale(0.24, 0.7),
+				Position = UDim2.fromScale(0.02, 0.15),
+				MaxTextSize = 80,
+				Parent = card,
+			}),
+			"Shop",
+			key
+		)
 		Create.Label({
 			Text = title,
 			Font = Theme.Fonts.Display,
@@ -145,13 +150,17 @@ local function buildCard(
 		}, function() end)
 	end
 
-	Create.Label({
-		Text = display.Icon,
-		Size = UDim2.fromScale(1, 0.28),
-		Position = UDim2.fromScale(0, 0.12),
-		MaxTextSize = 80,
-		Parent = card,
-	})
+	Icons.Apply(
+		Create.Label({
+			Text = display.Icon,
+			Size = UDim2.fromScale(1, 0.28),
+			Position = UDim2.fromScale(0, 0.12),
+			MaxTextSize = 80,
+			Parent = card,
+		}),
+		"Shop",
+		key
+	)
 	Create.Label({
 		Text = title,
 		Font = Theme.Fonts.Display,

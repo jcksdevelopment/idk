@@ -136,16 +136,20 @@ function RewardsPanel.Build(gui: ScreenGui)
 		Size = UDim2.fromScale(0.94, 0.44),
 		BackgroundTransparency = 1,
 		Parent = panel,
-	}, { Create.List(Enum.FillDirection.Vertical, 0.04) })
+	}, { Create.List(Enum.FillDirection.Vertical, 0.025) })
 
+	-- Rows 1..PerDay are daily quests; the extra last row is the weekly challenge
+	-- (shown on top, gold).
+	local weeklyIndex = Config.Quests.PerDay + 1
 	local rows: { QuestRow } = {}
-	for index = 1, Config.Quests.PerDay do
+	for index = 1, weeklyIndex do
+		local isWeekly = index == weeklyIndex
 		local row: Frame = Create.new("Frame", {
-			LayoutOrder = index,
-			Size = UDim2.fromScale(1, 0.3),
-			BackgroundColor3 = Theme.Colors.PanelLight,
+			LayoutOrder = if isWeekly then 0 else index,
+			Size = UDim2.fromScale(1, 0.23),
+			BackgroundColor3 = if isWeekly then Theme.Colors.PanelDark else Theme.Colors.PanelLight,
 			Parent = questList,
-		}, { Create.Corner(UDim.new(0.25, 0)) })
+		}, { Create.Corner(UDim.new(0.25, 0)), Create.Stroke(if isWeekly then Theme.Colors.Accent else Theme.Colors.PanelLight, 2) })
 		local title = Create.Label({
 			Text = "",
 			TextXAlignment = Enum.TextXAlignment.Left,
@@ -172,7 +176,7 @@ function RewardsPanel.Build(gui: ScreenGui)
 		}, { Create.Corner(UDim.new(0.5, 0)) })
 		local fill: Frame = Create.new("Frame", {
 			Size = UDim2.fromScale(0, 1),
-			BackgroundColor3 = Theme.Colors.Pink,
+			BackgroundColor3 = if isWeekly then Theme.Colors.Accent else Theme.Colors.Pink,
 			Parent = bar,
 		}, { Create.Corner(UDim.new(0.5, 0)) })
 		local count = Create.Label({
@@ -191,6 +195,10 @@ function RewardsPanel.Build(gui: ScreenGui)
 			BackgroundColor3 = Theme.Colors.Success,
 			Parent = row,
 		}, function()
+			if isWeekly then
+				StateController.Fire("ClaimWeekly")
+				return
+			end
 			local snapshot = StateController.Current
 			local quest = snapshot and snapshot.Quests[index]
 			if quest then
@@ -205,6 +213,13 @@ function RewardsPanel.Build(gui: ScreenGui)
 	------------------------------------------------------------------
 	local function renderTimers(snapshot: Types.Snapshot)
 		local now = StateController.ServerNow()
+		local weekly = snapshot.Weekly
+		local weeklyRow = rows[weeklyIndex]
+		if weekly and weeklyRow then
+			weeklyRow.Reward.Text = Locale.RewardText(weekly.Reward)
+				.. "  ·  "
+				.. Locale.T("Rewards_Weekly", { Format.Duration(weekly.ResetsAt - now) })
+		end
 		questsTitle.Text = Locale.T("Rewards_Quests", { Format.Duration(snapshot.QuestsResetAt - now) })
 		if snapshot.Daily.CanClaim then
 			dailyButton.Text = Locale.T("Rewards_Claim")
@@ -224,10 +239,11 @@ function RewardsPanel.Build(gui: ScreenGui)
 			card.Stroke.Thickness = if isToday then 5 else 3
 		end
 		for index, row in rows do
-			local quest = snapshot.Quests[index]
+			local isWeekly = index == weeklyIndex
+			local quest: any = if isWeekly then snapshot.Weekly else snapshot.Quests[index]
 			row.Frame.Visible = quest ~= nil
 			if quest then
-				row.Title.Text = questTitle(quest)
+				row.Title.Text = (if isWeekly then "🏅 " else "") .. questTitle(quest)
 				row.Reward.Text = Locale.RewardText(quest.Reward)
 				row.Fill.Size = UDim2.fromScale(math.clamp(quest.Progress / math.max(quest.Goal, 1), 0, 1), 1)
 				row.Count.Text = string.format("%s / %s", Format.Commas(quest.Progress), Format.Commas(quest.Goal))

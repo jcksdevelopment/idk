@@ -94,3 +94,19 @@ do
 end
 
 StateController.Start() -- last: snapshots arrive once every view is listening
+
+-- Welcome back: open Quests & Gifts once if today's gift is waiting.
+task.spawn(function()
+	local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
+	if not Config.AutoOpenDailyGift then
+		return
+	end
+	while StateController.Current == nil do
+		task.wait(0.5)
+	end
+	task.wait(3.5) -- let the loading screen fade first
+	local snapshot = StateController.Current
+	if snapshot and snapshot.Daily.CanClaim and snapshot.TutorialStep >= Config.Tutorial.DoneStep and UIController.OpenName == nil then
+		UIController.Open("Rewards")
+	end
+end)

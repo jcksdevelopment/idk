@@ -19,6 +19,8 @@ local START_ORDER = {
 	"RemoteGuard",
 	"GamePassService",
 	"FriendService",
+	"SocialService",
+	"BadgeAwardService",
 	"SyncService",
 	"WorldService",
 	"ProgressService",

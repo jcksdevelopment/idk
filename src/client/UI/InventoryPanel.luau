@@ -25,6 +25,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Icons = require(Shared.Icons)
 local Effects = require(script.Parent.Effects)
 local Theme = require(script.Parent.Theme)
 local Toast = require(script.Parent.Toast)
@@ -192,7 +193,7 @@ local function updateCard(card: Card, item: Types.ItemView, order: number, token
 	card.Stroke.Color = if item.Shiny then Color3.new(1, 1, 1) else color
 	card.Stroke.Thickness = if item.Shiny then 4 else 3
 	card.Gradient.Enabled = item.Shiny
-	card.Icon.Text = item.Icon
+	Icons.Set(card.Icon, Icons.Lookup("Items", item.TemplateId), item.Icon)
 	card.Name.Text = Locale.ItemName(item.TemplateId)
 	card.Rarity.Text = (if item.Shiny then Locale.T("Shiny") .. " · " else "") .. string.upper(Locale.RarityName(item.Rarity))
 	card.Rarity.TextColor3 = color

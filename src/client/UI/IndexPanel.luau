@@ -20,6 +20,7 @@ local StateController = require(Controllers.StateController)
 local UIController = require(Controllers.UIController)
 
 local Create = require(script.Parent.Create)
+local Icons = require(Shared.Icons)
 local Theme = require(script.Parent.Theme)
 
 local IndexPanel = {}
@@ -255,7 +256,11 @@ function IndexPanel.Build(gui: ScreenGui)
 				if discovered then
 					found += 1
 				end
-				tile.Icon.Text = if discovered and template then template.Icon else "❓"
+				if discovered and template then
+					Icons.Set(tile.Icon, Icons.Lookup("Items", tile.TemplateId), template.Icon)
+				else
+					Icons.Set(tile.Icon, nil, "❓")
+				end
 				tile.Name.Text = if discovered then Locale.ItemName(tile.TemplateId) else "???"
 				tile.Gradient.Enabled = shiny
 				local rarityColor = if template then Items.RarityColors[template.Rarity] else Theme.Colors.Muted

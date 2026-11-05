@@ -12,7 +12,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
-local Pets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Pets"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Icons = require(Shared:WaitForChild("Icons"))
+local Pets = require(Shared:WaitForChild("Pets"))
 
 local PetController = {}
 
@@ -67,7 +69,7 @@ local function rebuild(player: Player)
 			local label = Instance.new("TextLabel")
 			label.Size = UDim2.fromScale(1, 1)
 			label.BackgroundTransparency = 1
-			label.Text = def.Icon .. string.rep("⭐", stars)
+			Icons.Set(label, Icons.Lookup("Pets", def.Id), def.Icon .. string.rep("⭐", stars))
 			label.TextScaled = true
 			label.Parent = gui
 			gui.Parent = p

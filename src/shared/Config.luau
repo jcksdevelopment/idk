@@ -390,4 +390,123 @@ Config.Leaderboard = {
 	Position = Vector3.new(44, 0, 8),
 }
 
+------------------------------------------------------------------------
+-- v5 Launch update: images, badges, social bonuses, weekly challenge
+------------------------------------------------------------------------
+
+-- Uploaded image asset ids ("rbxassetid://123456"). Leave "" to keep the
+-- emoji fallback. See docs/ART_PROMPTS.md for a ready prompt per image.
+Config.Images = {
+	Logo = "", -- loading screen logo (transparent PNG)
+	Items = {
+		RustySpoon = "", -- Rusty Spoon
+		CrackedTeapot = "", -- Cracked Teapot
+		MoldyBoot = "", -- Moldy Boot
+		BrokenRadio = "", -- Broken Radio
+		ChippedVase = "", -- Chipped Vase
+		BentBell = "", -- Bent Bicycle Bell
+		SqueakyDuck = "", -- Squeaky Rubber Duck
+		DentedKettle = "", -- Dented Kettle
+		VintageCamera = "", -- Vintage Camera
+		BrassCompass = "", -- Brass Compass
+		Gramophone = "", -- Old Gramophone
+		PocketWatch = "", -- Silver Pocket Watch
+		RetroConsole = "", -- Retro Game Console
+		RobotToy = "", -- Wind-up Robot
+		Telescope = "", -- Captain's Telescope
+		GrandfatherClock = "", -- Antique Grandfather Clock
+		GoldenSamovar = "", -- Golden Samovar
+		PersianRug = "", -- Ancient Persian Rug
+		JeweledMusicBox = "", -- Jeweled Music Box
+		DragonEgg = "", -- Dragon Egg Statue
+		PirateMap = "", -- Lost Pirate Map
+		GingerCookie = "", -- Gingerbread Cookie
+		WoollyMitten = "", -- Woolly Mitten
+		SnowGlobe = "", -- Snow Globe
+		IceSkates = "", -- Ice Skates
+		MagicSnowman = "", -- Magic Snowman
+		SantaSleigh = "", -- Santa's Sleigh
+		CandyPile = "", -- Pile of Candy
+		OldBroom = "", -- Witch's Old Broom
+		GhostLantern = "", -- Ghost Lantern
+		CatStatue = "", -- Lucky Cat Statue
+		PumpkinKing = "", -- Pumpkin King
+		MagicTopHat = "", -- Magician's Top Hat
+	},
+	Pets = {
+		Puppy = "",
+		Kitten = "",
+		Bunny = "",
+		Hamster = "",
+		Fox = "",
+		Owl = "",
+		Panda = "",
+		Dragon = "",
+		Unicorn = "",
+		Phoenix = "",
+	},
+	Crates = {
+		JunkBox = "",
+		AntiqueChest = "",
+		WinterGift = "",
+		SpookyBox = "",
+		RoyalTreasure = "",
+	},
+	Eggs = {
+		BasicEgg = "",
+		GoldenEgg = "",
+	},
+	Shop = {
+		VIPAutoCleaner = "",
+		ExtraCapacity = "",
+		InstantRepair = "",
+		MoneyBoost2x = "",
+		CashPackSmall = "",
+	},
+}
+
+-- Real Roblox badges (shown on the player's profile). Create them in the
+-- Creator Dashboard (Engagement -> Badges) and paste the Badge IDs. 0 = off.
+Config.Badges = {
+	Welcome = 0, -- awarded on first join
+	FirstFlip = 0,
+	Repair50 = 0,
+	Seller100 = 0,
+	Crates250 = 0,
+	Shiny1 = 0,
+	Legend10 = 0,
+	Level20 = 0,
+	Rich = 0,
+	Rebirth1 = 0,
+	Repair500 = 0,
+	Shiny10 = 0,
+	Collector = 0,
+	Seller1000 = 0,
+	FirstPet = 0,
+	PetMaster = 0,
+	StarTrainer = 0,
+	SuperStar = 0,
+	Festive = 0,
+}
+
+-- Social bonuses (server-verified, stack with everything else).
+Config.Social = {
+	GroupId = 0, -- your Roblox group id; members get GroupBonus. 0 = off
+	GroupBonus = 0.1, -- +10% sell money for group members
+	PremiumBonus = 0.1, -- +10% sell money for Roblox Premium members
+}
+
+-- One big challenge per UTC week (Monday-agnostic: week = day // 7).
+Config.Weekly = {
+	Pool = {
+		{ Id = "SellItems", Event = "ItemSold", Goal = 150, Reward = { Cash = 5000, Tokens = 3, XP = 150 } },
+		{ Id = "RepairItems", Event = "ItemRepaired", Goal = 100, Reward = { Cash = 5000, Tokens = 3, XP = 150 } },
+		{ Id = "OpenCrates", Event = "CrateOpened", Goal = 120, Reward = { Cash = 5000, Tokens = 3, XP = 150 } },
+		{ Id = "EarnCash", Event = "CashEarned", Goal = 60000, Reward = { Tokens = 5, BoostMinutes = 30, XP = 150 } },
+	},
+}
+
+-- On join, open the Quests & Gifts panel automatically when a gift is waiting.
+Config.AutoOpenDailyGift = true
+
 return Config

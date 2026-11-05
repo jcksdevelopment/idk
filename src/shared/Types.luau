@@ -50,6 +50,8 @@ export type Moderation = {
 
 export type QuestEntry = { Id: string, Progress: number, Claimed: boolean }
 export type QuestState = { Day: number, Entries: { QuestEntry } }
+export type WeeklyState = { Week: number, Id: string, Progress: number, Claimed: boolean }
+export type WeeklyView = { Id: string, Goal: number, Progress: number, Claimed: boolean, Reward: Reward, ResetsAt: number }
 export type DailyState = { Streak: number, LastClaimDay: number }
 export type Settings = { Sound: boolean, Music: boolean, Language: string }
 
@@ -75,6 +77,7 @@ export type PlayerData = {
 	EquippedTitle: string, -- achievement id, "" = none
 	RedeemedCodes: { [string]: boolean },
 	LastFreeBoxDay: number,
+	Weekly: WeeklyState,
 	LastSpinAt: number,
 	Pets: { [string]: PetRecord }, -- keyed by server GUID
 	Stats: PlayerStats,
@@ -154,6 +157,11 @@ export type Snapshot = {
 	PetBonuses: { [string]: number }, -- Money / Repair / XP / Luck totals from equipped pets
 	ActiveEvents: { string },
 	FreeBoxAvailable: boolean,
+	Weekly: WeeklyView?,
+	SocialBonus: number, -- group + Premium bonus, e.g. 0.2 = +20%
+	InGroup: boolean,
+	GroupEnabled: boolean,
+	IsPremium: boolean,
 	ServerTime: number,
 }
 

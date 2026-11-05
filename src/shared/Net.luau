@@ -39,6 +39,7 @@ Net.ClientToServer = table.freeze({
 	"SellPet", -- (petUid: string)
 	"FusePets", -- (petUid: string) 3 identical pets -> 1 with +1 star
 	"RedeemCode", -- (code: string)
+	"ClaimWeekly", -- ()
 })
 
 -- Server -> Client

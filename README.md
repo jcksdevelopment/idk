@@ -135,6 +135,12 @@ src/
 | ✨ Pet fusion | 3 identical pets (same kind and stars) fuse into one with +1 ⭐ (max 2): ×2 bonus at ⭐, ×4 at ⭐⭐. Team bonuses are capped (money +150%, XP +100%, shiny +7%, repair −50%) |
 | 🎃 Halloween (Oct 15 – Nov 2) | Spooky Box with 6 event items, friendly glowing pumpkins and purple lights; code `SPOOKY`. Test any day with `Config.Debug.ForceEvent = "Halloween"` in Studio |
 | 🎁 Free daily box | The first Mystery Junk Box each UTC day is free (badge on the Boxes button). Toggle in `Config.FreeDailyBox` |
+| 🏅 Weekly challenge | One big goal per UTC week (e.g. sell 150 items) with a large reward, shown on top of the Quests panel |
+| 🖼️ Real art | Paste uploaded image ids into `Config.Images` (items, pets, boxes, eggs, shop, logo) – the UI switches from emoji to images automatically. Prompts for every image: `docs/ART_PROMPTS.md` |
+| 🏅 Roblox badges | `Config.Badges`: Welcome + one per trophy, awarded automatically (also for trophies earned before you added the badge) |
+| 👥 Group & ⭐ Premium | `Config.Social.GroupId`: group members +10% money; Roblox Premium members +10% (server-checked) |
+| 💌 Invite friends | HUD button opens Roblox's invite dialog (friends in the server give the friend bonus) |
+| ⏳ Loading screen | Branded loader in `src/first` with logo (`Config.Images.Logo`) and tips in SK/EN |
 | 🎟️ Gift codes | Settings → type a code (e.g. `WELCOME`, `BAZAR`, `FLIPPER`; `SNOWDAY` only during Winter). Each works once per player. Add your own in `Config.Codes` |
 | 👫 Friend bonus | +10% money per Roblox friend in the same server (max +30%) |
 | 📊 Leaderboard | Top 10 lifetime earners on a board in the plaza (OrderedDataStore, refreshed every 2 min) |
@@ -155,6 +161,9 @@ Controls: **I** bag, **B** boxes, **Q** quests, **C** collection book, **T** tro
 
 ### Adding a language
 Add a table to `src/shared/Locale.luau`, register it in `tables`, and add its code to `Config.Languages`.
+
+## Launch & monetization
+See **[docs/LAUNCH_PLAN.md](docs/LAUNCH_PLAN.md)** (costs, publishing, pricing, marketing, 30-day plan) and **[docs/ART_PROMPTS.md](docs/ART_PROMPTS.md)** (image prompts for every asset).
 
 ## Development
 

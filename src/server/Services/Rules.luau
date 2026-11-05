@@ -14,6 +14,7 @@ local Progression = require(Shared.Progression)
 local Types = require(Shared.Types)
 local FriendService = require(script.Parent.FriendService)
 local GamePassService = require(script.Parent.GamePassService)
+local SocialService = require(script.Parent.SocialService)
 
 local Rules = {}
 
@@ -47,6 +48,7 @@ function Rules.MoneyMultiplier(player: Player, data: Types.PlayerData): number
 	multiplier *= 1 + Rules.RebirthBonus(data)
 	multiplier *= 1 + FriendService.Bonus(player)
 	multiplier *= 1 + Rules.PetBonus(data, "Money")
+	multiplier *= 1 + SocialService.Bonus(player)
 	return multiplier
 end
 
