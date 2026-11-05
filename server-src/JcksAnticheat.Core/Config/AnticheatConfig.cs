@@ -225,6 +225,7 @@ namespace JcksAnticheat.Core.Config
                 cfg.Damage.MaxAimAngle = (float)(dmg.Num("maxAimAngle") ?? cfg.Damage.MaxAimAngle);
                 cfg.Damage.MaxTrajectoryAngle = (float)(dmg.Num("maxTrajectoryAngle") ?? cfg.Damage.MaxTrajectoryAngle);
                 cfg.Damage.HeadshotRatioMax = dmg.Num("headshotRatioMax") ?? cfg.Damage.HeadshotRatioMax;
+                cfg.Damage.MaxKillsPer10s = (int)(dmg.Num("maxKillsPer10s") ?? cfg.Damage.MaxKillsPer10s);
                 cfg.Damage.AimAngleMinDistance = (float)(dmg.Num("aimAngleMinDistance") ?? cfg.Damage.AimAngleMinDistance);
                 cfg.Damage.RateMultiplier = (float)(dmg.Num("rateMultiplier") ?? cfg.Damage.RateMultiplier);
                 cfg.Damage.HeadshotSampleSize = (int)(dmg.Num("headshotSampleSize") ?? cfg.Damage.HeadshotSampleSize);

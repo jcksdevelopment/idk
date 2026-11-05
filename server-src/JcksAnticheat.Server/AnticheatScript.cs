@@ -39,6 +39,7 @@ namespace JcksAnticheat.Server
         private readonly PlayerStateValidator _state;
         private readonly StateConsistencyValidator _consistency = new StateConsistencyValidator();
         private readonly PlayerFlagsValidator _flags = new PlayerFlagsValidator();
+        private readonly MassKillTracker _massKills;
         private readonly BanStore _bans;
         private readonly ScreenshotAssembler _screenshots = new ScreenshotAssembler();
         private readonly AIVisionEvaluator _vision;
@@ -71,6 +72,7 @@ namespace JcksAnticheat.Server
             _heartbeats.HandshakeTimeout = TimeSpan.FromSeconds(_cfg.HandshakeTimeoutSeconds);
             _movement = new MovementValidator(_cfg.Movement);
             _damage = new DamageValidator(_cfg.Damage);
+            _massKills = new MassKillTracker(_cfg.Damage);
             _explosions = new ExplosionValidator(_cfg.Explosions);
             _entities = new EntityValidator(_cfg.Entities);
             _state = new PlayerStateValidator { MaxHealth = _cfg.MaxHealth };
@@ -123,6 +125,7 @@ namespace JcksAnticheat.Server
             EventHandlers["removeAllWeaponsEvent"] += new Action<object, object>((s, d) => OnForbiddenWeaponEvent(s, "removeAllWeaponsEvent"));
             EventHandlers["clearPedTasksEvent"] += new Action<object, object>(OnClearPedTasks);
             EventHandlers["givePedScriptedTaskEvent"] += new Action<object, object>(OnGivePedTask);
+            EventHandlers["onPedDeath"] += new Action<object, object, object>(OnPedDeath);
             EventHandlers["startProjectileEvent"] += new Action<object, object>(OnStartProjectile);
             EventHandlers["fireEvent"] += new Action<object, object>(OnFireEvent);
             EventHandlers["ptFxEvent"] += new Action<object, object>(OnPtfxEvent);
@@ -208,6 +211,7 @@ namespace JcksAnticheat.Server
             _entities.Forget(id);
             _state.Forget(id);
             _flags.Forget(id);
+            _massKills.Forget(id);
             _consistency.Forget(id);
             ForgetAntiDump(id);
             ForgetDeferred(id);
@@ -506,6 +510,18 @@ namespace JcksAnticheat.Server
                     ["target"] = NetworkGetEntityOwner(ped), ["immediately"] = Get(data, "immediately"),
                 }));
             }
+        }
+
+        private void OnPedDeath(object rawPed, object rawAttacker, object rawWeapon)
+        {
+            int ped = ToInt(rawPed), attacker = ToInt(rawAttacker);
+            if (ped == 0 || attacker == 0 || !IsPedAPlayer(ped)) return;
+            int killerPed = attacker;
+            if (GetEntityType(attacker) == (int)EntityKind.Vehicle) killerPed = GetPedInVehicleSeat(attacker, -1);
+            if (killerPed == 0 || !IsPedAPlayer(killerPed)) return;
+            int killer = NetworkGetEntityOwner(killerPed), victim = NetworkGetEntityOwner(ped);
+            var v = _massKills.RecordKill(killer, victim, unchecked((uint)ToLong(rawWeapon)), DateTime.UtcNow);
+            if (v != null) Punish(v);
         }
 
         private void OnGivePedTask(object sender, object rawData)

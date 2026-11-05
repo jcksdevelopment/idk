@@ -620,6 +620,15 @@
           "step": 0.01
         },
         {
+          "key": "damage.maxKillsPer10s",
+          "label": "Max player kills per 10 s",
+          "type": "number",
+          "min": 1,
+          "max": 200,
+          "step": 1,
+          "help": "More players killed by one player within 10 seconds raises WPN_MASS_KILL ('kill all' menus), whatever weapon or explosion was used. Uses the server's onPedDeath event, which needs a recent server artifact; on older artifacts this check stays silent."
+        },
+        {
           "key": "maxWeapons",
           "label": "Max weapons held at once",
           "type": "number",

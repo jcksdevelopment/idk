@@ -54,7 +54,7 @@ namespace JcksAnticheat.Core.Config
             {
                 ["bodyDamageMultiplier"] = Damage.BodyDamageMultiplier, ["headDamageMultiplier"] = Damage.HeadDamageMultiplier,
                 ["rangeMultiplier"] = Damage.RangeMultiplier, ["maxAimAngle"] = Damage.MaxAimAngle,
-                ["maxTrajectoryAngle"] = Damage.MaxTrajectoryAngle, ["headshotRatioMax"] = Damage.HeadshotRatioMax,
+                ["maxTrajectoryAngle"] = Damage.MaxTrajectoryAngle, ["headshotRatioMax"] = Damage.HeadshotRatioMax, ["maxKillsPer10s"] = Damage.MaxKillsPer10s,
                 ["aimAngleMinDistance"] = Damage.AimAngleMinDistance, ["rateMultiplier"] = Damage.RateMultiplier,
                 ["headshotSampleSize"] = Damage.HeadshotSampleSize, ["headshotMinDistance"] = Damage.HeadshotMinDistance,
             },
@@ -157,6 +157,7 @@ namespace JcksAnticheat.Core.Config
             Require(Damage.BodyDamageMultiplier >= 1 && Damage.HeadDamageMultiplier >= 1 && Damage.RangeMultiplier >= 1, "damage multipliers must be at least 1");
             Require(Damage.MaxAimAngle > 0 && Damage.MaxAimAngle <= 180 && Damage.MaxTrajectoryAngle > 0 && Damage.MaxTrajectoryAngle <= 90, "damage angles out of range");
             Require(Damage.HeadshotRatioMax > 0 && Damage.HeadshotRatioMax <= 1, "damage.headshotRatioMax must be 0–1");
+            Require(Damage.MaxKillsPer10s >= 1 && Damage.MaxKillsPer10s <= 200, "damage.maxKillsPer10s must be 1–200");
             Require(Explosions.MaxPerSecond >= 1 && Explosions.MaxPer10Seconds >= Explosions.MaxPerSecond, "explosion limits invalid");
             Require(Entities.MaxVehiclesPer10s >= 1 && Entities.MaxEntitiesPer10s >= Entities.MaxVehiclesPer10s, "entity limits invalid");
             Require(Entities.MaxAttachedToOthers >= 1 && Entities.MaxAttachedToOthers <= 100, "entities.maxAttachedToOthers must be 1–100");

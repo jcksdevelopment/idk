@@ -117,3 +117,27 @@ public class EntityScriptCheckTests
         Assert.Contains("ENT_UNKNOWN_SCRIPT", JcksAnticheat.Core.Config.AnticheatConfig.Parse("{}").Scoring.LogOnly);
     }
 }
+
+public class MassKillTests
+{
+    [Fact]
+    public void ManyKillsInTenSecondsAreReported()
+    {
+        var t = new MassKillTracker(new DamageLimits { MaxKillsPer10s = 3 });
+        var now = System.DateTime.UtcNow;
+        for (int i = 0; i < 3; i++) Assert.Null(t.RecordKill(1, 10 + i, 0u, now));
+        var v = t.RecordKill(1, 20, 0u, now);
+        Assert.NotNull(v);
+        Assert.Equal("WPN_MASS_KILL", v!.Code);
+        Assert.Null(t.RecordKill(2, 1, 0u, now));
+    }
+
+    [Fact]
+    public void KillsSpreadOutOrSelfKillsAreFine()
+    {
+        var t = new MassKillTracker(new DamageLimits { MaxKillsPer10s = 2 });
+        var now = System.DateTime.UtcNow;
+        for (int i = 0; i < 10; i++) Assert.Null(t.RecordKill(1, 5, 0u, now.AddSeconds(i * 6)));
+        for (int i = 0; i < 10; i++) Assert.Null(t.RecordKill(3, 3, 0u, now));
+    }
+}

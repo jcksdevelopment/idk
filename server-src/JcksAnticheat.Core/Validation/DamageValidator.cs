@@ -34,6 +34,28 @@ namespace JcksAnticheat.Core.Validation
         public int HeadshotSampleSize { get; set; } = 25;
         public double HeadshotRatioMax { get; set; } = 0.7;
         public float HeadshotMinDistance { get; set; } = 15f;
+        public int MaxKillsPer10s { get; set; } = 6;
+    }
+
+    public sealed class MassKillTracker
+    {
+        private readonly DamageLimits _limits;
+        private readonly SlidingCounter _kills = new SlidingCounter();
+
+        public MassKillTracker(DamageLimits limits) { _limits = limits; }
+
+        public Violation? RecordKill(int killer, int victim, uint weapon, DateTime now)
+        {
+            if (killer <= 0 || victim <= 0 || killer == victim) return null;
+            int n = _kills.Add(killer.ToString(), now, TimeSpan.FromSeconds(10));
+            if (n <= _limits.MaxKillsPer10s) return null;
+            return new Violation(killer, "WPN_MASS_KILL", ViolationSource.Server, new Dictionary<string, object?>
+            {
+                ["kills"] = n, ["weapon"] = weapon, ["serverObserved"] = true,
+            });
+        }
+
+        public void Forget(int player) => _kills.RemoveWhere(k => k == player.ToString());
     }
 
     public sealed class DamageValidator

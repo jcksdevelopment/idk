@@ -43,7 +43,7 @@ namespace JcksAnticheat.Core.Detection
             ["MOV_FREECAM"] = 25, ["MOV_NOCLIP_COLLISION"] = 40, ["MOV_NOCLIP_FLOAT"] = 35,
             ["MOV_NOCLIP_ZVEL"] = 35, ["MOV_TELEPORT"] = 40, ["MOV_BRING_ALL"] = 50, ["MOV_SPEED_VEH"] = 30,
 
-            ["WPN_BLACKLIST"] = 50, ["WPN_GIVE_EVENT"] = 50, ["WPN_DMG_MODIFIER"] = 40, ["WPN_RANGE"] = 25,
+            ["WPN_BLACKLIST"] = 50, ["WPN_GIVE_EVENT"] = 50, ["WPN_DMG_MODIFIER"] = 40, ["WPN_MASS_KILL"] = 45, ["WPN_RANGE"] = 25,
             ["WPN_AIM_ANGLE"] = 30, ["WPN_TRAJECTORY"] = 20, ["WPN_AIM_SNAP"] = 20, ["WPN_HEADSHOT_RATIO"] = 30, ["WPN_TRIGGERBOT"] = 15,
             ["WPN_RAPID_FIRE"] = 30, ["WPN_INFINITE_AMMO"] = 20, ["WPN_EXPLOSIVE_AMMO"] = 50,
             ["WPN_EXPLOSION_BLACKLIST"] = 50, ["WPN_EXPLOSION_BLAME"] = 35,

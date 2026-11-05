@@ -60,6 +60,7 @@ live in `config.json`, not in code. Codes in `scoring.dropImmediately` (default 
 | `WPN_FIRE_SPAM` | Fire spam | More than 10 fires in 10 s | S | `GameEventValidator` | 40 |
 | `WPN_GIVE_EVENT` | Give or strip weapons | `giveWeaponEvent`, `removeWeaponEvent` or `removeAllWeaponsEvent` from a client (always malicious under OneSync; cancelled) | S | `AnticheatScript.cs` | 50 |
 | `WPN_DMG_MODIFIER` | Damage multiplier | `GetPlayerWeaponDamageModifier`/`Melee…` ≠ `expectedDamageModifier` (client and server sync), `GetWeaponDamageModifier` on the weapon in hand above `client.weaponDamageModifierMax`, or `weaponDamageEvent.weaponDamage` > baseline×1.5 | C+S | `weapon.lua`, `PlayerFlagsValidator`, `DamageValidator` | 40 |
+| `WPN_MASS_KILL` | Kill-all / mass kill | One player kills more than `damage.maxKillsPer10s` players in 10 s (server `onPedDeath`, any weapon, explosion or vehicle) | S | `MassKillTracker` | 45 |
 | `WPN_RANGE` | Out-of-range hits | Hit distance > weapon effective range × 1.25 | S | `DamageValidator` | 25 |
 | `WPN_AIM_ANGLE` | Silent aim | Shooter's facing vs. vector to victim > 60° on a confirmed hit | S | `DamageValidator` | 30 |
 | `WPN_TRAJECTORY` | Magic bullet / fabricated hits | Reported bullet impact direction (`impactDirX/Y/Z`) deviates > 45° from the shooter→victim line | S | `DamageValidator` | 20 |
