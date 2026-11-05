@@ -51,8 +51,9 @@ local KIND = {
   SetVehicleNumberPlateText = "vehicle", SetVehicleColours = "vehicle", SetVehicleCustomPrimaryColour = "vehicle",
   GiveWeaponToPed = "weapons", SetPedAmmo = "weapons", SetPedInfiniteAmmoClip = "weapons",
   RenderScriptCams = "camera", SetCamActive = "camera", SetPedCanRagdoll = "ragdoll",
+  SetSeethrough = "vision", SetNightvision = "vision",
 }
-local SELF_ARG = { SetPlayerInvincible = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false }
+local SELF_ARG = { SetPlayerInvincible = true, NetworkSetInSpectatorMode = false, RenderScriptCams = false, SetCamActive = false, NetworkResurrectLocalPlayer = false, SetSeethrough = false, SetNightvision = false }
 
 local lastUse = {}
 local function aboutMe(name, first)
@@ -102,7 +103,7 @@ local GUARDED = {
   "NetworkResurrectLocalPlayer", "SetRunSprintMultiplierForPlayer", "SetSuperJumpThisFrame",
   "ClearPedTasksImmediately", "AttachEntityToEntity", "NetworkSetInSpectatorMode",
   "SetVehicleNumberPlateText", "SetVehicleColours", "SetVehicleCustomPrimaryColour",
-  "RenderScriptCams", "SetCamActive", "SetPedCanRagdoll",
+  "RenderScriptCams", "SetCamActive", "SetPedCanRagdoll", "SetSeethrough", "SetNightvision",
 }
 for i = 1, #GUARDED do guard(GUARDED[i]) end
 if Citizen and type(Citizen.InvokeNative) == "function" then

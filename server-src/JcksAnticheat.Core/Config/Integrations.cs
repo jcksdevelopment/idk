@@ -16,7 +16,7 @@ namespace JcksAnticheat.Core.Config
 
     public static class Behaviours
     {
-        public static readonly string[] All = { "heal", "armor", "godmode", "teleport", "invisible", "noclip", "spectate", "vehicle", "weapons", "camera", "ragdoll" };
+        public static readonly string[] All = { "heal", "armor", "godmode", "teleport", "invisible", "noclip", "spectate", "vehicle", "weapons", "camera", "ragdoll", "vision" };
         public static bool IsKnown(string b) => b == "*" || All.Contains(b);
     }
 

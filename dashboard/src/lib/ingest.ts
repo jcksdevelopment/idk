@@ -126,6 +126,22 @@ export function applyEvent(serverId: string, ev: Obj) {
       store.pushLog({ level: "warn", kind: "settings", text: `settings ${s.saved ? "saved" : "reloaded"} by ${str(s.actor)}` });
       break;
     }
+    case "backdoor_scan": {
+      const list = Array.isArray(data) ? data.map(obj) : [];
+      if (list.length === 0) {
+        store.pushLog({ level: "info", kind: "backdoor", text: "backdoor scan: no findings" });
+        break;
+      }
+      for (const f of list.slice(0, 200)) {
+        const sev = str(f.severity);
+        store.pushLog({
+          level: sev === "high" ? "crit" : sev === "medium" ? "warn" : "info",
+          kind: "backdoor",
+          text: `[${sev.toUpperCase()}] ${str(f.id)} ${str(f.resource)}/${str(f.file)}:${num(f.line)} ${str(f.rule)}: ${str(f.description)} > ${str(f.snippet)}`,
+        });
+      }
+      break;
+    }
     case "connection_rejected": {
       const c = obj(data);
       store.pushLog({ level: "warn", kind: "connect", text: `rejected banned connection ${str(c.name)} (ban ${str(c.banId)})` });

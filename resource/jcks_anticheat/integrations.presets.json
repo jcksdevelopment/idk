@@ -10,7 +10,8 @@
       "invisible",
       "spectate",
       "vehicle",
-      "camera"
+      "camera",
+      "vision"
     ],
     "vMenu": [
       "noclip",
@@ -22,7 +23,8 @@
       "spectate",
       "vehicle",
       "weapons",
-      "camera"
+      "camera",
+      "vision"
     ],
     "EasyAdmin": [
       "spectate",
@@ -39,7 +41,8 @@
       "spectate",
       "vehicle",
       "weapons",
-      "camera"
+      "camera",
+      "vision"
     ],
     "ps-adminmenu": [
       "noclip",
@@ -51,7 +54,8 @@
       "spectate",
       "vehicle",
       "weapons",
-      "camera"
+      "camera",
+      "vision"
     ],
     "esx_adminplus": [
       "noclip",
@@ -96,13 +100,15 @@
       "weapons",
       "armor",
       "vehicle",
-      "teleport"
+      "teleport",
+      "vision"
     ],
     "esx_policejob": [
       "weapons",
       "armor",
       "vehicle",
-      "teleport"
+      "teleport",
+      "vision"
     ],
     "qb-prison": [
       "teleport"

@@ -121,7 +121,7 @@
           "key": "integrations.resources",
           "label": "Trusted resources",
           "type": "maplist",
-          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, * (everything)."
+          "help": "One per line as resource=behaviour,behaviour. When that resource heals, teleports, etc. the player (seen by the shield), the matching detections are paused for a moment. Behaviours: heal, armor, godmode, teleport, invisible, noclip, spectate, vehicle, weapons, camera, ragdoll, vision, * (everything)."
         },
         {
           "key": "integrations.usePresets",
